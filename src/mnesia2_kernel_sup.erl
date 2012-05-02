@@ -56,7 +56,9 @@ worker_spec(Name, KillAfter, Modules) ->
 supervisor_spec(Name) ->
     {Name, {Name, start, []}, permanent, infinity, supervisor,
      [Name, supervisor]}.
-    
+
+-define(debug_shutdown, 1).
+
 -ifdef(debug_shutdown).
 supervisor_timeout(_KillAfter) -> timer:hours(24).
 -else.
