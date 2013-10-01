@@ -1924,7 +1924,7 @@ reply(ReplyTo, Reply) ->
 add_worker(Worker = #dump_log{}, State) ->
     InitBy = Worker#dump_log.initiated_by,
     Queue = State#state.dumper_queue,
-    Status =
+    {Status, Queue2} =
         case lists:keymember(InitBy, #dump_log.initiated_by, Queue) of
             true when Worker#dump_log.opt_reply_to == undefined ->
                 %% The same threshold has been exceeded again,
@@ -1933,12 +1933,11 @@ add_worker(Worker = #dump_log{}, State) ->
                 DetectedBy = {dump_log, InitBy},
                 Event = {mnesia2_overload, DetectedBy},
                 mnesia2_lib:report_system_event(Event),
-                true;
+                {true, Queue};
             _ ->
-                false
+    		{false, Queue ++ [Worker]}
         end,
     mnesia2_recover:log_dump_overload(Status),
-    Queue2 = Queue ++ [Worker],
     State2 = State#state{dumper_queue = Queue2},
     opt_start_worker(State2);
 add_worker(Worker = #schema_commit_lock{}, State) ->
