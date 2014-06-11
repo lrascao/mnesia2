@@ -679,7 +679,9 @@ env() ->
      pid_sort_order,
      no_table_loaders,
      dc_dump_limit,
-     send_compressed
+     send_compressed,
+     send_max_packets,
+     send_max_transfer_size
     ].
 
 default_env(access_module) ->
@@ -724,7 +726,11 @@ default_env(no_table_loaders) ->
 default_env(dc_dump_limit) ->
     4;
 default_env(send_compressed) ->
-    0.
+    0;
+default_env(send_max_packets) ->
+    20;
+default_env(send_max_transfer_size) ->
+    7500.
 
 check_type(Env, Val) ->
     try do_check_type(Env, Val)
@@ -768,7 +774,9 @@ do_check_type(pid_sort_order, "standard") -> standard;
 do_check_type(pid_sort_order, _) -> false;
 do_check_type(no_table_loaders, N) when is_integer(N), N > 0 -> N;
 do_check_type(dc_dump_limit,N) when is_number(N), N > 0 -> N;
-do_check_type(send_compressed, L) when is_integer(L), L >= 0, L =< 9 -> L.
+do_check_type(send_compressed, L) when is_integer(L), L >= 0, L =< 9 -> L;
+do_check_type(send_max_packets, L) when is_integer(L), L > 0 -> L;
+do_check_type(send_max_transfer_size, L) when is_integer(L), L > 0 -> L.
 
 bool(true) -> true;
 bool(false) -> false.
