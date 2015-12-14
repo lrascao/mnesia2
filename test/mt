@@ -24,13 +24,13 @@
 # Usage: mt <args to erlang startup script>
 
 #top=".."
-top="$ERL_TOP/lib/mnesia"
+top="."
 h=`hostname`
-p="-pa $top/examples -pa $top/ebin -pa $top/test -mnesia_test_verbose true"
+p="-pa $top/examples -pa $top/ebin -pa $top/test -mnesia2_test_verbose true"
 log=test_log$$
 latest=test_log_latest
 args=${1+"$@"}
-erlcmd="erl -sname a $p $args -mnesia_test_timeout"
+erlcmd="erl -sname a $p $args -mnesia2_test_timeout"
 erlcmd1="erl -sname a1 $p $args"
 erlcmd2="erl -sname a2 $p $args"
 
