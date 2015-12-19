@@ -619,8 +619,10 @@ dump_log_load_regulation(Config) when is_list(Config) ->
 
 max_wait_for_decision(doc) ->
     ["Provoke Mnesia2 to make a forced decision of the outome",
-     "of a heavy weight transaction."].
-     
+     "of a heavy weight transaction."];
+max_wait_for_decision(suite) -> [];
+max_wait_for_decision(_Config) -> ok.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 send_compressed(doc) -> [];

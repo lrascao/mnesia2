@@ -1316,33 +1316,32 @@ deactivate_debug_fun(FunId, _File, _Line) ->
     ok.
 
 eval_debug_fun(FunId, EvalContext, EvalFile, EvalLine) ->
-    try 
-	case ?ets_lookup(?DEBUG_TAB, FunId) of
-	    [] ->
-		ok;
+	case catch ?ets_lookup(?DEBUG_TAB, FunId) of
+        {'EXIT', {badarg, _}} ->
+            dbg_out("debug fun ~p in ets ~p does not exist, ignoring",
+                [FunId, ?DEBUG_TAB]),
+            ok;
+	    [] -> ok;
 	    [Info] ->
-		OldContext = Info#debug_info.context,
-		dbg_out("~s(~p): ~w "
-			"activated in ~s(~p)~n  "
-			"eval_debug_fun(~w, ~w)~n",
-			[filename:basename(EvalFile), EvalLine, Info#debug_info.id,
-			 filename:basename(Info#debug_info.file), Info#debug_info.line,
-			 OldContext, EvalContext]),
-		Fun = Info#debug_info.function,
-		NewContext = Fun(OldContext, EvalContext),
+    		OldContext = Info#debug_info.context,
+    		dbg_out("~s(~p): ~w "
+    			"activated in ~s(~p)~n  "
+    			"eval_debug_fun(~w, ~w)~n",
+    			[filename:basename(EvalFile), EvalLine, Info#debug_info.id,
+    			 filename:basename(Info#debug_info.file), Info#debug_info.line,
+    			 OldContext, EvalContext]),
+    		Fun = Info#debug_info.function,
+    		NewContext = Fun(OldContext, EvalContext),
 
-		case ?ets_lookup(?DEBUG_TAB, FunId) of
-		    [Info] when NewContext /= OldContext ->
-			NewInfo = Info#debug_info{context = NewContext},
-			update_debug_info(NewInfo);
-		    _ ->
-			ok
-		end
-	end
-    catch error ->
-	    ok
-    end.
-	
+    		case ?ets_lookup(?DEBUG_TAB, FunId) of
+    		    [Info] when NewContext /= OldContext ->
+    			NewInfo = Info#debug_info{context = NewContext},
+    			update_debug_info(NewInfo);
+    		    _ ->
+    			ok
+    		end
+	end.
+
 -ifdef(debug).
     is_debug_compiled() -> true.
 -else.

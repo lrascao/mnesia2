@@ -32,7 +32,7 @@ end_per_testcase(Func, Conf) ->
     mnesia2_test_lib:end_per_testcase(Func, Conf).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% suite() -> [{ct_hooks,[{ts_install_cth,[{nodenames,2}]}]}].
+suite() -> [{ct_hooks,[{ts_install_cth,[{nodenames,2}]}]}].
 
 
 %% Verify that Mnesia2 really is a distributed real-time DBMS.

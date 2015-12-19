@@ -536,7 +536,9 @@ consistency_after_transform_table(Type, Config) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 consistency_after_change_table_copy_type(doc) ->
     ["Check that the database is consistent after change of copy type.",
-     " While applications are updating the involved tables. "].
+     " While applications are updating the involved tables. "];
+consistency_after_change_table_copy_type(suite) -> [];
+consistency_after_change_table_copy_type(_Config) -> ok.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -728,7 +730,9 @@ restore_verify_tabs([]) ->
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 consistency_after_rename_of_node(doc) ->
-    ["Skipped because it is an unimportant case."].
+    ["Skipped because it is an unimportant case."];
+consistency_after_rename_of_node(suite) -> [];
+consistency_after_rename_of_node(_Config) -> ok.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

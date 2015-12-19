@@ -37,7 +37,8 @@ all: compile dialyze
 # =============================================================================
 
 compile:
-	- $(REBAR) skip_deps=true compile
+	- $(REBAR) compile
+	pushd examples; erlc *.erl; popd
 
 $(DEPS_PLT):
 	@echo Building $(DEPS_PLT)
@@ -59,6 +60,8 @@ typer:
 		  -r ./src
 
 test:
+	make clean
+	DEBUG_BUILD=true $(REBAR) compile
 	$(REBAR) ct
 
 clean:

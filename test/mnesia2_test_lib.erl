@@ -154,7 +154,12 @@ end_per_testcase(_Func, Config) ->
 %% Use ?log(Format, Args) as wrapper
 log(Format, Args, LongFile, Line) ->
     File = filename:basename(LongFile),
-    Format2 = lists:concat([File, "(", Line, ")", ": ", Format]),
+    {{Year, Month, Day}, {Hour, Min, Sec}} = calendar:universal_time(),
+    Timestamp = lists:flatten(
+                      io_lib:format(
+                        "~.4.0w-~.2.0w-~.2.0w ~.2.0w:~.2.0w:~.2.0w",
+                        [Year, Month, Day, Hour, Min, Sec] )),
+    Format2 = lists:concat(["[", Timestamp, "] ", File, "(", Line, ")", ": ", Format]),
     log(Format2, Args).
 
 log(Format, Args) ->

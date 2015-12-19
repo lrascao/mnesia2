@@ -122,41 +122,49 @@ init_per_group(_GroupName, Config) ->
 end_per_group(_GroupName, Config) ->
     Config.
 
+interrupted_before_create_ram(doc) -> [""];
 interrupted_before_create_ram(suite) -> [];
 interrupted_before_create_ram(Config) when is_list(Config) ->
     KillAt = {mnesia2_dumper, dump_schema_op},
     interrupted_create(Config, ram_copies, all, KillAt).
 
+interrupted_before_create_disc(doc) -> [""];
 interrupted_before_create_disc(suite) -> [];
 interrupted_before_create_disc(Config) when is_list(Config) ->
     KillAt = {mnesia2_dumper, dump_schema_op},
     interrupted_create(Config, disc_copies, all, KillAt).
 
+interrupted_before_create_do(doc) -> [""];
 interrupted_before_create_do(suite) -> [];
 interrupted_before_create_do(Config) when is_list(Config) ->
     KillAt = {mnesia2_dumper, dump_schema_op},
     interrupted_create(Config, disc_only_copies, all, KillAt).
 
+interrupted_before_create_nostore(doc) -> [""];
 interrupted_before_create_nostore(suite) -> [];
 interrupted_before_create_nostore(Config) when is_list(Config) ->
     KillAt = {mnesia2_dumper, dump_schema_op},
     interrupted_create(Config, ram_copies, one, KillAt).
 
+interrupted_after_create_ram(doc) -> [""];
 interrupted_after_create_ram(suite) -> [];
 interrupted_after_create_ram(Config) when is_list(Config) ->
     KillAt = {mnesia2_dumper, post_dump},
     interrupted_create(Config, ram_copies, all, KillAt).
 
+interrupted_after_create_disc(doc) -> [""];
 interrupted_after_create_disc(suite) -> [];
 interrupted_after_create_disc(Config) when is_list(Config) ->
     KillAt = {mnesia2_dumper, post_dump},
     interrupted_create(Config, disc_copies, all, KillAt).
 
+interrupted_after_create_do(doc) -> [""];
 interrupted_after_create_do(suite) -> [];
 interrupted_after_create_do(Config) when is_list(Config) ->
     KillAt = {mnesia2_dumper, post_dump},
     interrupted_create(Config, disc_only_copies, all, KillAt).
 
+interrupted_after_create_nostore(doc) -> [""];
 interrupted_after_create_nostore(suite) -> [];
 interrupted_after_create_nostore(Config) when is_list(Config) ->
     KillAt = {mnesia2_dumper, post_dump},
@@ -200,33 +208,43 @@ interrupted_create(Config, Type, Where, KillAt) ->
     verify_tab(Node1, Node2),
     ?verify_mnesia2(Nodes, []).
 
+interrupted_before_delete_ram(doc) -> [""];
 interrupted_before_delete_ram(suite) -> [];
 interrupted_before_delete_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
-    interrupted_delete(Config, ram_copies, Debug_Point).
+    interrupted_before_delete(Config, ram_copies, Debug_Point).
+
+interrupted_before_delete_disc(doc) -> [""];
 interrupted_before_delete_disc(suite) -> [];
 interrupted_before_delete_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
-    interrupted_delete(Config, disc_copies, Debug_Point).
+    interrupted_before_delete(Config, disc_copies, Debug_Point).
+
+interrupted_before_delete_do(doc) -> [""];
 interrupted_before_delete_do(suite) -> [];
 interrupted_before_delete_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
-    interrupted_delete(Config, disc_only_copies, Debug_Point).
+    interrupted_before_delete(Config, disc_only_copies, Debug_Point).
 
+interrupted_after_delete_ram(doc) -> [""];
 interrupted_after_delete_ram(suite) -> [];
 interrupted_after_delete_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
-    interrupted_delete(Config, ram_copies, Debug_Point).
+    interrupted_after_delete(Config, ram_copies, Debug_Point).
+
+interrupted_after_delete_disc(doc) -> [""];
 interrupted_after_delete_disc(suite) -> [];
 interrupted_after_delete_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
-    interrupted_delete(Config, disc_copies, Debug_Point).
+    interrupted_after_delete(Config, disc_copies, Debug_Point).
+
+interrupted_after_delete_do(doc) -> [""];
 interrupted_after_delete_do(suite) -> [];
 interrupted_after_delete_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
-    interrupted_delete(Config, disc_only_copies, Debug_Point).
+    interrupted_after_delete(Config, disc_only_copies, Debug_Point).
 
-interrupted_delete(Config, Type, KillAt) ->
+interrupted_before_delete(Config, Type, KillAt) ->
     ?is_debug_compiled,
     [Node1, Node2] = Nodes = ?acquire_nodes(2, [{tc_timeout, timer:seconds(30)} | Config]),
     Tab = itrpt,
@@ -234,10 +252,31 @@ interrupted_delete(Config, Type, KillAt) ->
     ?match(ok, mnesia2:dirty_write({Tab, before, 1})),
     {_Alive, Kill} = {Node1, Node2},
     {success, [A]} = ?start_activities([Kill]),
-    
+
     setup_dbgpoint(KillAt, Kill),
     A ! fun() -> mnesia2:delete_table(Tab) end,
-    
+
+    kill_at_debug(),
+    ?match([], mnesia2_test_lib:start_mnesia2([Node2], [])),
+    Bad = {badrpc, {'EXIT', {aborted,{no_exists, Tab, all}}}},
+    Node1TableInfo = rpc:call(Node1, mnesia2, table_info, [Tab, all]),
+    Node2TableInfo = rpc:call(Node2, mnesia2, table_info, [Tab, all]),
+    ?match([{access_mode,read_write}|_Rest], Node1TableInfo),
+    ?match([{access_mode,read_write}|_Rest], Node2TableInfo),
+    ?verify_mnesia2(Nodes, []).
+
+interrupted_after_delete(Config, Type, KillAt) ->
+    ?is_debug_compiled,
+    [Node1, Node2] = Nodes = ?acquire_nodes(2, [{tc_timeout, timer:seconds(30)} | Config]),
+    Tab = itrpt,
+    ?match({atomic, ok}, mnesia2:create_table(Tab, [{Type, [Node2]}])),
+    ?match(ok, mnesia2:dirty_write({Tab, before, 1})),
+    {_Alive, Kill} = {Node1, Node2},
+    {success, [A]} = ?start_activities([Kill]),
+
+    setup_dbgpoint(KillAt, Kill),
+    A ! fun() -> mnesia2:delete_table(Tab) end,
+
     kill_at_debug(),
     ?match([], mnesia2_test_lib:start_mnesia2([Node2], [])),
     Bad = {badrpc, {'EXIT', {aborted,{no_exists, Tab, all}}}},
@@ -245,35 +284,49 @@ interrupted_delete(Config, Type, KillAt) ->
     ?match(Bad, rpc:call(Node2, mnesia2, table_info, [Tab, all])),
     ?verify_mnesia2(Nodes, []).
 
+interrupted_before_add_ram(doc) -> [""];
 interrupted_before_add_ram(suite) -> [];
 interrupted_before_add_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_add(Config, ram_copies, kill_reciever, Debug_Point).
+
+interrupted_before_add_disc(doc) -> [""];
 interrupted_before_add_disc(suite) -> [];
 interrupted_before_add_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_add(Config, disc_copies, kill_reciever, Debug_Point).
+
+interrupted_before_add_do(doc) -> [""];
 interrupted_before_add_do(suite) -> [];
 interrupted_before_add_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_add(Config, disc_only_copies, kill_reciever, Debug_Point).
+
+interrupted_before_add_kill_copier(doc) -> [""];
 interrupted_before_add_kill_copier(suite) -> [];
 interrupted_before_add_kill_copier(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_add(Config, ram_copies, kill_copier, Debug_Point).
 
+interrupted_after_add_ram(doc) -> [""];
 interrupted_after_add_ram(suite) -> [];
 interrupted_after_add_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_add(Config, ram_copies, kill_reciever, Debug_Point).
+
+interrupted_after_add_disc(doc) -> [""];
 interrupted_after_add_disc(suite) -> [];
 interrupted_after_add_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_add(Config, disc_copies, kill_reciever, Debug_Point).
+
+interrupted_after_add_do(doc) -> [""];
 interrupted_after_add_do(suite) -> [];
 interrupted_after_add_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_add(Config, disc_only_copies, kill_reciever, Debug_Point).
+
+interrupted_after_add_kill_copier(doc) -> [""];
 interrupted_after_add_kill_copier(suite) -> [];
 interrupted_after_add_kill_copier(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
@@ -323,35 +376,49 @@ interrupted_add(Config, Type, Who, KillAt) ->
     verify_tab(Node1, Node2),
     ?verify_mnesia2(Nodes, []).
 
+interrupted_before_move_ram(doc) -> [""];
 interrupted_before_move_ram(suite) -> [];
 interrupted_before_move_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_move(Config, ram_copies, kill_reciever, Debug_Point).
+
+interrupted_before_move_disc(doc) -> [""];
 interrupted_before_move_disc(suite) -> [];
 interrupted_before_move_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_move(Config, disc_copies, kill_reciever, Debug_Point).
+
+interrupted_before_move_do(doc) -> [""];
 interrupted_before_move_do(suite) -> [];
 interrupted_before_move_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_move(Config, disc_only_copies, kill_reciever, Debug_Point).
+
+interrupted_before_move_kill_copier(doc) -> [""];
 interrupted_before_move_kill_copier(suite) -> [];
 interrupted_before_move_kill_copier(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_move(Config, ram_copies, kill_copier, Debug_Point).
 
+interrupted_after_move_ram(doc) -> [""];
 interrupted_after_move_ram(suite) -> [];
 interrupted_after_move_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_move(Config, ram_copies, kill_reciever, Debug_Point).
+
+interrupted_after_move_disc(doc) -> [""];
 interrupted_after_move_disc(suite) -> [];
 interrupted_after_move_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_move(Config, disc_copies, kill_reciever, Debug_Point).
+
+interrupted_after_move_do(doc) -> [""];
 interrupted_after_move_do(suite) -> [];
 interrupted_after_move_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_move(Config, disc_only_copies, kill_reciever, Debug_Point).
+
+interrupted_after_move_kill_copier(doc) -> [""];
 interrupted_after_move_kill_copier(suite) -> [];
 interrupted_after_move_kill_copier(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
@@ -404,35 +471,49 @@ interrupted_move(Config, Type, Who, KillAt) ->
     verify_tab(Node1, Node2),
     ?verify_mnesia2(Nodes, []).
 
+interrupted_before_delcopy_ram(doc) -> [""];
 interrupted_before_delcopy_ram(suite) -> [];
 interrupted_before_delcopy_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_delcopy(Config, ram_copies, kill_reciever, Debug_Point).
+
+interrupted_before_delcopy_disc(doc) -> [""];
 interrupted_before_delcopy_disc(suite) -> [];
 interrupted_before_delcopy_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_delcopy(Config, disc_copies, kill_reciever, Debug_Point).
+
+interrupted_before_delcopy_do(doc) -> [""];
 interrupted_before_delcopy_do(suite) -> [];
 interrupted_before_delcopy_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_delcopy(Config, disc_only_copies, kill_reciever, Debug_Point).
+
+interrupted_before_delcopy_kill_copier(doc) -> [""];
 interrupted_before_delcopy_kill_copier(suite) -> [];
 interrupted_before_delcopy_kill_copier(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_delcopy(Config, ram_copies, kill_copier, Debug_Point).
 
+interrupted_after_delcopy_ram(doc) -> [""];
 interrupted_after_delcopy_ram(suite) -> [];
 interrupted_after_delcopy_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_delcopy(Config, ram_copies, kill_reciever, Debug_Point).
+
+interrupted_after_delcopy_disc(doc) -> [""];
 interrupted_after_delcopy_disc(suite) -> [];
 interrupted_after_delcopy_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_delcopy(Config, disc_copies, kill_reciever, Debug_Point).
+
+interrupted_after_delcopy_do(doc) -> [""];
 interrupted_after_delcopy_do(suite) -> [];
 interrupted_after_delcopy_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_delcopy(Config, disc_only_copies, kill_reciever, Debug_Point).
+
+interrupted_after_delcopy_kill_copier(doc) -> [""];
 interrupted_after_delcopy_kill_copier(suite) -> [];
 interrupted_after_delcopy_kill_copier(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
@@ -483,27 +564,37 @@ interrupted_delcopy(Config, Type, Who, KillAt) ->
     verify_tab(Node1, Node2),
     ?verify_mnesia2(Nodes, []).
 
+interrupted_before_addindex_ram(doc) -> [""];
 interrupted_before_addindex_ram(suite) -> [];
 interrupted_before_addindex_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_addindex(Config, ram_copies, Debug_Point).
+
+interrupted_before_addindex_disc(doc) -> [""];
 interrupted_before_addindex_disc(suite) -> [];
 interrupted_before_addindex_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_addindex(Config, disc_copies, Debug_Point).
+
+interrupted_before_addindex_do(doc) -> [""];
 interrupted_before_addindex_do(suite) -> [];
 interrupted_before_addindex_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_addindex(Config, disc_only_copies, Debug_Point).
 
+interrupted_after_addindex_ram(doc) -> [""];
 interrupted_after_addindex_ram(suite) -> [];
 interrupted_after_addindex_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},
     interrupted_addindex(Config, ram_copies, Debug_Point).
+
+interrupted_after_addindex_disc(doc) -> [""];
 interrupted_after_addindex_disc(suite) -> [];
 interrupted_after_addindex_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_addindex(Config, disc_copies, Debug_Point).
+
+interrupted_after_addindex_do(doc) -> [""];
 interrupted_after_addindex_do(suite) -> [];
 interrupted_after_addindex_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
@@ -551,27 +642,37 @@ interrupted_addindex(Config, Type, KillAt) ->
 	   rpc:call(Node2, mnesia2, dirty_index_read, [itrpt, a, val])),
     ?verify_mnesia2(Nodes, []).
 
+interrupted_before_delindex_ram(doc) -> [""];
 interrupted_before_delindex_ram(suite) -> [];
 interrupted_before_delindex_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_delindex(Config, ram_copies, Debug_Point).
+
+interrupted_before_delindex_disc(doc) -> [""];
 interrupted_before_delindex_disc(suite) -> [];
 interrupted_before_delindex_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_delindex(Config, disc_copies, Debug_Point).
+
+interrupted_before_delindex_do(doc) -> [""];
 interrupted_before_delindex_do(suite) -> [];
 interrupted_before_delindex_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_delindex(Config, disc_only_copies, Debug_Point).
 
+interrupted_after_delindex_ram(doc) -> [""];
 interrupted_after_delindex_ram(suite) -> [];
 interrupted_after_delindex_ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_delindex(Config, ram_copies, Debug_Point).
+
+interrupted_after_delindex_disc(doc) -> [""];
 interrupted_after_delindex_disc(suite) -> [];
 interrupted_after_delindex_disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_delindex(Config, disc_copies, Debug_Point).
+
+interrupted_after_delindex_do(doc) -> [""];
 interrupted_after_delindex_do(suite) -> [];
 interrupted_after_delindex_do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
@@ -613,59 +714,85 @@ interrupted_delindex(Config, Type, KillAt) ->
     ?match([], rpc:call(Node2, mnesia2, table_info, [Tab, index])),
     ?verify_mnesia2(Nodes, []).
 
+interrupted_before_change_type_ram2disc(doc) -> [""];
 interrupted_before_change_type_ram2disc(suite) -> [];
 interrupted_before_change_type_ram2disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_change_type(Config, ram_copies, disc_copies, changer, Debug_Point).
+
+interrupted_before_change_type_ram2do(doc) -> [""];
 interrupted_before_change_type_ram2do(suite) -> [];
 interrupted_before_change_type_ram2do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_change_type(Config, ram_copies, disc_only_copies, changer, Debug_Point).    
+
+interrupted_before_change_type_disc2ram(doc) -> [""];
 interrupted_before_change_type_disc2ram(suite) -> [];
 interrupted_before_change_type_disc2ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_change_type(Config, disc_copies, ram_copies, changer, Debug_Point).
+
+interrupted_before_change_type_disc2do(doc) -> [""];
 interrupted_before_change_type_disc2do(suite) -> [];
 interrupted_before_change_type_disc2do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_change_type(Config, disc_copies, disc_only_copies, changer, Debug_Point).
+
+interrupted_before_change_type_do2ram(doc) -> [""];
 interrupted_before_change_type_do2ram(suite) -> [];
 interrupted_before_change_type_do2ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_change_type(Config, disc_only_copies, ram_copies, changer, Debug_Point).
+
+interrupted_before_change_type_do2disc(doc) -> [""];
 interrupted_before_change_type_do2disc(suite) -> [];
 interrupted_before_change_type_do2disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_change_type(Config, disc_only_copies, disc_copies, changer, Debug_Point).
+
+interrupted_before_change_type_other_node(doc) -> [""];
 interrupted_before_change_type_other_node(suite) -> [];
 interrupted_before_change_type_other_node(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, dump_schema_op},    
     interrupted_change_type(Config, ram_copies, disc_copies, the_other_one, Debug_Point).
 
+interrupted_after_change_type_ram2disc(doc) -> [""];
 interrupted_after_change_type_ram2disc(suite) -> [];
 interrupted_after_change_type_ram2disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_change_type(Config, ram_copies, disc_copies, changer, Debug_Point).
+
+interrupted_after_change_type_ram2do(doc) -> [""];
 interrupted_after_change_type_ram2do(suite) -> [];
 interrupted_after_change_type_ram2do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_change_type(Config, ram_copies, disc_only_copies, changer, Debug_Point).    
+
+interrupted_after_change_type_disc2ram(doc) -> [""];
 interrupted_after_change_type_disc2ram(suite) -> [];
 interrupted_after_change_type_disc2ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_change_type(Config, disc_copies, ram_copies, changer, Debug_Point).
+
+interrupted_after_change_type_disc2do(doc) -> [""];
 interrupted_after_change_type_disc2do(suite) -> [];
 interrupted_after_change_type_disc2do(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_change_type(Config, disc_copies, disc_only_copies, changer, Debug_Point).
+
+interrupted_after_change_type_do2ram(doc) -> [""];
 interrupted_after_change_type_do2ram(suite) -> [];
 interrupted_after_change_type_do2ram(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_change_type(Config, disc_only_copies, ram_copies, changer, Debug_Point).
+
+interrupted_after_change_type_do2disc(doc) -> [""];
 interrupted_after_change_type_do2disc(suite) -> [];
 interrupted_after_change_type_do2disc(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
     interrupted_change_type(Config, disc_only_copies, disc_copies, changer, Debug_Point).
+
+interrupted_after_change_type_other_node(doc) -> [""];
 interrupted_after_change_type_other_node(suite) -> [];
 interrupted_after_change_type_other_node(Config) when is_list(Config) ->
     Debug_Point = {mnesia2_dumper, post_dump},    
@@ -693,11 +820,13 @@ interrupted_change_type(Config, FromType, ToType, Who, KillAt) ->
     ?match(ToType, rpc:call(Node2, mnesia2, table_info, [Tab, storage_type])),
     ?verify_mnesia2(Nodes, []).
 
+interrupted_before_change_schema_type(doc) -> [""];
 interrupted_before_change_schema_type(suite) ->     [];
 interrupted_before_change_schema_type(Config) when is_list(Config) ->
     KillAt = {mnesia2_dumper, dump_schema_op},
     interrupted_change_schema_type(Config, KillAt).
 
+interrupted_after_change_schema_type(doc) -> [""];
 interrupted_after_change_schema_type(suite) ->     [];
 interrupted_after_change_schema_type(Config) when is_list(Config) ->
     KillAt = {mnesia2_dumper, post_dump},
@@ -774,7 +903,9 @@ kill_at_debug() ->
     %% Wait till it's killed
     receive 
 	{fun_done, Node} -> 
-	    ?match([], mnesia2_test_lib:kill_mnesia2([Node]))
+	    ?match([], mnesia2_test_lib:kill_mnesia2([Node]));
+  {Pid, {atomic,ok}} ->
+      ?match([], mnesia2_test_lib:kill_mnesia2([node(Pid)]))
     after 
 	timer:minutes(1) -> ?error("Timeout in kill_at_debug", [])
     end.

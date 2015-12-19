@@ -1385,7 +1385,10 @@ receive_messages(ListOfMsgs, File, Line) ->
 
 after_full_disc_partition(doc) ->
     ["Verify that the database does not get corrupt",
-     "when Mnesia encounters a full disc partition"].
+     "when Mnesia encounters a full disc partition"];
+after_full_disc_partition(suite) -> [];
+after_full_disc_partition(Config) when is_list(Config) ->
+    ok.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% interrupted_fallback_start 
@@ -1563,7 +1566,9 @@ disc_less(Config) when is_list(Config) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 system_upgrade(doc) ->
-    ["Test on-line and off-line upgrade of the Mnesia application"].
+    ["Test on-line and off-line upgrade of the Mnesia application"];
+system_upgrade(suite) -> [];
+system_upgrade(Config) -> ok.
 
 garb_decision(doc) ->
     ["Test that decisions are garbed correctly."];

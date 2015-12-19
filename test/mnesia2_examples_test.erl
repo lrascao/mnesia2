@@ -62,7 +62,9 @@ bup(Config) when is_list(Config) ->
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 company(doc) ->
-    ["Run the company examples in company.erl and company_o.erl"].
+    ["Run the company examples in company.erl and company_o.erl"];
+company(suite) -> [];
+company(Config) when is_list(Config) -> ok.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

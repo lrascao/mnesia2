@@ -545,12 +545,13 @@ late_load_transforms_into_disc_load(Config) when is_list(Config) ->
     %% kill mnesia2 on node1
     mnesia2_test_lib:kill_mnesia2([Node1]),    
     %% wait a while, so  that mnesia2 is really down 
-    timer:sleep(timer:seconds(1)), 
+    timer:sleep(timer:seconds(3)),
 
     ?match(ok, rpc:call(Node2, mnesia2, dirty_write, [{Tab, 222, 815}])),
 
     %% start mnesia2 on node1
     ?match(ok,mnesia2:start()),
+    timer:sleep(timer:seconds(3)),
     ?match(yes, mnesia2:force_load_table(Tab)),
     ?match(ok, mnesia2:wait_for_tables([Tab],timer:seconds(30))),
     
@@ -697,18 +698,17 @@ force_load_when_someone_has_decided_to_load(doc) ->
      "Start N1 and N2, replicate table, kill in N1, N2 order. Start N2 ",
      "and start N1 before N2 has really loaded the table but after N2 has ",
      "decided to load it."];
-
 force_load_when_someone_has_decided_to_load(suite) -> [];
 force_load_when_someone_has_decided_to_load(Config) when is_list(Config) ->
     ?is_debug_compiled,
-    
-    [Node1, Node2] = Nodes = ?acquire_nodes(2, Config),   
-    {success, [A, B]} = ?start_activities(Nodes),        
+
+    [Node1, Node2] = Nodes = ?acquire_nodes(2, Config),
+    {success, [A, B]} = ?start_activities(Nodes),
     ?match(Node1, node(A)), %% Just to check :)
     ?match(Node2, node(B)),
 
     Tab = late_load_table,
-    Def = [{attributes, [key, value]}, {disc_copies, Nodes}],  
+    Def = [{attributes, [key, value]}, {disc_copies, Nodes}],
 
     ?match({atomic, ok}, mnesia2:create_table(Tab, Def)),
     ?match(ok, mnesia2:dirty_write({Tab, 111, 4711})),
@@ -717,43 +717,43 @@ force_load_when_someone_has_decided_to_load(Config) when is_list(Config) ->
     Self = self(),
     DebugId = {mnesia2_controller, late_disc_load},
     DebugFun = fun(PrevContext, EvalContext) ->
-		       ?verbose("interrupt late disc load,
+               ?verbose("interrupt late disc load,
                              pid ~p  #~p ~n context ~p ~n",
-			    [self(),PrevContext,EvalContext]),
-		       Self ! {self(), fun_in_postion},
-		       wait_for_signal(),
-		       ?verbose("interrupt late disc load - continues ~n",[]),
-		       ?deactivate_debug_fun(DebugId),
-		       PrevContext+1
-	       end,
- 
+                [self(),PrevContext,EvalContext]),
+               Self ! {self(), fun_in_position},
+               wait_for_signal(),
+               ?verbose("interrupt late disc load - continues ~n",[]),
+               ?deactivate_debug_fun(DebugId),
+               PrevContext+1
+           end,
+
     %% kill mnesia2 on node1
     mnesia2_test_lib:kill_mnesia2([Node1]),
-    %% wait a while, so  that mnesia2 is really down 
-    timer:sleep(timer:seconds(1)), 
+    %% wait a while, so  that mnesia2 is really down
+    timer:sleep(timer:seconds(1)),
 
     ?match(ok, rpc:call(Node2, mnesia2, dirty_write, [{Tab, 222, 815}])),
     %% kill mnesia2 on node2
     mnesia2_test_lib:kill_mnesia2([Node2]),
-    %% wait a while, so that mnesia2 is really down 
-    timer:sleep(timer:seconds(1)), 
+    %% wait a while, so that mnesia2 is really down
+    timer:sleep(timer:seconds(1)),
 
     ?remote_activate_debug_fun(Node2,DebugId, DebugFun, 1),
 
-    B ! fun() -> mnesia2:start() end,    
-    [{mnesia2_Pid, fun_in_postion}] = receive_messages([fun_in_postion]),    
-    
+    B ! fun() -> mnesia2:start() end,
+    [{Mnesia2Pid, fun_in_position}] = receive_messages([fun_in_position]),
+
     %% start mnesia2 on node1
-    A ! fun() -> mnesia2:start() end, 
+    A ! fun() -> mnesia2:start() end,
     ?match_receive(timeout),
-% Got some problem with this testcase when we modified mnesia2 init 
+% Got some problem with this testcase when we modified mnesia2 init
 % These test cases are very implementation dependent!
 %    A ! fun() -> mnesia2:wait_for_tables([Tab], 3000) end,
 %    ?match_receive({A, {timeout, [Tab]}}),
     A ! fun() -> mnesia2:force_load_table(Tab) end,
     ?match_receive(timeout),
 
-    mnesia2_Pid ! continue,
+    Mnesia2Pid ! continue,
     ?match_receive({B, ok}),
     ?match_receive({A, ok}),
     ?match_receive({A, yes}),
