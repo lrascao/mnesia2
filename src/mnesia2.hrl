@@ -60,8 +60,8 @@
          level = 1}).     %% transaction level
 
 %% TODO OTP18
--define(unique_cookie, {{erlang:monotonic_time() + erlang:time_offset(),
-			 erlang:unique_integer(),1},
+-define(unique_cookie, {{mnesia2_time:monotonic_time() + mnesia2_time:time_offset(),
+			 mnesia2_time:unique_integer(),1},
 			node()}).
 % -define(unique_cookie, {erlang:now(), node()}).
 

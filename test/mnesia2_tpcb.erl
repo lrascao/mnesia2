@@ -164,7 +164,7 @@
 -record(history,
 	{
 	 history_id  = {0, 0}, % {DriverId, DriverLocalHistoryid}
-	 time_stamp  = erlang:system_time(),  % Time point during active transaction
+	 time_stamp  = mnesia2_time:system_time(),  % Time point during active transaction
 	 branch_id   = 0,      % Branch associated with teller
 	 teller_id   = 0,      % Teller invlolved in transaction
 	 account_id  = 0,      % Account updated by transaction
@@ -757,7 +757,7 @@ reporter_init(Starter, RC) ->
 		     replica_type = Type
 		    },
     Drivers = start_drivers(RC, TC),
-    Now = erlang:monotonic_time(),
+    Now = mnesia2_time:monotonic_time(),
     State = #reporter_state{driver_pids = Drivers,
 			    run_config = RC,
 			    starter_pid = Starter,
@@ -895,7 +895,7 @@ add_time(Acc, New) ->
 -define(AVOID_DIV_ZERO(_What_), try (_What_) catch _:_ -> 0 end).
 
 show_report(State) ->
-    Now    = erlang:timestamp(),
+    Now    = mnesia2_time:timestamp(),
     Iters  = State#reporter_state.n_iters,
     Cfg    = State#reporter_state.run_config,
     Time   = State#reporter_state.curr,
@@ -990,11 +990,16 @@ alloc_local_branches([BranchId | Tail], Specs, OrphanBranches) ->
     end;
 alloc_local_branches([], Specs, OrphanBranches) ->
     {Specs, OrphanBranches}.
-    
+
 driver_init(DS, AllBranches) ->
     Seed = case (DS#driver_state.run_config)#run_config.seed of
-	       undefined -> rand:seed(exsplus);
-	       ExpSeed -> rand:seed(ExpSeed)
+	       undefined ->
+                Seed0 = {erlang:phash2([node()]),
+                         mnesia2_time:monotonic_time(),
+                         mnesia2_time:unique_integer()},
+                random:seed(Seed0),
+                Seed0;
+	       ExpSeed -> random:seed(ExpSeed)
     end,
 
     DS2 =
@@ -1050,7 +1055,7 @@ calc_trans(DS) ->
 %% Generate teller_id, account_id and delta
 %% Time the TPC-B transaction
 time_trans(DS) ->
-    {Random, NewSeed} = rand:uniform_s(DS#driver_state.seed),
+    Random = random:uniform(),
 
     TC = DS#driver_state.tab_config,
     RC = DS#driver_state.run_config,
@@ -1060,7 +1065,7 @@ time_trans(DS) ->
 
     case Res of
 	AccountBal when is_integer(AccountBal) ->
-	    {Time, DS#driver_state{seed = NewSeed}};
+	    {Time, DS};
 	Other ->
 	    exit({crash, Other, Args, Random, DS})
     end.

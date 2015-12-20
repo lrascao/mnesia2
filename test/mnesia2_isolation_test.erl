@@ -1128,7 +1128,7 @@ update_shared(Tab, Me, Acc) ->
 	    case mnesia2:transaction(Update) of
 		{atomic, {ok,Term,W2}} ->
 		    io:format("~p:~p:(~p,~p) ~w@~w~n",
-			      [erlang:unique_integer([monotonic,positive]),
+			      [mnesia2_time:unique_integer([monotonic,positive]),
 			       node(),Me,Acc,Term,W2]),
 		    update_shared(Tab, Me, Acc+1);
 		Else -> 

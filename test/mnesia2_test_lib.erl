@@ -243,7 +243,7 @@ slave_start_link() ->
 
 slave_start_link(Node) ->
     [Local, Host] = node_to_name_and_host(Node),
-    Count = erlang:unique_integer([positive]),
+    Count = mnesia2_time:unique_integer([positive]),
     List = [Local, "_", Count],
     Name = list_to_atom(lists:concat(List)),
     slave_start_link(list_to_atom(Host), Name).

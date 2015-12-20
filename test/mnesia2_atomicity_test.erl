@@ -557,7 +557,7 @@ start_lock_waiter(BlockOpA, BlockOpB, Config) ->
     ?verify_mnesia2([N1], [N2]).
 
 mk_tab_name(Prefix) ->
-    Count = erlang:unique_integer([monotonic,positive]),
+    Count = mnesia2_time:unique_integer([monotonic,positive]),
     list_to_atom(lists:concat([Prefix , '_', Count])).
 
 lock_waiter_fun(Op, TabName, Val) ->

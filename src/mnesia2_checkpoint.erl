@@ -69,7 +69,7 @@
 -import(mnesia2_lib, [add/2, del/2, set/2, unset/1]).
 -import(mnesia2_lib, [dbg_out/2]).
 
--record(checkpoint_args, {name = {erlang:unique_integer([positive]), node()},
+-record(checkpoint_args, {name = {mnesia2_time:unique_integer([positive]), node()},
 			  allow_remote = true,
 			  ram_overrides_dump = false,
 			  nodes = [],

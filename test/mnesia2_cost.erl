@@ -108,11 +108,11 @@ run(What, OtherInfo, Ops, F) ->
     run(t, What, OtherInfo, Ops, F).
 
 run(How, What, OtherInfo, Ops, F) ->
-    T1 = erlang:monotonic_time(),
+    T1 = mnesia2_time:monotonic_time(),
     statistics(runtime),
     do_times(How, ?TIMES, F),
     {_, RunTime} = statistics(runtime),
-    T2 = erlang:monotonic_time(),
+    T2 = mnesia2_time:monotonic_time(),
     RealTime = subtr(T1, T2),
     report(How, What, OtherInfo, Ops, RunTime, RealTime).
 

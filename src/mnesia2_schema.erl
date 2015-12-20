@@ -263,7 +263,7 @@ incr_version(Cs) ->
             [] -> {Major + 1, 0};    % All replicas are active
             _ -> {Major, Minor + 1}  % Some replicas are inactive
         end,
-    Cs#cstruct{version = {V, {node(), erlang:timestamp()}}}.
+    Cs#cstruct{version = {V, {node(), mnesia2_time:timestamp()}}}.
 
 %% Returns table name
 insert_cstruct(Tid, Cs, KeepWhereabouts) ->

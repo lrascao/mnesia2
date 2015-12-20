@@ -236,7 +236,7 @@ report_fatal(Format, Args, BinaryCore, CoreDumped) ->
     end.
 
 core_file(CoreDir,BinaryCore,Format,Args) ->
-    Integers = tuple_to_list(erlang:timestamp()),
+    Integers = tuple_to_list(mnesia2_time:timestamp()),
     Fun = fun(I) when I < 10 -> ["_0",I];
 	     (I) -> ["_",I]
 	  end,

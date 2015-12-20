@@ -365,7 +365,7 @@ create_schema(_Ns, Reason) ->
     {error, Reason}.
 
 mk_str() ->
-    Now = integer_to_list(erlang:unique_integer([positive])),
+    Now = integer_to_list(mnesia2_time:unique_integer([positive])),
     lists:concat([node()] ++ Now ++ ".TMP").
 
 make_initial_backup(Ns, Opaque, Mod) ->

@@ -925,9 +925,9 @@ random_time(Retries, _Counter0) ->
     case get(random_seed) of
 	undefined ->
         %% TODO OTP18
-	    _ = random:seed(erlang:unique_integer(),
-			    erlang:monotonic_time(),
-			    erlang:unique_integer()),
+	    _ = random:seed(mnesia2_time:unique_integer(),
+			    mnesia2_time:monotonic_time(),
+			    mnesia2_time:unique_integer()),
         % {X, Y, Z} = erlang:now(), %% time()
         % _ = random:seed(X, Y, Z),
 	    Time = Dup + random:uniform(MaxIntv),
