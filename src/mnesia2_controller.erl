@@ -1096,6 +1096,7 @@ handle_cast({adopt_orphans, Node, Tabs}, State) ->
 	    mnesia2_recover:log_mnesia2_up(Node),
 	    verbose("Logging mnesia2_up ~w~n",[Node]),
 	    mnesia2_lib:report_system_event({mnesia2_up, Node}),
+	    mnesia2_tm:mnesia2_up(Node),
 	    %% Load orphan tables
 	    LocalTabs = val({schema, local_tables}) -- [schema],
 	    Nodes = val({current, db_nodes}),
