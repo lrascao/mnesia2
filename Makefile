@@ -60,7 +60,7 @@ dialyze: $(DEPS_PLT) compile
 		-Wrace_conditions \
 		-Wunderspecs \
 		--plt $(DEPS_PLT) \
-		ebin
+		ebin | grep -vf .dialyzerignore
 
 typer:
 	typer --plt $(DEPS_PLT) \
