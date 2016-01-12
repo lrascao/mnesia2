@@ -40,6 +40,9 @@ compile:
 	- $(REBAR) compile
 	pushd examples; erlc *.erl; popd
 
+debug:
+	DEBUG_BUILD=true $(REBAR) compile
+
 $(DEPS_PLT):
 	@echo Building $(DEPS_PLT)
 	- dialyzer --build_plt \
@@ -59,25 +62,18 @@ typer:
 		  -pa deps/erlcloud \
 		  -r ./src
 
-test:
-	make clean
-	DEBUG_BUILD=true $(REBAR) compile
+test: clean debug
+	@rm -rf ${CT_LOG}
+	@find src -type f -name *.erl -exec cp {} ebin \;
+	@find test -type f -name *.erl -exec cp {} ebin \;
 	$(REBAR) ct
+	@find ebin -type f -name "*.erl" -exec rm {} \;
 
 clean:
 	- $(REBAR) skip_deps=true clean
 
 distclean: clean
 	- rm -rf $(DEPS_PLT)
-	- rm -rvf deps
-	- rm -rvf _rel
+	- rm -rvf ebin
 
 rebuild: distclean deps compile dialyze
-
-help:
-	@echo "usage examples:"
-	@echo " using custom overlay vars:"
-	@echo "		OVERLAY_CONFIG=config/overlays/live/vars.config make tar"
-	@echo " or predefined rules:"
-	@echo "		make {environment}/{platform} (eg. make staging/mobile, dev/reward-callback)"
-	@echo ""
