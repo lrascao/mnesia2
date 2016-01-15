@@ -141,11 +141,13 @@
 
 %% included for test server compatibility
 %% assume that all test cases only takes Config as sole argument
-init_per_testcase(_Func, Config) ->
+init_per_testcase(Func, Config) ->
+    ct:print(default, 50, "starting test case: ~p", [Func]),
     global:register_name(mnesia2_global_logger, group_leader()),
     Config.
 
-end_per_testcase(_Func, Config) ->
+end_per_testcase(Func, Config) ->
+    ct:print(default, 50, "ending test case: ~p", [Func]),
     global:unregister_name(mnesia2_global_logger),
     %% Nodes = select_nodes(all, Config, ?FILE, ?LINE),
     %% rpc:multicall(Nodes, mnesia2, lkill, []),
@@ -566,7 +568,7 @@ transaction(Coordinator, MaxRetries) ->
 pick_msg() ->
     receive
 	Message -> Message
-    after 4000 -> timeout
+    after 60000 -> timeout
     end.
 
 start_activities(Nodes) ->

@@ -21,18 +21,18 @@ DEPS=erts kernel stdlib
 # =============================================================================
 # Verify that the programs we need to run are installed on this system
 # =============================================================================
-REBAR=$(shell which rebar)
-# REBAR=./rebar
+# REBAR=$(shell which rebar)
+REBAR=./rebar
 ifeq ($(REBAR),)
 $(error "Rebar not available on this system")
 endif
 
 .PHONY: all compile clean dialyze typer distclean \
-  rebuild test help
+  rebuild test travis_test help
 
 all: compile dialyze
 
-travis: dialyze test
+travis: light-test
 
 # =============================================================================
 # Rules to build the system
@@ -40,7 +40,7 @@ travis: dialyze test
 
 compile:
 	- $(REBAR) compile
-	pushd examples; erlc *.erl; popd
+	cd examples; erlc *.erl; cd ..
 
 debug:
 	DEBUG_BUILD=true $(REBAR) compile
@@ -68,7 +68,14 @@ test: clean debug
 	@rm -rf ${CT_LOG}
 	@find src -type f -name *.erl -exec cp {} ebin \;
 	@find test -type f -name *.erl -exec cp {} ebin \;
-	$(REBAR) ct
+	$(REBAR) ct -v 3
+	@find ebin -type f -name "*.erl" -exec rm {} \;
+
+light-test: clean debug
+	@rm -rf ${CT_LOG}
+	@find src -type f -name *.erl -exec cp {} ebin \;
+	@find test -type f -name *.erl -exec cp {} ebin \;
+	LIGHT_TEST=true $(REBAR) ct -v 3
 	@find ebin -type f -name "*.erl" -exec rm {} \;
 
 clean:

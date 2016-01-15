@@ -765,17 +765,17 @@ del_table(CallFrom, DelNode, [Node1, Node2, Node3]) ->
     Pid1 ! {self(), quit}, R1 = 
 	receive {Pid1, Res1} -> Res1
 	after 
-	    5000 -> io:format("~p~n",[process_info(Pid1)]),error 
+	    60000 -> io:format("~p~n",[process_info(Pid1)]),error 
 	end,
     Pid2 ! {self(), quit}, R2 = 
 	receive {Pid2, Res2} -> Res2 
 	after 
-	    5000 -> error 
+	    60000 -> error 
 	end,
     Pid3 ! {self(), quit}, R3 = 
 	receive {Pid3, Res3} -> Res3 
 	after 
-	    5000 -> error 
+	    60000 -> error 
 	end,
     verify_oids(Tab, Node1, Node2, Node3, R1, R2, R3),
     ?verify_mnesia2([Node1, Node2, Node3], []).
@@ -831,9 +831,9 @@ add_table(CallFrom, AddNode, [Node1, Node2, Node3], Def) ->
     
     ?match({atomic, ok}, rpc:call(CallFrom, mnesia2, add_table_copy, 
 				  [Tab, AddNode, ram_copies])),
-    Pid1 ! {self(), quit}, R1 = receive {Pid1, Res1} -> Res1 after 5000 -> error end,
-    Pid2 ! {self(), quit}, R2 = receive {Pid2, Res2} -> Res2 after 5000 -> error end,
-    Pid3 ! {self(), quit}, R3 = receive {Pid3, Res3} -> Res3 after 5000 -> error end,
+    Pid1 ! {self(), quit}, R1 = receive {Pid1, Res1} -> Res1 after 60000 -> error end,
+    Pid2 ! {self(), quit}, R2 = receive {Pid2, Res2} -> Res2 after 60000 -> error end,
+    Pid3 ! {self(), quit}, R3 = receive {Pid3, Res3} -> Res3 after 60000 -> error end,
     verify_oids(Tab, Node1, Node2, Node3, R1, R2, R3),
     ?verify_mnesia2([Node1, Node2, Node3], []).
 
@@ -875,11 +875,11 @@ move_table(CallFrom, FromNode, ToNode, [Node1, Node2, Node3], Def) ->
     ?match({atomic, ok}, rpc:call(CallFrom, mnesia2, move_table_copy, 
 				  [Tab, FromNode, ToNode])),
     Pid1 ! {self(), quit}, 
-    R1 = receive {Pid1, Res1} -> Res1 after 5000 -> ?error("timeout pid1~n", []) end,
+    R1 = receive {Pid1, Res1} -> Res1 after 60000 -> ?error("timeout pid1~n", []) end,
     Pid2 ! {self(), quit}, 
-    R2 = receive {Pid2, Res2} -> Res2 after 5000 -> ?error("timeout pid2~n", []) end,
+    R2 = receive {Pid2, Res2} -> Res2 after 60000 -> ?error("timeout pid2~n", []) end,
     Pid3 ! {self(), quit}, 
-    R3 = receive {Pid3, Res3} -> Res3 after 5000 -> ?error("timeout pid3~n", []) end,
+    R3 = receive {Pid3, Res3} -> Res3 after 60000 -> ?error("timeout pid3~n", []) end,
     verify_oids(Tab, Node1, Node2, Node3, R1, R2, R3),
     ?verify_mnesia2([Node1, Node2, Node3], []).
 

@@ -1,10 +1,16 @@
 % vim: set ft=erlang expandtab softtabstop=4 shiftwidth=4:
-%% defined a -Ddebug macro if a debug build was requested
-case os:getenv("DEBUG_BUILD") of
+%% define a -Ddebug macro if a debug build was requested
+CONFIG0 = case os:getenv("DEBUG_BUILD") of
+            "true" ->
+                % get the current erl_opts and add the debug define
+                NewErlOpts = proplists:get_value(erl_opts, CONFIG) ++ [{d, debug}],
+                % now replace the new erl opts in the current rebar configuration
+                lists:keyreplace(erl_opts, 1, CONFIG, {erl_opts, NewErlOpts});
+            _ -> CONFIG % env var not defined or anything other than true
+          end,
+case os:getenv("LIGHT_TEST") of
     "true" ->
-        % get the current erl_opts and add the debug define
-        NewErlOpts = proplists:get_value(erl_opts, CONFIG) ++ [{d, debug}],
-        % now replace the new erl opts in the current rebar configuration
-        lists:keyreplace(erl_opts, 1, CONFIG, {erl_opts, NewErlOpts});
-    _ -> CONFIG % env var not defined or anything other than true
+        % now replace the new ct_dir
+        lists:keyreplace(ct_dir, 1, CONFIG0, {ct_dir, "test/light"});
+    _ -> CONFIG0 % env var not defined or anything other than true
 end.
