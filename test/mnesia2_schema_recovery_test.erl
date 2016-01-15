@@ -468,6 +468,8 @@ interrupted_move(Config, Type, Who, KillAt) ->
     A ! fun() -> mnesia2:move_table_copy(Tab, Node1, Node2) end,
     kill_at_debug(),
     ?match([], mnesia2_test_lib:start_mnesia2([Kill], [itrpt])),    
+    %% allow a small time for mnesia2 to heal itself
+    timer:sleep(1000),
     verify_tab(Node1, Node2),
     ?verify_mnesia2(Nodes, []).
 

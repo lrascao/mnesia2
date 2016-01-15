@@ -1262,8 +1262,8 @@ dump_log(Config) when is_list(Config) ->
     spawn(fun() -> dump_log(100, Self) end),
     spawn(fun() -> dump_log(100, Self) end),
 
-    ?match(ok, receive finished -> ok after 3000 -> timeout end),
-    ?match(ok, receive finished -> ok after 3000 -> timeout end),
+    ?match(ok, receive finished -> ok after 60000 -> timeout end),
+    ?match(ok, receive finished -> ok after 60000 -> timeout end),
     
     ?verify_mnesia2(Nodes, []).
 
@@ -2093,7 +2093,7 @@ subscribe_standard(Config) when is_list(Config)->
 recv_event() ->
     receive
 	Event -> Event
-    after 1000 -> 
+    after 60000 -> 
 	    timeout
     end.
 

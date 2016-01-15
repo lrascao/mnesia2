@@ -537,9 +537,9 @@ start_lock_waiter(BlockOpA, BlockOpB, Config) ->
 	    true -> 2
 	end,
     receive {'EXIT', B, _} -> ok
-    after 3000 -> ?error("Timeout~n", []) end,
+    after 60000 -> ?error("Timeout~n", []) end,
     receive {'EXIT', A, Exp1} -> ?match({atomic, ExpectedCounter}, Exp1)
-    after 3000 -> ?error("Timeout~n", []) end,
+    after 60000 -> ?error("Timeout~n", []) end,
 
     %% the expected result depends on the transaction of
     %% fun A - when that doesn't change the object in the

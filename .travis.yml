@@ -2,8 +2,25 @@ sudo: false
 language: erlang
 otp_release:
   - 18.2
+  - 18.1
+  - 18.0
   - 17.5
+  - 17.4
+  - 17.3
+  - 17.1
+  - 17.0
   - R16B02
   - R16B01
   - R16B
-script: "make travis"
+before_script:
+  - git config --global user.email "luis.rascao@gmail.com"
+  - git config --global user.name "Travis-CI"
+  - git config credential.helper "store --file=.git/credentials"
+  - echo "https://${GH_TOKEN}:@github.com" > .git/credentials
+script: make travis
+after_script:
+  - test/commit-logs.sh
+env:
+  global:
+  - GH_REF: github.com/lrascao/mnesia2.git
+  - secure: HdiQqyAmLPZmEpGcK410u3PW8jIj/Jr7lQ2NItw8Qx2GU/UBZdDaRI/AM7r5VoUwybBdn0cX0jnZz+xfX/yYLJw8PeHeEGJKEEM1lu2W9kA68IvKA4d9NCwKPBMOF86ld1MfIZkfTS1OxsNEshtibXNZkh3HhNf4NEwHSZMpDl+z5PY1CFujnE2EvnYkr0FMqrIO0NwEL2GqgRU6d4mYcb+JW7XUP97UnJ+D2sG3us1C7Ra00bn0deGKflLEoSH6/7ClpRQZM4WtzAz4tXhCOKBWl1frciXwqo9AblxICK/PXgK4N+qIyZNy05HAJ32HnFBPUO9NlH7zkllDtVfsi9OrsHjxypTt4O4qA4eYD+mBBRNYAB9jDCBP57u4N/BRLALv77Xz4yLmLfZ+0k4NrFu1QiZqppA8lyHfgp+MZF6MJsTQw3Gn+7AmSZKplp1NsS0+stilgi/ukS9lAos9OEo2XS2AdxOK0Yo+R0yyGl/MvLDYndC5zka4sDcQ+8b60mroEO16h70SmLTgcLXZ1Xguq6WS8ku9BOEiaK5kOFng95jneD6IPipYQT3WsnkaGsQNelfq4M7WcqVsMSJYcYiZOJ06UzuqL4fAE5HlaPIB08TaKsEqQ5CoYDtf4PJJtXu43quxFa6GtcBVRjm78Y2B2l03rBGbUWArezpzfYs=
