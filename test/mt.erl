@@ -25,7 +25,7 @@
 %%% See the mnesia_SUITE module about the structure of
 %%% the test suite.
 %%%
-%%% See the mnesia_test_lib module about the test case execution.
+%%% See the mnesia2_test_lib module about the test case execution.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -module(mt).
@@ -39,34 +39,34 @@
 	 read_config/0, write_config/1      % Config admin
 	]).
 
--include("mnesia_test_lib.hrl").
+-include("mnesia2_test_lib.hrl").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Aliases for the (sub) test suites
-alias(all) -> mnesia_SUITE;
-alias(atomicity) -> mnesia_atomicity_test;
-alias(backup) -> mnesia_evil_backup;
-alias(config) -> mnesia_config_test;
-alias(consistency) -> mnesia_consistency_test;
-alias(dirty) -> mnesia_dirty_access_test;
-alias(durability) -> mnesia_durability_test;
-alias(evil) -> mnesia_evil_coverage_test;
-alias(qlc) -> mnesia_qlc_test;
-alias(examples) -> mnesia_examples_test;
-alias(frag) -> mnesia_frag_test;
-alias(heavy) -> {mnesia_SUITE, heavy};
-alias(install) -> mnesia_install_test;
-alias(isolation) -> mnesia_isolation_test;
-alias(light) -> {mnesia_SUITE, light};
-alias(majority) -> mnesia_majority_test;
-alias(measure) -> mnesia_measure_test;
-alias(medium) -> {mnesia_SUITE, medium};
-alias(nice) -> mnesia_nice_coverage_test;
-alias(recover) -> mnesia_recover_test;
-alias(recovery) -> mnesia_recovery_test;
-alias(registry) -> mnesia_registry_test;
-alias(suite) -> mnesia_SUITE;
-alias(trans) -> mnesia_trans_access_test;
+alias(all) -> mnesia2_SUITE;
+alias(atomicity) -> mnesia2_atomicity_test;
+alias(backup) -> mnesia2_evil_backup;
+alias(config) -> mnesia2_config_test;
+alias(consistency) -> mnesia2_consistency_test;
+alias(dirty) -> mnesia2_dirty_access_test;
+alias(durability) -> mnesia2_durability_test;
+alias(evil) -> mnesia2_evil_coverage_test;
+alias(qlc) -> mnesia2_qlc_test;
+alias(examples) -> mnesia2_examples_test;
+alias(frag) -> mnesia2_frag_test;
+alias(heavy) -> {mnesia2_SUITE, heavy};
+alias(install) -> mnesia2_install_test;
+alias(isolation) -> mnesia2_isolation_test;
+alias(light) -> {mnesia2_SUITE, light};
+alias(majority) -> mnesia2_majority_test;
+alias(measure) -> mnesia2_measure_test;
+alias(medium) -> {mnesia2_SUITE, medium};
+alias(nice) -> mnesia2_nice_coverage_test;
+alias(recover) -> mnesia2_recover_test;
+alias(recovery) -> mnesia2_recovery_test;
+alias(registry) -> mnesia2_registry_test;
+alias(suite) -> mnesia2_SUITE;
+alias(trans) -> mnesia2_trans_access_test;
 alias(Other) -> Other.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -109,7 +109,7 @@ t() ->
 %% and the outcome of the tests are written to
 %% to a file.
 t(silly) ->
-    mnesia_install_test:silly();
+    mnesia2_install_test:silly();
 t(diskless) ->
     %% Run the default test case with default config,
     %% but diskless
@@ -129,26 +129,26 @@ t(RawCase, Config) when is_list(Config) ->
     %% Resolve the test case name and run the test case
     Case = resolve(RawCase),
     write_test_case(Case),
-    Res = mnesia_test_lib:test(Case, Config),
+    Res = mnesia2_test_lib:test(Case, Config),
     append_test_case_info(Case, Res).
 
 t(Mod, Fun, Config) when Config == diskless ->
     t({Mod, Fun}, diskless).
 
 config_fname() ->
-    "mnesia_test_case_config".
+    "mnesia2_test_case_config".
 
 %% Read default config file
 read_config() ->
     Fname = config_fname(),
-    mnesia_test_lib:log("Consulting file ~s...~n", [Fname]),
+    mnesia2_test_lib:log("Consulting file ~s...~n", [Fname]),
     case file:consult(Fname) of
         {ok, Config} ->
-	    mnesia_test_lib:log("Read config ~w~n", [Config]),
+	    mnesia2_test_lib:log("Read config ~w~n", [Config]),
             Config;
         _Error ->
-	    Config = mnesia_test_lib:default_config(),
-            mnesia_test_lib:log("<>WARNING<> Using default config: ~w~n", [Config]),
+	    Config = mnesia2_test_lib:default_config(),
+            mnesia2_test_lib:log("<>WARNING<> Using default config: ~w~n", [Config]),
             Config
     end.
 
@@ -166,7 +166,7 @@ write_list(_, []) ->
     ok.
 
 test_case_fname() ->
-    "mnesia_test_case_info".
+    "mnesia2_test_case_info".
 
 %% Read name of test case
 read_test_case() ->
@@ -177,7 +177,7 @@ read_test_case() ->
 	    file:close(Fd),
 	    case Res of
 		{ok, TestCase} ->
-		    mnesia_test_lib:log("Using test case ~w from file ~s~n",
+		    mnesia2_test_lib:log("Using test case ~w from file ~s~n",
 					[TestCase, Fname]),
 		    TestCase;
 		{error, _} ->
@@ -189,7 +189,7 @@ read_test_case() ->
 
 default_test_case(Fname) ->
     TestCase = all, 
-    mnesia_test_lib:log("<>WARNING<> Cannot read file ~s, "
+    mnesia2_test_lib:log("<>WARNING<> Cannot read file ~s, "
 			"using default test case: ~w~n",
 			[Fname, TestCase]),
     TestCase.
@@ -213,30 +213,30 @@ doc() ->
     doc(suite).
 
 doc(Case) ->
-    mnesia_test_lib:doc(resolve(Case)).
+    mnesia2_test_lib:doc(resolve(Case)).
 
 %% Display out the test case structure
 struct() ->
     struct(suite).
 
 struct(Case) ->
-    mnesia_test_lib:struct([resolve(Case)]).
+    mnesia2_test_lib:struct([resolve(Case)]).
 
 %% Shutdown all nodes with erlang:halt/0
 shutdown() ->
-    mnesia_test_lib:shutdown().
+    mnesia2_test_lib:shutdown().
 
 %% Ping all nodes in config spec
 ping() ->
     Config = read_config(),
-    Nodes = mnesia_test_lib:select_nodes(all, Config, ?FILE, ?LINE),
+    Nodes = mnesia2_test_lib:select_nodes(all, Config, ?FILE, ?LINE),
     [{N, net_adm:ping(N)} || N <- Nodes].
 
 %% Slave start all nodes in config spec
 start_nodes() ->
     Config = read_config(),
-    Nodes = mnesia_test_lib:select_nodes(all, Config, ?FILE, ?LINE),
-    mnesia_test_lib:init_nodes(Nodes, ?FILE, ?LINE),
+    Nodes = mnesia2_test_lib:select_nodes(all, Config, ?FILE, ?LINE),
+    mnesia2_test_lib:init_nodes(Nodes, ?FILE, ?LINE),
     ping().
 
 %% loop one testcase /suite until it fails
