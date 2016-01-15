@@ -21,8 +21,8 @@ DEPS=erts kernel stdlib
 # =============================================================================
 # Verify that the programs we need to run are installed on this system
 # =============================================================================
-# REBAR=$(shell which rebar)
-REBAR=./rebar
+REBAR=$(shell which rebar)
+# REBAR=./rebar
 ifeq ($(REBAR),)
 $(error "Rebar not available on this system")
 endif
@@ -31,6 +31,8 @@ endif
   rebuild test help
 
 all: compile dialyze
+
+travis: dialyze test
 
 # =============================================================================
 # Rules to build the system
@@ -75,5 +77,6 @@ clean:
 distclean: clean
 	- rm -rf $(DEPS_PLT)
 	- rm -rvf ebin
+	- rm -rvf .rebar
 
 rebuild: distclean deps compile dialyze
