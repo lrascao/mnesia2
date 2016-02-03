@@ -1299,6 +1299,7 @@ make_del_table_copy(Tab, Node) ->
         _ ->
 	    ensure_active(Cs),
             verify_cstruct(Cs2),
+        get_tid_ts_and_lock(Tab, write),
             [{op, del_table_copy, Storage, Node, vsn_cs2list(Cs2)}]
     end.
 
@@ -1326,6 +1327,7 @@ remove_node_from_tabs([Tab|Rest], Node) ->
 		     remove_node_from_tabs(Rest, Node)];
 		_Ns ->
 		    verify_cstruct(Cs2),
+            get_tid_ts_and_lock(Tab, write),
 		    [{op, del_table_copy, ram_copies, Node, vsn_cs2list(Cs2)}|
 		     remove_node_from_tabs(Rest, Node)]
 	    end
@@ -1357,6 +1359,7 @@ do_move_table(schema, _FromNode, _ToNode) ->
     mnesia2:abort({bad_type, schema});
 do_move_table(Tab, FromNode, ToNode) when is_atom(FromNode), is_atom(ToNode) ->
     TidTs = get_tid_ts_and_lock(schema, write),
+    %% get_tid_ts_and_lock(Tab, write), write locked by load_table in mnesia2_loader
     insert_schema_ops(TidTs, make_move_table(Tab, FromNode, ToNode));
 do_move_table(Tab, FromNode, ToNode) ->
     mnesia2:abort({badarg, Tab, FromNode, ToNode}).
@@ -1995,28 +1998,12 @@ prepare_op(Tid, {op, add_table_copy, Storage, Node, TabDef}, _WaitFor) ->
 	    {true, optional}
     end;
 
-prepare_op(Tid, {op, del_table_copy, _Storage, Node, TabDef}, _WaitFor) ->
+prepare_op(_Tid, {op, del_table_copy, _Storage, Node, TabDef}, _WaitFor) ->
     Cs = list2cs(TabDef),
     Tab = Cs#cstruct.name,
 
-    if
-	%% Schema table lock is always required to run a schema op.
-	%% No need to look it.
-	node(Tid#tid.pid) == node(), Tab /= schema ->
-	    Self = self(),
-	    Pid = spawn_link(fun() -> lock_del_table(Tab, Node, Cs, Self) end),
-	    put(mnesia2_lock, Pid),
-	    receive
-		{Pid, updated} ->
-		    {true, optional};
-		{Pid, FailReason} ->
-		    mnesia2:abort(FailReason);
-		{'EXIT', Pid, Reason} ->
-		    mnesia2:abort(Reason)
-	    end;
-	true ->
-	    {true, optional}
-    end;
+    set_where_to_read(Tab, Node, Cs),
+    {true, optional};
 
 prepare_op(_Tid, {op, change_table_copy_type,  N, FromS, ToS, TabDef}, _WaitFor)
   when N == node() ->
@@ -2230,46 +2217,6 @@ receive_sync(Nodes, Pids) ->
 	    {abort, Else}
     end.
 
-lock_del_table(Tab, NewNode, Cs0, Father) ->
-    Ns = val({schema, active_replicas}),
-    process_flag(trap_exit,true),
-    Lock = fun() ->
-		   mnesia2:write_lock_table(Tab),
-		   %% Sigh using cs record
-		   Set = fun(Node) ->
-				 [Cs] = normalize_cs([Cs0], Node),
-				 rpc:call(Node, ?MODULE, set_where_to_read, [Tab, NewNode, Cs])
-			 end,
-		   Res = [Set(Node) || Node <- Ns],
-		   Filter = fun(ok) ->
-				    false;
-			       ({badrpc, {'EXIT', {undef, _}}}) ->
-				    %% This will be the case we talks with elder nodes
-				    %% than 3.8.2, they will set where_to_read without
-				    %% getting a lock.
-				    false;
-			       (_) ->
-				    true
-			    end,
-		   case lists:filter(Filter, Res) of
-		       [] ->
-			   Father ! {self(), updated},
-			   %% When transaction is commited the process dies
-			   %% and the lock is released.
-			   receive _ -> ok end;
-		       Err ->
-			   Father ! {self(), {bad_commit, Err}}
-		   end,
-		   ok
-	   end,
-    case mnesia2:transaction(Lock) of
-	{atomic, ok} ->  ok;
-	{aborted, R} ->  Father ! {self(), R}
-    end,
-    unlink(Father),
-    unlink(whereis(mnesia2_tm)),
-    exit(normal).
-
 set_where_to_read(Tab, Node, Cs) ->
     case mnesia2_lib:val({Tab, where_to_read}) of
 	Node ->
@@ -2420,13 +2367,19 @@ undo_prepare_op(Tid, {op, add_table_copy, Storage, Node, TabDef}) ->
 	    insert_cstruct(Tid, Cs2, true) % Don't care about the version
     end;
 
-undo_prepare_op(_Tid, {op, del_table_copy, _, Node, TabDef})
-  when Node == node() ->
-    WriteLocker = get(mnesia2_lock),
-    WriteLocker =/= undefined andalso (WriteLocker ! die),
+undo_prepare_op(_Tid, {op, del_table_copy, _, Node, TabDef}) ->
     Cs = list2cs(TabDef),
     Tab = Cs#cstruct.name,
-    mnesia2_lib:set({Tab, where_to_read}, Node);
+    if node() =:= Node ->
+       mnesia2_lib:set({Tab, where_to_read}, Node);
+       true ->
+       case mnesia2_lib:val({Tab, where_to_read}) of
+       nowhere ->
+           mnesia2_lib:set_remote_where_to_read(Tab);
+       true ->
+           ignore
+       end
+    end;
 
 undo_prepare_op(_Tid, {op, change_table_copy_type, N, FromS, ToS, TabDef})
         when N == node() ->
