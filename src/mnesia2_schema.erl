@@ -1,7 +1,7 @@
 %%
 %% %CopyrightBegin%
 %%
-%% Copyright Ericsson AB 1996-2011. All Rights Reserved.
+%% Copyright Ericsson AB 1996-2016. All Rights Reserved.
 %%
 %% Licensed under the Apache License, Version 2.0 (the "License");
 %% you may not use this file except in compliance with the License.
@@ -116,6 +116,8 @@
 -include_lib("kernel/include/file.hrl").
 
 -import(mnesia2_lib, [set/2, del/2, verbose/2, dbg_out/2]).
+
+-dialyzer({no_improper_lists, make_delete_table/2}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Here comes the init function which also resides in
