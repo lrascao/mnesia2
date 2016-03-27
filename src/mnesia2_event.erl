@@ -153,6 +153,12 @@ handle_system_event({mnesia2_down, Node}, State) ->
 	    {ok, State#state{nodes = Nodes}}
     end;
 
+handle_system_event({mnesia2_overload,
+                     {mnesia2_tm, message_queue_len, [Prev, Len]}}, State) ->
+    report_warning("Mnesia2 is overloaded: ~p messages were added to mnesia2_tm since last time (was at ~p), now at ~p", 
+        [Len - Prev, Prev, Len]),
+    {ok, State};
+
 handle_system_event({mnesia2_overload, Details}, State) ->
     report_warning("Mnesia2 is overloaded: ~w~n", [Details]),
     {ok, State}; 
