@@ -8,9 +8,13 @@ CONFIG0 = case os:getenv("DEBUG_BUILD") of
                 lists:keyreplace(erl_opts, 1, CONFIG, {erl_opts, NewErlOpts});
             _ -> CONFIG % env var not defined or anything other than true
           end,
-case os:getenv("LIGHT_TEST") of
-    "true" ->
+case {os:getenv("LIGHT_TEST"), os:getenv("EXTRA_LIGHT_TEST")} of
+    {"true", _} ->
         % now replace the new ct_dir
         lists:keyreplace(ct_dir, 1, CONFIG0, {ct_dir, "test/light"});
-    _ -> CONFIG0 % env var not defined or anything other than true
+    {_, "true"} ->
+        % now replace the new ct_dir
+        lists:keyreplace(ct_dir, 1, CONFIG0, {ct_dir, "test/extra_light"});
+    _ ->
+        CONFIG0 % env var not defined or anything other than true
 end.

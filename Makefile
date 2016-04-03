@@ -32,7 +32,7 @@ endif
 
 all: deps compile dialyze
 
-travis: light-test
+travis: extra-light-test
 
 # =============================================================================
 # Rules to build the system
@@ -42,7 +42,7 @@ deps:
 	- $(REBAR) get-deps
 
 compile:
-	- $(REBAR) compile
+	- $(REBAR) skip_deps=true compile
 	cd examples; erlc *.erl; cd ..
 
 debug:
@@ -79,6 +79,13 @@ light-test: clean deps debug
 	@find src -type f -name *.erl -exec cp {} ebin \;
 	@find test -type f -name *.erl -exec cp {} ebin \;
 	LIGHT_TEST=true $(REBAR) ct -v 3
+	@find ebin -type f -name "*.erl" -exec rm {} \;
+
+extra-light-test: clean deps debug
+	@rm -rf ${CT_LOG}
+	@find src -type f -name *.erl -exec cp {} ebin \;
+	@find test -type f -name *.erl -exec cp {} ebin \;
+	EXTRA_LIGHT_TEST=true $(REBAR) ct -v 3
 	@find ebin -type f -name "*.erl" -exec rm {} \;
 
 clean:

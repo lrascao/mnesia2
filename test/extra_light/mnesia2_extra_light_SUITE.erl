@@ -1,0 +1,1 @@
+../mnesia2_extra_light_SUITE.erl
