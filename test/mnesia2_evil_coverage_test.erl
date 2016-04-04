@@ -2014,24 +2014,24 @@ subscribe_standard(Config) when is_list(Config)->
     ?match({ok, N1}, mnesia2:subscribe(activity)),
 
     ?match([], mnesia2_test_lib:kill_mnesia2([N2])),
-    ?match({mnesia2_system_event, {mnesia2_down, N2}}, recv_event()),
-    ?match(timeout, recv_event()),
+    ?match({mnesia2_system_event, {mnesia2_down, N2}}, recv_event(2000)),
+    ?match(timeout, recv_event(2000)),
 
     ?match([], mnesia2_test_lib:start_mnesia2([N2], [Tab])),
-    ?match({mnesia2_activity_event, _}, recv_event()),
-    ?match({mnesia2_system_event,{mnesia2_up, N2}}, recv_event()),
+    ?match({mnesia2_activity_event, _}, recv_event(2000)),
+    ?match({mnesia2_system_event,{mnesia2_up, N2}}, recv_event(2000)),
 
     ?match(true, lists:member(self(), mnesia2:system_info(subscribers))),
     ?match([], mnesia2_test_lib:kill_mnesia2([N1])),
     timer:sleep(500),
     mnesia2_test_lib:flush(),
     ?match([], mnesia2_test_lib:start_mnesia2([N1], [Tab])),
-    ?match(timeout, recv_event()),
+    ?match(timeout, recv_event(2000)),
 
     ?match({ok, N1}, mnesia2:subscribe(system)),
     ?match({error, {already_exists, system}}, mnesia2:subscribe(system)),
     ?match(stopped, mnesia2:stop()),
-    ?match({mnesia2_system_event, {mnesia2_down, N1}}, recv_event()),
+    ?match({mnesia2_system_event, {mnesia2_down, N1}}, recv_event(2000)),
     ?match({error, {node_not_running, N1}}, mnesia2:subscribe(system)),
     ?match([], mnesia2_test_lib:start_mnesia2([N1, N2], [Tab])),
 
@@ -2043,16 +2043,16 @@ subscribe_standard(Config) when is_list(Config)->
     ?match({atomic, ok},
 	   mnesia2:transaction(fun() -> mnesia2:write(#tab{i=155}) end)),
     Self = self(),
-    ?match({mnesia2_table_event, {write, _, _}}, recv_event()),
-    ?match({mnesia2_activity_event, {complete, {tid, _, Self}}}, recv_event()),
+    ?match({mnesia2_table_event, {write, _, _}}, recv_event(2000)),
+    ?match({mnesia2_activity_event, {complete, {tid, _, Self}}}, recv_event(2000)),
 
     ?match({ok, N1}, mnesia2:unsubscribe({table,Tab})),
     ?match({ok, N1}, mnesia2:unsubscribe(activity)),
 
     ?match({atomic, ok},
-	   mnesia2:transaction(fun() -> mnesia2:write(#tab{i=255}) end)),
-    
-    ?match(timeout, recv_event()),
+     mnesia2:transaction(fun() -> mnesia2:write(#tab{i=255}) end)),
+
+    ?match(timeout, recv_event(2000)),
     mnesia2:set_debug_level(Old_Level),
 
     %% Check deletion of replica
@@ -2060,43 +2060,46 @@ subscribe_standard(Config) when is_list(Config)->
     ?match({ok, N1}, mnesia2:subscribe({table,Tab})),
     ?match({ok, N1}, mnesia2:subscribe(activity)),
     ?match(ok, mnesia2:dirty_write(#tab{i=355})),
-    ?match({mnesia2_table_event, {write, _, _}}, recv_event()),
+    ?match({mnesia2_table_event, {write, _, _}}, recv_event(2000)),
     ?match({atomic, ok}, mnesia2:del_table_copy(Tab, N1)),
-    ?match({mnesia2_activity_event, _}, recv_event()),
+    ?match({mnesia2_activity_event, _}, recv_event(2000)),
     ?match(ok, mnesia2:dirty_write(#tab{i=455})),
-    ?match(timeout, recv_event()),
+    ?match(timeout, recv_event(2000)),
 
     ?match({atomic, ok}, mnesia2:move_table_copy(Tab, N2, N1)),
-    ?match({mnesia2_activity_event, _}, recv_event()),
+    ?match({mnesia2_activity_event, _}, recv_event(2000)),
     ?match({ok, N1}, mnesia2:subscribe({table,Tab})),
     ?match(ok, mnesia2:dirty_write(#tab{i=555})),
-    ?match({mnesia2_table_event, {write, _, _}}, recv_event()),
+    ?match({mnesia2_table_event, {write, _, _}}, recv_event(2000)),
     ?match({atomic, ok}, mnesia2:move_table_copy(Tab, N1, N2)),
-    ?match({mnesia2_activity_event, _}, recv_event()),
+    ?match({mnesia2_activity_event, _}, recv_event(2000)),
     ?match(ok, mnesia2:dirty_write(#tab{i=655})),
-    ?match(timeout, recv_event()),
+    ?match(timeout, recv_event(2000)),
 
     ?match({atomic, ok}, mnesia2:add_table_copy(Tab, N1, ram_copies)),
-    ?match({mnesia2_activity_event, _}, recv_event()),
+    ?match({mnesia2_activity_event, _}, recv_event(2000)),
     ?match({ok, N1}, mnesia2:subscribe({table,Tab})),
     ?match({error, {already_exists, {table,Tab, simple}}}, 
-	   mnesia2:subscribe({table,Tab})),
+     mnesia2:subscribe({table,Tab})),
     ?match(ok, mnesia2:dirty_write(#tab{i=755})),
-    ?match({mnesia2_table_event, {write, _, _}}, recv_event()),
+    ?match({mnesia2_table_event, {write, _, _}}, recv_event(2000)),
 
     ?match({atomic, ok}, mnesia2:delete_table(Tab)),
-    ?match({mnesia2_activity_event, _}, recv_event()),
-    ?match(timeout, recv_event()),
+    ?match({mnesia2_activity_event, _}, recv_event(2000)),
+    ?match(timeout, recv_event(2000)),
 
     mnesia2_test_lib:kill_mnesia2([N1]),
 
     ?verify_mnesia2([N2], [N1]).
 
 recv_event() ->
+  recv_event(60000).
+
+recv_event(Timeout) ->
     receive
-	Event -> Event
-    after 60000 -> 
-	    timeout
+  Event -> Event
+    after Timeout ->
+      timeout
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
