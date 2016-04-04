@@ -193,7 +193,12 @@ handle_system_event(Msg, State) ->
     {ok, State}.
 
 report_info(Format0, Args0) ->
-    Format = "Mnesia2(~p): " ++ Format0,
+    {{Year, Month, Day}, {Hour, Min, Sec}} = calendar:universal_time(),
+    Timestamp = lists:flatten(
+                      io_lib:format(
+                        "~.4.0w-~.2.0w-~.2.0w ~.2.0w:~.2.0w:~.2.0w",
+                        [Year, Month, Day, Hour, Min, Sec] )),
+    Format = lists:concat(["[", Timestamp, "] ", ": ", Format0]),
     Args = [node() | Args0],
     error_logger:info_msg(Format, Args),
     case global:whereis_name(mnesia2_global_logger) of

@@ -86,7 +86,7 @@
 	 test_case_evaluator/3,
 	 activity_evaluator/1,
 	 flush/0,
-	 pick_msg/0,
+	 pick_msg/0, pick_msg/1,
 	 start_activities/1,
 	 start_transactions/1,
 	 start_transactions/2,
@@ -566,9 +566,12 @@ transaction(Coordinator, MaxRetries) ->
     activity_evaluator_loop(Coordinator).
 
 pick_msg() ->
+    pick_msg(2000).
+
+pick_msg(Timeout) ->
     receive
 	Message -> Message
-    after 60000 -> timeout
+    after Timeout -> timeout
     end.
 
 start_activities(Nodes) ->

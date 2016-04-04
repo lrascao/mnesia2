@@ -1269,8 +1269,8 @@ dump_log(Config) when is_list(Config) ->
     spawn(fun() -> dump_log(100, Self) end),
     spawn(fun() -> dump_log(100, Self) end),
 
-    ?match(ok, receive finished -> ok after 60000 -> timeout end),
-    ?match(ok, receive finished -> ok after 60000 -> timeout end),
+    ?match(ok, receive finished -> ok after 3000 -> timeout end),
+    ?match(ok, receive finished -> ok after 3000 -> timeout end),
     
     ?verify_mnesia2(Nodes, []).
 
@@ -2009,6 +2009,7 @@ subscribe_standard(Config) when is_list(Config)->
     Def = [{Storage, [N1, N2]}, {attributes, record_info(fields, tab)}],
 
     ?match({atomic, ok}, mnesia2:create_table(Tab, Def)),
+    ?log("table ~p created: ~p", [Tab, Def]),
 
     %% Check system events
     ?match({error, {badarg, foo}}, mnesia2:unsubscribe(foo)),
@@ -2017,6 +2018,7 @@ subscribe_standard(Config) when is_list(Config)->
 
     ?match({ok, N1}, mnesia2:subscribe(system)),
     ?match({ok, N1}, mnesia2:subscribe(activity)),
+    ?log("subscribed to system and activity", []),
 
     ?match([], mnesia2_test_lib:kill_mnesia2([N2])),
     ?match({mnesia2_system_event, {mnesia2_down, N2}}, recv_event(2000)),
@@ -2098,7 +2100,7 @@ subscribe_standard(Config) when is_list(Config)->
     ?verify_mnesia2([N2], [N1]).
 
 recv_event() ->
-  recv_event(60000).
+  recv_event(1000).
 
 recv_event(Timeout) ->
     receive
