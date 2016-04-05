@@ -197,11 +197,11 @@ e_has_var(X, Pos) ->
 %% Start and stop
 
 start() ->
-    {Time , Res} =  timer:tc(application, start, [?APPLICATION, temporary]),
+    {Time , Res} =  timer:tc(application, ensure_all_started, [?APPLICATION, temporary]),
 
     Secs = Time div 1000000,
     case Res of
-	ok ->
+	{ok, _} ->
 	    verbose("Mnesia2 started, ~p seconds~n",[ Secs]),
 	    ok;
 	{error, {already_started, mnesia2}} ->
