@@ -73,7 +73,7 @@
 		coordinators = gb_trees:empty(),
 		participants = gb_trees:empty(),
 		supervisor,
-		blocked_tabs = [], dirty_queue = [], fixed_tabs = [],
+		dirty_queue = [], fixed_tabs = [],
 		msg_queue = [], msg_rqueue = [],
 		async_dirty_tm}).
 %% Format on coordinators is [{Tid, EtsTabList} .....
@@ -254,7 +254,7 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
     {RecvMsg, State} = tm_dequeue(State0),
     case RecvMsg of
 	{_From, {async_dirty, Tid, Commit, Tab}} ->
-	    case lists:member(Tab, State#state.blocked_tabs) of
+	    case mnesia2_tab:is_blocked(Tab) of
 		false ->
 		    do_async_dirty(Tid, Commit, Tab),
 		    doit_loop(State);
@@ -265,7 +265,7 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
 	    end;
 
 	{From, {sync_dirty, Tid, Commit, Tab}} ->
-	    case lists:member(Tab, State#state.blocked_tabs) of
+	    case mnesia2_tab:is_blocked(Tab) of
 		false ->
 		    do_sync_dirty(From, Tid, Commit, Tab),
 		    doit_loop(State);
@@ -482,7 +482,7 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
 	    doit_loop(NewState);
 
 	{From, {unblock_me, Tab}} ->
-	    case lists:member(Tab, State#state.blocked_tabs) of
+	    case mnesia2_tab:is_blocked(Tab) of
 		false ->
 		    verbose("Wrong dirty Op blocked on ~p ~p ~p",
 			    [node(), Tab, From]),
@@ -495,19 +495,17 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
 	    end;
 
 	{From, {block_tab, Tab}} ->
-	    State2 = State#state{blocked_tabs = [Tab | State#state.blocked_tabs]},
-	    reply(From, ok, State2);
+		mnesia2_tab:block(Tab),
+	    reply(From, ok, State);
 
 	{From, {unblock_tab, Tab}} ->
-	    BlockedTabs2 = State#state.blocked_tabs -- [Tab],
-	    case lists:member(Tab, BlockedTabs2) of
-		false ->
+	    case mnesia2_tab:unblock(Tab) of
+		0 ->
 		    mnesia2_controller:unblock_table(Tab),
-		    State2 = process_dirty_queue(Tab, State#state{blocked_tabs = BlockedTabs2}),
+		    State2 = process_dirty_queue(Tab, State),
 		    reply(From, ok, State2);
-		true ->
-		    State2 = State#state{blocked_tabs = BlockedTabs2},
-		    reply(From, ok, State2)
+		N when N > 0 ->
+		    reply(From, ok, State)
 	    end;
 
 	{From, {prepare_checkpoint, Cp}} ->
