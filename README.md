@@ -30,3 +30,5 @@ Common Test logs
 
 * :x: [#70.10 (OTP R16B01)](http://lrascao.github.io/mnesia2/70.10) [2d0b0cfdc2790cff9667ab5bc97ce8a873c42d06](https://github.com/lrascao/mnesia2/2d0b0cfdc2790cff9667ab5bc97ce8a873c42d06)
 
+* :x: [#70.6 (OTP 17.3)](http://lrascao.github.io/mnesia2/70.6) [2d0b0cfdc2790cff9667ab5bc97ce8a873c42d06](https://github.com/lrascao/mnesia2/2d0b0cfdc2790cff9667ab5bc97ce8a873c42d06)
+
