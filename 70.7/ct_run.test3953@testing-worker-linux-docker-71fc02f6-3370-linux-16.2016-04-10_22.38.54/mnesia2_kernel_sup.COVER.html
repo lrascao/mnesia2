@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test3953@testing-worker-linux-docker-71fc02f6-3370-linux-16.2016-04-10_22.38.54/mnesia2_kernel_sup.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_kernel_sup.erl by COVER 2016-04-10 at 22:43:34
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 1997-2009. All Rights Reserved.
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_kernel_sup).
+        |  
+        |  -behaviour(supervisor).
+        |  
+        |  -export([start/0, init/1, supervisor_timeout/1]).
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% top supervisor callback functions
+        |  
+        |  start() -&gt;
+    71..|      supervisor:start_link({local, mnesia2_kernel_sup}, ?MODULE, []).
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% sub supervisor callback functions
+        |  
+        |  init([]) -&gt;
+    71..|      ProcLib = [mnesia2_monitor, proc_lib],
+    71..|      Flags = {one_for_all, 0, timer:hours(24)}, % Trust the top supervisor
+    71..|      Workers = [worker_spec(mnesia2_monitor, timer:seconds(3), [gen_server]),
+        |  	       worker_spec(mnesia2_subscr, timer:seconds(3), [gen_server]),
+        |  	       worker_spec(mnesia2_locker, timer:seconds(3), ProcLib),
+        |  	       worker_spec(mnesia2_recover, timer:minutes(3), [gen_server]),
+        |  	       worker_spec(mnesia2_tm, timer:seconds(30), ProcLib),
+        |  	       supervisor_spec(mnesia2_checkpoint_sup),
+        |  	       supervisor_spec(mnesia2_snmp_sup),
+        |  	       worker_spec(mnesia2_controller, timer:seconds(3), [gen_server]),
+        |  	       worker_spec(mnesia2_late_loader, timer:seconds(3), ProcLib)
+        |           ] ++ mnesia2_tm:get_aux_workers(),
+    71..|      {ok, {Flags, Workers}}.
+        |  
+        |  worker_spec(Name, KillAfter, Modules) -&gt;
+   497..|      KA = supervisor_timeout(KillAfter),
+   497..|      {Name, {Name, start, []}, permanent, KA, worker, [Name] ++ Modules}.
+        |  
+        |  supervisor_spec(Name) -&gt;
+   142..|      {Name, {Name, start, []}, permanent, infinity, supervisor,
+        |       [Name, supervisor]}.
+        |  
+        |  -define(debug_shutdown, 1).
+        |  
+        |  -ifdef(debug_shutdown).
+   710..|  supervisor_timeout(_KillAfter) -&gt; timer:hours(24).
+        |  -else.
+        |  supervisor_timeout(KillAfter) -&gt; KillAfter.
+        |  -endif.    
+        |  
+        |      
+</pre>
+</body>
+</html>

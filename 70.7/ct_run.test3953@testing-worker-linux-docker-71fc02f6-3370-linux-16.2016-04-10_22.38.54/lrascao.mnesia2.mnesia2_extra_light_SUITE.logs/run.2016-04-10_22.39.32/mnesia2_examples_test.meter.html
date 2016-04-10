@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_examples_test:meter result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_examples_test.src.html#meter-1">source code for mnesia2_examples_test:meter/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_examples_test:meter([{watchdog,<0.7045.0>},
+                             {tc_logfile,
+                                 "/home/travis/build/lrascao/mnesia2/logs/ct_run.test3953@testing-worker-linux-docker-71fc02f6-3370-linux-16.2016-04-10_22.38.54/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.39.32/mnesia2_examples_test.meter.html"},
+                             {tc_group_properties,
+                                 [{suite,mnesia2_examples_test}]},
+                             {tc_group_path,
+                                 [[{name,examples}],
+                                  [{name,config}],
+                                  [{name,config}],
+                                  [{name,registry}],
+                                  [{name,registry}],
+                                  [{name,qlc}],
+                                  [{name,qlc}],
+                                  [{name,nice}],
+                                  [{name,nice}],
+                                  [{name,install}],
+                                  [{name,install}],
+                                  [{name,extra_light}]]},
+                             {data_dir,
+                                 "/home/travis/build/lrascao/mnesia2/test/mnesia2_examples_test_data/"},
+                             {priv_dir,
+                                 "/home/travis/build/lrascao/mnesia2/logs/ct_run.test3953@testing-worker-linux-docker-71fc02f6-3370-linux-16.2016-04-10_22.38.54/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.39.32/log_private/"},
+                             {nodenames,
+                                 ['d1169912o1169900n1169900@testing-worker-linux-docker-71fc02f6-3370-linux-16',
+                                  'd1169922o1169898n1169892@testing-worker-linux-docker-71fc02f6-3370-linux-16']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test3953@testing-worker-linux-docker-71fc02f6-3370-linux-16.2016-04-10_22.38.54"
+
+=== Started at 2016-04-10 22:42:21
+
+<br />
+A fun apply costs 0 micro seconds. Record size is 60 bytes.
+
+Run 24 meters with table config: [{ram_copies,['test3953@testing-worker-linux-docker-71fc02f6-3370-linux-16']}]
+
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+! -----------------------------------------------------------------------------
+ ! ----------
+ !
+
+! ram_copies on ['test3953@testing-worker-linux-docker-71fc02f6-3370-linux-16']
+ !          1
+ !
+
+! -----------------------------------------------------------------------------
+ ! ----------
+ !
+
+! transaction update two records with read and write                           
+ !        323
+ !
+
+! transaction update two records with wread and write                          
+ !        261
+ !
+
+! transaction update two records with read and s_write                         
+ !        310
+ !
+
+! sync_dirty  update two records with read and write                           
+ !         73
+ !
+
+! async_dirty update two records with read and write                           
+ !         76
+ !
+
+! plain fun   update two records with dirty_read and dirty_write               
+ !         66
+ !
+
+! ets         update two records with read and write (local only)              
+ !         11
+ !
+
+! plain fun   update two records with ets:lookup and ets:insert (local only)   
+ !          0
+ !
+
+! plain fun   update two records with dets:lookup and dets:insert (local only) 
+ !    skipped
+ !
+
+! transaction write two records with write                                     
+ !        231
+ !
+
+! transaction write two records with s_write                                   
+ !        221
+ !
+
+! sync_dirty  write two records with write                                     
+ !         60
+ !
+
+! async_dirty write two records with write                                     
+ !         62
+ !
+
+! plain fun   write two records with dirty_write                               
+ !         56
+ !
+
+! ets         write two records with write (local only)                        
+ !          8
+ !
+
+! plain fun   write two records with ets:insert (local only)                   
+ !          0
+ !
+
+! plain fun   write two records with dets:insert (local only)                  
+ !    skipped
+ !
+
+! transaction read two records with read                                       
+ !        166
+ !
+
+! sync_dirty  read two records with read                                       
+ !         14
+ !
+
+! async_dirty read two records with read                                       
+ !         14
+ !
+
+! plain fun   read two records with dirty_read                                 
+ !          8
+ !
+
+! ets         read two records with read                                       
+ !          6
+ !
+
+! plain fun   read two records with ets:lookup                                 
+ !          0
+ !
+
+! plain fun   read two records with dets:lookup                                
+ !    skipped
+ !
+
+! -----------------------------------------------------------------------------
+ ! ----------
+ !
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 22:42:25
+=== successfully completed test case
+=== returned value = {success,ok}
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 22:42:21<!/date><br />
+</div>
+</center>
+</body>
+</html>
