@@ -1,0 +1,1373 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test8686@testing-worker-linux-docker-e93d2010-3388-linux-10.2016-04-10_22.43.57/mnesia2_lib.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_lib.erl by COVER 2016-04-10 at 22:48:20
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1996-2016. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  %% This module contains all sorts of various which doesn't fit
+        |  %% anywhere else. Basically everything is exported.
+        |  
+        |  -module(mnesia2_lib).
+        |  
+        |  -include("mnesia2.hrl").
+        |  -include_lib("kernel/include/file.hrl").
+        |  
+        |  -export([core_file/0]).
+        |  
+        |  -export([
+        |  	 active_tables/0,
+        |  	 add/2,
+        |  	 add_list/2,
+        |  	 add_lsort/2,
+        |  	 all_nodes/0,
+        |  %%	 catch_val/1,
+        |  	 copy_file/2,
+        |  	 copy_holders/1,
+        |  	 coredump/0,
+        |  	 coredump/1,
+        |  	 create_counter/1,
+        |  	 cs_to_nodes/1,
+        |  	 cs_to_storage_type/2,
+        |  	 dets_to_ets/6,
+        |  	 db_chunk/2,
+        |  	 db_init_chunk/1,
+        |  	 db_init_chunk/2,
+        |  	 db_init_chunk/3,
+        |  	 db_erase/2,
+        |  	 db_erase/3,
+        |  	 db_erase_tab/1,
+        |  	 db_erase_tab/2,
+        |  	 db_first/1,
+        |  	 db_first/2,
+        |  	 db_last/1,
+        |  	 db_last/2,
+        |  	 db_fixtable/3,
+        |  	 db_get/2,
+        |  	 db_get/3,
+        |  	 db_match_erase/2,
+        |  	 db_match_erase/3,
+        |  	 db_match_object/2,
+        |  	 db_match_object/3,
+        |  	 db_next_key/2,
+        |  	 db_next_key/3,
+        |  	 db_prev_key/2,
+        |  	 db_prev_key/3,
+        |  	 db_put/2,
+        |  	 db_put/3,
+        |  	 db_select/2,	 
+        |  	 db_select/3,
+        |  	 db_select_init/4,
+        |  	 db_select_cont/3,
+        |  	 db_slot/2,
+        |  	 db_slot/3,
+        |  	 db_update_counter/3,
+        |  	 db_update_counter/4,
+        |  	 dbg_out/2,
+        |  	 del/2,
+        |  	 dets_sync_close/1,
+        |  	 dets_sync_open/2,
+        |  	 dets_sync_open/3,
+        |  	 dir/0,
+        |  	 dir/1,
+        |  	 dir_info/0,
+        |  	 dirty_rpc_error_tag/1,
+        |  	 dist_coredump/0,
+        |  	 disk_type/1,
+        |  	 disk_type/2,	 
+        |  	 elems/2,
+        |  	 ensure_loaded/1,
+        |  	 error/2,
+        |  	 error_desc/1,
+        |  	 etype/1,
+        |  	 exists/1,
+        |  	 fatal/2,
+        |  	 get_node_number/0,
+        |  	 have_majority/2,
+        |  	 have_majority/3,
+        |  	 fix_error/1,
+        |  	 important/2,
+        |  	 incr_counter/1,
+        |  	 incr_counter/2,
+        |  	 intersect/2,
+        |  	 is_running/0,
+        |  	 is_running/1,
+        |  	 is_running_remote/0,
+        |  	 is_string/1,
+        |  	 key_search_delete/3,
+        |  	 key_search_all/3,
+        |  	 last_error/0,
+        |  	 local_active_tables/0,
+        |  	 lock_table/1,
+        |  	 mkcore/1,
+        |  	 not_active_here/1,
+        |           other_val/1,
+        |           overload_read/0,
+        |           overload_read/1,
+        |           overload_set/2,
+        |  	 pad_name/3,
+        |  	 random_time/2,
+        |  	 read_counter/1,
+        |  	 readable_indecies/1,
+        |  	 remote_copy_holders/1,
+        |  	 report_fatal/2,
+        |  	 report_system_event/1,
+        |  	 running_nodes/0,
+        |  	 running_nodes/1,
+        |  	 schema_cs_to_storage_type/2,
+        |  	 search_delete/2,
+        |  	 set/2,
+        |  	 set_counter/2,
+        |  	 set_local_content_whereabouts/1,
+        |  	 set_remote_where_to_read/1,
+        |  	 set_remote_where_to_read/2,
+        |  	 show/1,
+        |  	 show/2,
+        |  	 sort_commit/1,
+        |  	 storage_type_at_node/2,
+        |  	 tab2dat/1,
+        |  	 tab2dmp/1,
+        |  	 tab2tmp/1,
+        |  	 tab2dcd/1,
+        |  	 tab2dcl/1,
+        |  	 to_list/1,
+        |  	 union/2,
+        |  	 uniq/1,
+        |  	 unlock_table/1,
+        |  	 unset/1,
+        |  	 %% update_counter/2,
+        |       val/1,
+        |  	 val/2,
+        |  	 vcore/0,
+        |  	 vcore/1,
+        |  	 verbose/2,
+        |  	 view/0,
+        |  	 view/1,
+        |  	 view/2,
+        |  	 warning/2,
+        |  
+        |  	 is_debug_compiled/0,
+        |  	 activate_debug_fun/5,
+        |  	 deactivate_debug_fun/3,
+        |  	 eval_debug_fun/4,
+        |  	 scratch_debug_fun/0
+        |  	]).
+        |   
+        |  
+        |  search_delete(Obj, List) -&gt;
+   241..|      search_delete(Obj, List, [], none).
+        |  search_delete(Obj, [Obj|Tail], Ack, _Res) -&gt;
+     1..|      search_delete(Obj, Tail, Ack, Obj);
+        |  search_delete(Obj, [H|T], Ack, Res) -&gt;
+   147..|      search_delete(Obj, T, [H|Ack], Res);
+        |  search_delete(_, [], Ack, Res) -&gt;
+   241..|      {Res, Ack}.
+        |  
+        |  key_search_delete(Key, Pos, TupleList) -&gt;
+   163..|      key_search_delete(Key, Pos, TupleList, none, []).
+        |  key_search_delete(Key, Pos, [H|T], _Obj, Ack) when element(Pos, H) == Key -&gt;
+    67..|      key_search_delete(Key, Pos, T, H, Ack);
+        |  key_search_delete(Key, Pos, [H|T], Obj, Ack) -&gt;
+<font color=red>     0..|      key_search_delete(Key, Pos, T, Obj, [H|Ack]);</font>
+        |  key_search_delete(_, _, [], Obj, Ack) -&gt;
+   163..|      {Obj, Ack}.
+        |  
+        |  key_search_all(Key, Pos, TupleList) -&gt; 
+    19..|      key_search_all(Key, Pos, TupleList, []).
+        |  key_search_all(Key, N, [H|T], Ack) when element(N, H) == Key -&gt;
+    12..|      key_search_all(Key, N, T, [H|Ack]);
+        |  key_search_all(Key, N, [_|T], Ack) -&gt;
+<font color=red>     0..|      key_search_all(Key, N, T, Ack);</font>
+    19..|  key_search_all(_, _, [], Ack) -&gt; Ack.
+        |  
+        |  intersect(L1, L2) -&gt;
+   769..|      L2 -- (L2 -- L1).
+        |  
+        |  elems(I, [H|T]) -&gt;
+    13..|      [element(I, H) | elems(I, T)];
+        |  elems(_, []) -&gt;
+    25..|      [].
+        |  
+        |  %%  sort_commit see to that checkpoint info is always first in 
+        |  %%  commit_work structure the other info don't need to be sorted.
+        |  sort_commit(List) -&gt;
+    55..|      sort_commit2(List, []).
+        |  
+        |  sort_commit2([{checkpoints, ChkpL}| Rest], Acc) -&gt;
+<font color=red>     0..|      [{checkpoints, ChkpL}| Rest] ++ Acc;</font>
+        |  sort_commit2([H | R], Acc) -&gt;
+    36..|      sort_commit2(R, [H | Acc]);
+    55..|  sort_commit2([], Acc) -&gt; Acc.
+        |      
+        |  is_string([H|T]) -&gt;
+<font color=red>     0..|      if</font>
+<font color=red>     0..|  	0 =&lt; H, H &lt; 256, is_integer(H)  -&gt; is_string(T);</font>
+<font color=red>     0..|  	true -&gt; false</font>
+        |      end;
+<font color=red>     0..|  is_string([]) -&gt; true.</font>
+        |  
+        |  %%%
+        |  
+        |  union([H|L1], L2) -&gt;
+    79..|      case lists:member(H, L2) of
+    75..|  	true -&gt; union(L1, L2);
+     4..|  	false -&gt; [H | union(L1, L2)]
+        |      end;
+    95..|  union([], L2) -&gt; L2.
+        |  
+        |  uniq([]) -&gt;
+     3..|      [];
+        |  uniq(List) -&gt;
+   603..|      [H|T] = lists:sort(List),
+   603..|      uniq1(H, T, []).
+        |  
+        |  uniq1(H, [H|R], Ack) -&gt;
+   205..|      uniq1(H, R, Ack);
+        |  uniq1(Old, [H|R], Ack) -&gt;
+   383..|      uniq1(H, R, [Old|Ack]);
+        |  uniq1(Old, [], Ack) -&gt;
+   603..|      [Old| Ack].
+        |  
+  2668..|  to_list(X) when is_list(X) -&gt; X;
+     6..|  to_list(X) -&gt; atom_to_list(X).
+        |  
+        |  all_nodes() -&gt;
+   227..|      Ns = mnesia2:system_info(db_nodes) ++
+        |  	mnesia2:system_info(extra_db_nodes),
+   227..|      mnesia2_lib:uniq(Ns).
+        |  
+        |  running_nodes() -&gt;
+<font color=red>     0..|      running_nodes(all_nodes()).</font>
+        |  
+        |  running_nodes(Ns) -&gt;
+   131..|      {Replies, _BadNs} = rpc:multicall(Ns, ?MODULE, is_running_remote, []),
+   131..|      [N || {GoodState, N} &lt;- Replies, GoodState == true].
+        |  
+        |  is_running_remote() -&gt;
+    59..|      IsRunning = is_running(),
+    59..|      {IsRunning == yes, node()}.
+        |  
+        |  is_running(Node) when is_atom(Node) -&gt;
+    21..|      case rpc:call(Node, ?MODULE, is_running, []) of
+<font color=red>     0..|  	{badrpc, _} -&gt; no;</font>
+    21..|  	X -&gt; X
+        |      end.
+        |  
+        |  is_running() -&gt;
+   402..|      case ?catch_val(mnesia2_status) of
+   164..|  	{'EXIT', _} -&gt; no;
+    92..|  	running -&gt; yes;
+   146..|  	starting -&gt; starting;
+<font color=red>     0..|  	stopping -&gt; stopping</font>
+        |      end.
+        |  
+        |  show(X) -&gt;
+<font color=red>     0..|      show(X, []).</font>
+        |  show(F, A) -&gt;
+<font color=red>     0..|      io:format(user, F, A).</font>
+        |  
+        |  
+        |  pad_name([Char | Chars], Len, Tail) -&gt;
+    22..|      [Char | pad_name(Chars, Len - 1, Tail)];
+        |  pad_name([], Len, Tail) when Len =&lt; 0 -&gt;
+     6..|      Tail;
+        |  pad_name([], Len, Tail) -&gt;
+    40..|      [$ | pad_name([], Len - 1, Tail)].
+        |      
+        |  %% Some utility functions .....
+        |  active_here(Tab) -&gt;
+   212..|      case val({Tab, where_to_read}) of
+   187..|  	Node when Node == node() -&gt; true;
+    25..|  	_ -&gt; false
+        |      end.
+        |  
+        |  not_active_here(Tab) -&gt;
+<font color=red>     0..|      not active_here(Tab).</font>
+        |  
+  1845..|  exists(Fname) -&gt; filelib:is_regular(Fname).
+        |  
+  2934..|  dir() -&gt; mnesia2_monitor:get_env(dir).
+        |  
+        |  dir(Fname) -&gt;
+  2674..|      filename:join([dir(), to_list(Fname)]).
+        |  
+        |  tab2dat(Tab) -&gt;  %% DETS files 
+   538..|      dir(lists:concat([Tab, ".DAT"])).
+        |  
+        |  tab2tmp(Tab) -&gt;
+   159..|      dir(lists:concat([Tab, ".TMP"])).
+        |  
+        |  tab2dmp(Tab) -&gt;  %% Dumped ets tables
+   176..|      dir(lists:concat([Tab, ".DMP"])).
+        |  
+        |  tab2dcd(Tab) -&gt;  %% Disc copies data
+   167..|      dir(lists:concat([Tab, ".DCD"])).
+        |  
+        |  tab2dcl(Tab) -&gt;  %% Disc copies log
+   235..|      dir(lists:concat([Tab, ".DCL"])).
+        |  
+        |  storage_type_at_node(Node, Tab) -&gt;
+    88..|      search_key(Node, [{disc_copies, val({Tab, disc_copies})},
+        |  		      {ram_copies, val({Tab, ram_copies})},
+        |  		      {disc_only_copies, val({Tab, disc_only_copies})}]).
+        |  
+        |  cs_to_storage_type(Node, Cs) -&gt;
+  1331..|      search_key(Node, [{disc_copies, Cs#cstruct.disc_copies},
+        |  		      {ram_copies, Cs#cstruct.ram_copies},
+        |  		      {disc_only_copies, Cs#cstruct.disc_only_copies}]).
+        |  
+        |  schema_cs_to_storage_type(Node, Cs) -&gt;
+   841..|      case cs_to_storage_type(Node, Cs) of
+     1..|  	unknown when Cs#cstruct.name == schema -&gt; ram_copies;
+   840..|  	Other -&gt; Other
+        |      end.
+        |  
+        |  
+        |  search_key(Key, [{Val, List} | Tail]) -&gt;
+  2549..|      case lists:member(Key, List) of
+  1194..|  	true -&gt; Val;
+  1355..|  	false -&gt; search_key(Key, Tail)
+        |      end;
+        |  search_key(_Key, []) -&gt;
+   225..|      unknown.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% ops, we've got some global variables here :-)
+        |  
+        |  %% They are
+        |  %%
+        |  %%   {Tab, setorbag}, -&gt; set | bag
+        |  %%   {Tab, storage_type}       -&gt; disc_copies |ram_copies | unknown (**)
+        |  %%   {Tab, disc_copies}        -&gt; node list  (from schema)
+        |  %%   {Tab, ram_copies}, -&gt; node list  (from schema)
+        |  %%   {Tab, arity}, -&gt; number
+        |  %%   {Tab, attributes}, -&gt; atom list
+        |  %%   {Tab, wild_pattern}, -&gt; record tuple with '_'s
+        |  %%   {Tab, {index, Pos}}       -&gt; ets table
+        |  %%   {Tab, index}              -&gt; integer list
+        |  %%   {Tab, cstruct}            -&gt; cstruct  structure
+        |  %%
+        |  
+        |  %%   The following fields are dynamic according to the
+        |  %%   the current node/table situation
+        |  
+        |  %%   {Tab, where_to_write}      -&gt; node list
+        |  %%   {Tab, where_to_read}       -&gt; node | nowhere
+        |  %%
+        |  %%   {schema, tables}                    -&gt; tab list
+        |  %%   {schema, local_tables}              -&gt; tab list  (**)
+        |  %%
+        |  %%   {current, db_nodes}                  -&gt; node list
+        |  %%
+        |  %%   dir                                  -&gt; directory path (**)
+        |  %%   mnesia2_status                        -&gt; status | running | stopping (**)
+        |  %%   (**) ==   (Different on all nodes)
+        |  %%
+        |  
+        |  val(Var, Default) -&gt;
+<font color=red>     0..|      case ?catch_val(Var) of</font>
+<font color=red>     0..|         {'EXIT', _Reason} -&gt; Default;</font>
+<font color=red>     0..|         Value -&gt; Value</font>
+        |      end.
+        |  
+        |  val(Var) -&gt;
+591600..|      case ?catch_val(Var) of
+<font color=red>     0..|  	{'EXIT', _} -&gt; other_val(Var);</font>
+591600..|  	_VaLuE_ -&gt; _VaLuE_
+        |      end.
+        |  
+        |  set(Var, Val) -&gt;
+197399..|      ?ets_insert(mnesia2_gvar, {Var, Val}).
+        |  
+        |  unset(Var) -&gt;
+   647..|      ?ets_delete(mnesia2_gvar, Var).
+        |  
+        |  other_val(Var) -&gt;
+   121..|      case other_val_1(Var) of
+     1..|          error -&gt; pr_other(Var);
+   120..|          Val -&gt; Val
+        |      end.
+        |  
+        |  other_val_1(Var) -&gt;
+   121..|      case Var of
+     1..|  	{_, where_to_read} -&gt; nowhere;
+<font color=red>     0..|  	{_, where_to_write} -&gt; [];</font>
+   119..|  	{_, active_replicas} -&gt; [];
+     1..|  	_ -&gt; error
+        |      end.
+        |  
+        |  -spec pr_other(_) -&gt; no_return().
+        |  pr_other(Var) -&gt;
+     1..|      Why =
+        |  	case is_running() of
+     1..|  	    no -&gt; {node_not_running, node()};
+<font color=red>     0..|  	    _ -&gt; {no_exists, Var}</font>
+        |  	end,
+     1..|      verbose("~p (~p) val(mnesia2_gvar, ~w) -&gt; ~p ~n",
+        |  	    [self(), process_info(self(), registered_name),
+        |  	     Var, Why]),
+     1..|      mnesia2:abort(Why).
+        |  
+        |  %% Some functions for list valued variables
+        |  add(Var, Val) -&gt;
+  1379..|      L = val(Var),
+  1379..|      set(Var, [Val | lists:delete(Val, L)]).
+        |  
+        |  add_list(Var, List) -&gt;
+    20..|      L = val(Var),
+    20..|      set(Var, union(L, List)).
+        |  
+        |  del(Var, Val) -&gt;
+   286..|      L = val(Var),
+   286..|      set(Var, lists:delete(Val, L)).
+        |  
+        |  %% LSort -&gt; [node()| Sorted] == Locker sorted
+        |  
+        |  add_lsort(Var, Val) when node() == Val -&gt;
+   187..|      L = val(Var),
+   187..|      set(Var, [Val | lists:delete(Val, L)]);
+        |  add_lsort(Var,Val) -&gt;
+   278..|      case val(Var) of
+        |  	[Head|Rest] when Head == node() -&gt;
+   136..|  	    set(Var,[Head|lsort_add(Val,Rest)]);
+        |  	List -&gt;
+   142..|  	    set(Var,lsort_add(Val,List))
+        |      end.
+        |  
+        |  lsort_add(Val,List) -&gt;
+   278..|      case ordsets:is_element(Val,List) of
+    47..|  	true -&gt; List;
+   231..|  	false -&gt; ordsets:add_element(Val,List)
+        |      end.
+        |  	    
+        |  %% This function is needed due to the fact
+        |  %% that the application_controller enters
+        |  %% a deadlock now and then. ac is implemented
+        |  %% as a rather naive server.
+        |  ensure_loaded(Appl) -&gt;
+   266..|      case application_controller:get_loaded(Appl) of
+        |  	{true, _} -&gt; 
+   265..|  	    ok;
+        |  	false -&gt;
+     1..|  	    case application:load(Appl) of
+        |  		ok -&gt;
+     1..|  		    ok;
+        |  		{error, {already_loaded, Appl}} -&gt;
+<font color=red>     0..|  		    ok;</font>
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    {error, {application_load_error, Reason}}</font>
+        |  	    end
+        |      end.
+        |  
+        |  local_active_tables() -&gt;
+   136..|      Tabs = val({schema, local_tables}),
+   136..|      lists:zf(fun(Tab) -&gt; active_here(Tab) end, Tabs).
+        |  
+        |  active_tables() -&gt;
+     1..|      Tabs = val({schema, tables}),
+     1..|      F = fun(Tab) -&gt;
+     5..|  		case val({Tab, where_to_read}) of
+     4..|  		    nowhere -&gt; false;
+     1..|  		    _ -&gt; {true, Tab}
+        |  		end
+        |  	end,
+     1..|      lists:zf(F, Tabs).
+        |  
+   154..|  etype(X) when is_integer(X) -&gt; integer;
+  3118..|  etype([]) -&gt; nil;
+   693..|  etype(X) when is_list(X) -&gt; list;
+<font color=red>     0..|  etype(X) when is_tuple(X) -&gt; tuple;</font>
+  1067..|  etype(X) when is_atom(X) -&gt; atom;
+<font color=red>     0..|  etype(_) -&gt; othertype.</font>
+        |  
+        |  remote_copy_holders(Cs) -&gt;
+    22..|      copy_holders(Cs) -- [node()].
+        |  
+        |  copy_holders(Cs) when Cs#cstruct.local_content == false -&gt;
+   203..|      cs_to_nodes(Cs);
+        |  copy_holders(Cs) when Cs#cstruct.local_content == true -&gt;
+<font color=red>     0..|      case lists:member(node(), cs_to_nodes(Cs)) of</font>
+<font color=red>     0..|  	true -&gt; [node()];</font>
+<font color=red>     0..|  	false -&gt; []</font>
+        |      end.
+        |  
+        |  
+        |  set_remote_where_to_read(Tab) -&gt;
+    54..|      set_remote_where_to_read(Tab, []).
+        |  
+        |  set_remote_where_to_read(Tab, Ignore) -&gt;
+    56..|      Active = val({Tab, active_replicas}),
+    56..|      Valid = 
+        |  	case mnesia2_recover:get_master_nodes(Tab) of
+    56..|  	    [] -&gt;  Active;
+<font color=red>     0..|  	    Masters -&gt; mnesia2_lib:intersect(Masters, Active)</font>
+        |  	end,    
+    56..|      Available = mnesia2_lib:intersect(val({current, db_nodes}), Valid -- Ignore),    
+    56..|      DiscOnlyC = val({Tab, disc_only_copies}),
+    56..|      Prefered  = Available -- DiscOnlyC,
+    56..|      if
+        |  	Prefered /= [] -&gt;
+    39..|  	    set({Tab, where_to_read}, hd(Prefered));
+        |  	Available /= [] -&gt;
+     5..|  	    set({Tab, where_to_read}, hd(Available));
+        |  	true -&gt;
+    12..|  	    set({Tab, where_to_read}, nowhere)
+        |      end.
+        |  
+        |  %%% Local only
+        |  set_local_content_whereabouts(Tab) -&gt;
+<font color=red>     0..|      add({schema, local_tables}, Tab),</font>
+<font color=red>     0..|      add({Tab, active_replicas}, node()),</font>
+<font color=red>     0..|      set({Tab, where_to_write}, [node()]),</font>
+<font color=red>     0..|      set({Tab, where_to_read}, node()).</font>
+        |  
+        |  %%% counter routines
+        |  
+        |  create_counter(Name) -&gt;
+   426..|      set_counter(Name, 0).
+        |  
+        |  set_counter(Name, Val) -&gt;
+   746..|      ?ets_insert(mnesia2_stats, {Name, Val}).
+        |  
+        |  incr_counter(Name) -&gt;
+ 89222..|      ?ets_update_counter(mnesia2_stats, Name, 1).
+        |  
+        |  incr_counter(Name, I) -&gt;
+ 26487..|      ?ets_update_counter(mnesia2_stats, Name, I).
+        |  
+        |  %% update_counter(Name, Val) -&gt;
+        |  %%     ?ets_update_counter(mnesia2_stats, Name, Val).
+        |  
+        |  read_counter(Name) -&gt;
+   911..|      ?ets_lookup_element(mnesia2_stats, Name, 2).
+        |  
+        |  cs_to_nodes(Cs) -&gt;
+  1272..|      Cs#cstruct.disc_only_copies ++
+        |      Cs#cstruct.disc_copies ++
+        |      Cs#cstruct.ram_copies.
+        |  
+        |  overload_types() -&gt;
+   103..|      [mnesia2_tm, mnesia2_dump_log].
+        |  
+        |  valid_overload_type(T) -&gt;
+   103..|      case lists:member(T, overload_types()) of
+        |          false -&gt;
+<font color=red>     0..|              erlang:error(bad_type);</font>
+        |          true -&gt;
+   103..|              true
+        |      end.
+        |  
+        |  overload_set(Type, Bool) when is_boolean(Bool) -&gt;
+   103..|      valid_overload_type(Type),
+   103..|      set({overload, Type}, Bool).
+        |  
+        |  overload_read() -&gt;
+<font color=red>     0..|      [{T, overload_read(T)} || T &lt;- overload_types()].</font>
+        |  
+        |  overload_read(T) -&gt;
+<font color=red>     0..|      case ?catch_val({overload, T}) of</font>
+        |          {'EXIT',_} -&gt;
+<font color=red>     0..|              valid_overload_type(T),</font>
+<font color=red>     0..|              false;</font>
+        |          Flag when is_boolean(Flag) -&gt;
+<font color=red>     0..|              Flag</font>
+        |      end.
+        |   
+        |  dist_coredump() -&gt;
+<font color=red>     0..|      dist_coredump(all_nodes()).</font>
+        |  dist_coredump(Ns) -&gt;
+<font color=red>     0..|      {Replies, _} = rpc:multicall(Ns, ?MODULE, coredump, []),</font>
+<font color=red>     0..|      Replies.</font>
+        |  
+        |  coredump() -&gt;
+<font color=red>     0..|      coredump({crashinfo, {"user initiated~n", []}}).</font>
+        |  coredump(CrashInfo) -&gt;
+<font color=red>     0..|      Core = mkcore(CrashInfo),</font>
+<font color=red>     0..|      Out = core_file(),</font>
+<font color=red>     0..|      important("Writing Mnesia2 core to file: ~p...~p~n", [Out, CrashInfo]),</font>
+<font color=red>     0..|      _ = file:write_file(Out, Core),</font>
+<font color=red>     0..|      Out.</font>
+        |  
+        |  core_file() -&gt;
+<font color=red>     0..|      Integers = tuple_to_list(date()) ++ tuple_to_list(time()),</font>
+<font color=red>     0..|      Fun = fun(I) when I &lt; 10 -&gt; ["_0", I];</font>
+<font color=red>     0..|  	     (I) -&gt; ["_", I]</font>
+        |  	  end,
+<font color=red>     0..|      List = lists:append([Fun(I) || I &lt;- Integers]),</font>
+<font color=red>     0..|      case mnesia2_monitor:get_env(core_dir) of</font>
+        |  	Dir when is_list(Dir) -&gt;
+<font color=red>     0..|  	    filename:absname(lists:concat(["Mnesia2Core.", node()] ++ List), Dir);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    filename:absname(lists:concat(["Mnesia2Core.", node()] ++ List))</font>
+        |      end.
+        |     
+        |  mkcore(CrashInfo) -&gt;
+        |  %   dbg_out("Making a Mnesia2 core dump...~p~n", [CrashInfo]),
+     3..|      Nodes = [node() |nodes()],
+        |      %%TidLocks = (catch ets:tab2list(mnesia2_tid_locks)),
+     3..|      HeldLocks = (catch mnesia2:system_info(held_locks)),
+     2..|      Core = [
+        |  	    CrashInfo,
+        |  	    {time, {date(), time()}},
+        |  	    {self, proc_dbg_info(self())},
+        |  	    {nodes, catch rpc:multicall(Nodes, ?MODULE, get_node_number, [])},
+        |  	    {applications, catch lists:sort(application:loaded_applications())},
+        |  	    {flags, catch init:get_arguments()},
+        |  	    {code_path, catch code:get_path()},
+        |  	    {code_loaded, catch lists:sort(code:all_loaded())},
+        |  	    {etsinfo, catch ets_info(ets:all())},
+        |  
+        |  	    {version, catch mnesia2:system_info(version)},
+        |  	    {schema, catch ets:tab2list(schema)},
+        |  	    {gvar, catch ets:tab2list(mnesia2_gvar)},
+        |  	    {master_nodes, catch mnesia2_recover:get_master_node_info()},
+        |  
+        |  	    {processes, catch procs()},
+        |  	    {relatives, catch relatives()},
+        |  	    {workers, catch workers(mnesia2_controller:get_workers(2000))},
+        |  	    {locking_procs, catch locking_procs(HeldLocks)},
+        |  
+        |  	    {held_locks, HeldLocks},
+        |  	    {lock_queue, catch mnesia2:system_info(lock_queue)},
+        |  	    {load_info, catch mnesia2_controller:get_info(2000)},
+        |  	    {trans_info, catch mnesia2_tm:get_info(2000)},
+        |  	    	    
+        |  	    {schema_file, catch file:read_file(tab2dat(schema))},
+        |  	    {dir_info, catch dir_info()},
+        |  	    {logfile, catch {ok, read_log_files()}}
+        |  	   ],
+     1..|      term_to_binary(Core).
+        |  
+        |  procs() -&gt;
+     2..|      Fun = fun(P) -&gt; {P, (catch lists:zf(fun proc_info/1, process_info(P)))} end,
+     2..|      lists:map(Fun, processes()).
+        |  
+   105..|  proc_info({registered_name, Val}) -&gt; {true, Val};
+   175..|  proc_info({message_queue_len, Val}) -&gt; {true, Val};
+   175..|  proc_info({status, Val}) -&gt; {true, Val};
+   175..|  proc_info({current_function, Val}) -&gt; {true, Val};
+  2450..|  proc_info(_) -&gt; false.
+        |  
+        |  get_node_number() -&gt;
+     2..|      {node(), self()}.
+        |  
+        |  have_majority(Tab, HaveNodes) -&gt;
+<font color=red>     0..|      have_majority(Tab, val({Tab, all_nodes}), HaveNodes).</font>
+        |  
+        |  have_majority(_Tab, AllNodes, HaveNodes) -&gt;
+<font color=red>     0..|      Missing = AllNodes -- HaveNodes,</font>
+<font color=red>     0..|      Present = AllNodes -- Missing,</font>
+<font color=red>     0..|      length(Present) &gt; length(Missing).</font>
+        |  
+        |  read_log_files() -&gt;
+     1..|      [{F, catch file:read_file(F)} || F &lt;- mnesia2_log:log_files()].
+        |  
+        |  dir_info() -&gt;
+     1..|      {ok, Cwd} = file:get_cwd(),
+     1..|      Dir = dir(),
+        |      [{cwd, Cwd, file:read_file_info(Cwd)},
+     1..|       {mnesia2_dir, Dir, file:read_file_info(Dir)}] ++
+        |      case file:list_dir(Dir) of
+        |  	{ok, Files} -&gt;
+     1..|  	    [{mnesia2_file, F, catch file:read_file_info(dir(F))} || F &lt;- Files];
+        |  	Other -&gt;
+<font color=red>     0..|  	    [Other]</font>
+        |      end.
+        |  
+        |  ets_info([H|T]) -&gt;
+    89..|      [{table, H, mk_info_tuple(ets:info(H))} | ets_info(T)];
+     2..|  ets_info([]) -&gt; [].
+        |  
+        |  mk_info_tuple(T) when is_list(T) -&gt;
+    89..|      list_to_tuple(T);
+<font color=red>     0..|  mk_info_tuple(T) -&gt; T.</font>
+        |  
+        |  relatives() -&gt;
+     2..|      Info = fun(Name) -&gt;
+    56..|  		   case whereis(Name) of
+    43..|  		       undefined -&gt; false;
+    13..|  		       Pid -&gt; {true, {Name, Pid, proc_dbg_info(Pid)}}
+        |  		   end
+        |  	   end,
+     2..|      lists:zf(Info, mnesia2:ms()).
+        |  
+        |  workers({workers, Loaders, Senders, Dumper}) -&gt;
+     1..|      Info = fun({Pid, {send_table, Tab, _Receiver, _St}}) -&gt;
+<font color=red>     0..|  		   case Pid of</font>
+<font color=red>     0..|  		       undefined -&gt; false;</font>
+<font color=red>     0..|  		       Pid -&gt; {true, {Pid, Tab, proc_dbg_info(Pid)}}</font>
+        |  		   end;
+        |  	      ({Pid, What}) when is_pid(Pid) -&gt;
+<font color=red>     0..|  		   {true, {Pid, What, proc_dbg_info(Pid)}};</font>
+        |  	      ({Name, Pid}) -&gt;
+     1..|  		   case Pid of
+     1..|  		       undefined -&gt; false;
+<font color=red>     0..|  		       Pid -&gt; {true, {Name, Pid, proc_dbg_info(Pid)}}</font>
+        |  		   end
+        |  	   end,
+     1..|      SInfo = lists:zf(Info, Senders),
+     1..|      Linfo = lists:zf(Info, Loaders),
+     1..|      [{senders, SInfo},{loader, Linfo}|lists:zf(Info, [{dumper, Dumper}])].
+        |  
+        |  locking_procs(LockList) when is_list(LockList) -&gt;
+     1..|      Tids = [element(3, Lock) || Lock &lt;- LockList],
+     1..|      UT = uniq(Tids),    
+     1..|      Info = fun(Tid) -&gt;
+<font color=red>     0..|  		   Pid = Tid#tid.pid,</font>
+<font color=red>     0..|  		   case node(Pid) == node() of</font>
+        |  		       true -&gt; 
+<font color=red>     0..|  			   {true, {Pid, proc_dbg_info(Pid)}};</font>
+        |  		       _ -&gt;
+<font color=red>     0..|  			   false</font>
+        |  		   end
+        |  	   end,
+     1..|      lists:zf(Info, UT).
+        |  
+        |  proc_dbg_info(Pid) -&gt;
+    15..|      try
+    15..|  	[process_info(Pid, current_stacktrace)|
+        |  	 process_info(Pid)]
+        |      catch _:R -&gt;
+<font color=red>     0..|  	    [{process_info,crashed,R}]</font>
+        |      end.
+        |  
+        |  view() -&gt;
+<font color=red>     0..|      Bin = mkcore({crashinfo, {"view only~n", []}}),</font>
+<font color=red>     0..|      vcore(Bin).</font>
+        |  
+        |  %% Displays a Mnesia2 file on the tty. The file may be repaired.
+        |  view(File) -&gt;
+<font color=red>     0..|      case suffix([".DAT", ".RET", ".DMP", ".TMP"], File) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    view(File, dat);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    case suffix([".LOG", ".BUP", ".ETS"], File) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    view(File, log);</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    case lists:prefix("Mnesia2Core.", File) of</font>
+        |  			true -&gt;
+<font color=red>     0..|  			    view(File, core);</font>
+        |  			false -&gt;
+<font color=red>     0..|  			    {error, "Unknown file name"}</font>
+        |  		    end
+        |  	    end
+        |      end.
+        |  
+        |  view(File, dat) -&gt;
+<font color=red>     0..|      dets:view(File);</font>
+        |  view(File, log) -&gt;
+<font color=red>     0..|      mnesia2_log:view(File);</font>
+        |  view(File, core) -&gt;
+<font color=red>     0..|      vcore(File).</font>
+        |  
+        |  suffix(Suffixes, File) -&gt;
+<font color=red>     0..|      Fun = fun(S) -&gt; lists:suffix(S, File) end,</font>
+<font color=red>     0..|      lists:any(Fun, Suffixes).</font>
+        |  
+        |  %% View a core file
+        |  
+        |  vcore() -&gt;
+<font color=red>     0..|      Prefix = lists:concat(["Mnesia2Core.", node()]),</font>
+<font color=red>     0..|      Filter = fun(F) -&gt; lists:prefix(Prefix, F) end,</font>
+<font color=red>     0..|      {ok, Cwd} = file:get_cwd(),</font>
+<font color=red>     0..|      case file:list_dir(Cwd) of</font>
+        |  	{ok, Files}-&gt;
+<font color=red>     0..|  	    CoreFiles = lists:sort(lists:zf(Filter, Files)),</font>
+<font color=red>     0..|  	    show("Mnesia2 core files: ~p~n", [CoreFiles]),</font>
+<font color=red>     0..|  	    vcore(lists:last(CoreFiles));</font>
+        |  	Error -&gt;
+<font color=red>     0..|  	    Error</font>
+        |      end.
+        |  
+        |  vcore(Bin) when is_binary(Bin) -&gt;
+<font color=red>     0..|      Core = binary_to_term(Bin),</font>
+<font color=red>     0..|      Fun = fun({Item, Info}) -&gt;</font>
+<font color=red>     0..|  		  show("***** ~p *****~n", [Item]),</font>
+<font color=red>     0..|  		  case catch vcore_elem({Item, Info}) of</font>
+        |  		      {'EXIT', Reason} -&gt;
+<font color=red>     0..|  			  show("{'EXIT', ~p}~n", [Reason]);</font>
+<font color=red>     0..|  		      _ -&gt; ok</font>
+        |  		  end
+        |  	  end,
+<font color=red>     0..|      lists:foreach(Fun, Core);</font>
+        |      
+        |  vcore(File) -&gt;
+<font color=red>     0..|      show("~n***** Mnesia2 core: ~p *****~n", [File]),</font>
+<font color=red>     0..|      case file:read_file(File) of</font>
+        |  	{ok, Bin} -&gt;
+<font color=red>     0..|  	    vcore(Bin);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    nocore</font>
+        |      end.
+        |  
+        |  vcore_elem({schema_file, {ok, B}}) -&gt;
+<font color=red>     0..|      Fname = "/tmp/schema.DAT",</font>
+<font color=red>     0..|      _ = file:write_file(Fname, B),</font>
+<font color=red>     0..|      _ = dets:view(Fname),</font>
+<font color=red>     0..|      _ = file:delete(Fname);</font>
+        |  
+        |  vcore_elem({logfile, {ok, BinList}}) -&gt;
+<font color=red>     0..|      Fun = fun({F, Info}) -&gt;</font>
+<font color=red>     0..|  		  show("----- logfile: ~p -----~n", [F]),</font>
+<font color=red>     0..|  		  case Info of</font>
+        |  		      {ok, B} -&gt;
+<font color=red>     0..|  			  Fname = "/tmp/mnesia2_vcore_elem.TMP",</font>
+<font color=red>     0..|  			  file:write_file(Fname, B),</font>
+<font color=red>     0..|  			  mnesia2_log:view(Fname),</font>
+<font color=red>     0..|  			  file:delete(Fname);</font>
+        |  		      _ -&gt;
+<font color=red>     0..|  			  show("~p~n", [Info])</font>
+        |  		  end
+        |  	  end,
+<font color=red>     0..|      lists:foreach(Fun, BinList);</font>
+        |  
+        |  vcore_elem({crashinfo, {Format, Args}}) -&gt;
+<font color=red>     0..|      show(Format, Args);</font>
+        |  vcore_elem({gvar, L}) -&gt;
+<font color=red>     0..|      show("~p~n", [lists:sort(L)]);</font>
+        |  vcore_elem({transactions, Info}) -&gt;
+<font color=red>     0..|      mnesia2_tm:display_info(user, Info);</font>
+        |  
+        |  vcore_elem({_Item, Info}) -&gt;
+<font color=red>     0..|      show("~p~n", [Info]).</font>
+        |  
+        |  fix_error(X) -&gt;
+    43..|      set(last_error, X), %% for debugabililty
+    43..|      case X of
+    42..|  	{aborted, Reason} -&gt; Reason;
+<font color=red>     0..|  	{abort, Reason} -&gt; Reason;</font>
+<font color=red>     0..|  	Y when is_atom(Y) -&gt; Y;</font>
+        |  	{'EXIT', {_Reason, {Mod, _, _}}} when is_atom(Mod) -&gt;
+<font color=red>     0..|  	    save(X),</font>
+<font color=red>     0..|  	    case atom_to_list(Mod) of</font>
+<font color=red>     0..|  		[$m, $n, $e|_] -&gt; badarg;</font>
+<font color=red>     0..|  		_ -&gt; X</font>
+        |  	    end;
+     1..|  	_ -&gt; X
+        |      end.
+        |  
+        |  last_error() -&gt;
+<font color=red>     0..|      val(last_error).</font>
+        |  
+        |  %% The following is a list of possible mnesia2 errors and what they
+        |  %% actually mean
+        |  
+<font color=red>     0..|  error_desc(nested_transaction) -&gt; "Nested transactions are not allowed";</font>
+<font color=red>     0..|  error_desc(badarg) -&gt; "Bad or invalid argument, possibly bad type";</font>
+<font color=red>     0..|  error_desc(no_transaction) -&gt; "Operation not allowed outside transactions";</font>
+<font color=red>     0..|  error_desc(combine_error)  -&gt; "Table options were ilegally combined";</font>
+<font color=red>     0..|  error_desc(bad_index)  -&gt; "Index already exists or was out of bounds";</font>
+<font color=red>     0..|  error_desc(already_exists) -&gt; "Some schema option we try to set is already on";</font>
+<font color=red>     0..|  error_desc(index_exists)-&gt; "Some ops can not  be performed on tabs with index";</font>
+     1..|  error_desc(no_exists)-&gt; "Tried to perform op on non-existing (non alive) item";
+<font color=red>     0..|  error_desc(system_limit) -&gt; "Some system_limit was exhausted";</font>
+<font color=red>     0..|  error_desc(mnesia2_down) -&gt; "A transaction involving objects at some remote "</font>
+        |                             "node which died while transaction was executing"
+        |                             "*and* object(s) are no longer available elsewhere"
+        |                             "in the network";
+<font color=red>     0..|  error_desc(not_a_db_node) -&gt; "A node which is non existant in "</font>
+        |                                "the schema was mentioned";
+<font color=red>     0..|  error_desc(bad_type)            -&gt; "Bad type on some provided arguments";</font>
+<font color=red>     0..|  error_desc(node_not_running)    -&gt; "Node not running";</font>
+<font color=red>     0..|  error_desc(truncated_binary_file) -&gt; "Truncated binary in file";</font>
+<font color=red>     0..|  error_desc(active)     -&gt; "Some delete ops require that "</font>
+        |                             "all active objects are removed";
+<font color=red>     0..|  error_desc(illegal) -&gt; "Operation not supported on object";</font>
+        |  error_desc({'EXIT', Reason}) -&gt;
+<font color=red>     0..|      error_desc(Reason);</font>
+        |  error_desc({error, Reason}) -&gt;
+<font color=red>     0..|      error_desc(Reason);</font>
+        |  error_desc({aborted, Reason}) -&gt;
+<font color=red>     0..|      error_desc(Reason);</font>
+        |  error_desc(Reason) when is_tuple(Reason), size(Reason) &gt; 0 -&gt;
+<font color=red>     0..|      setelement(1, Reason, error_desc(element(1, Reason)));</font>
+        |  error_desc(Reason) -&gt;
+<font color=red>     0..|      Reason.</font>
+        |  
+        |  dirty_rpc_error_tag(Reason) -&gt;
+    48..|      case Reason of
+    48..|  	{'EXIT', _} -&gt; badarg;
+<font color=red>     0..|  	no_variable -&gt; badarg;</font>
+<font color=red>     0..|  	_           -&gt; no_exists</font>
+        |      end.
+        |  
+        |  fatal(Format, Args) -&gt;
+     3..|      ?SAFE(catch set(mnesia2_status, stopping)),
+     3..|      Core = mkcore({crashinfo, {Format, Args}}),
+     1..|      report_fatal(Format, Args, Core),
+     1..|      timer:sleep(10000), % Enough to write the core dump to disc?
+     1..|      mnesia2:lkill(),
+<font color=red>     0..|      exit(fatal).</font>
+        |  
+        |  report_fatal(Format, Args) -&gt;
+<font color=red>     0..|      report_fatal(Format, Args, nocore).</font>
+        |  
+        |  report_fatal(Format, Args, Core) -&gt;
+     1..|      report_system_event({mnesia2_fatal, Format, Args, Core}),
+     1..|      ?SAFE(exit(whereis(mnesia2_monitor), fatal)).
+        |  
+        |  %% We sleep longer and longer the more we try
+        |  %% Made some testing and came up with the following constants
+        |  random_time(Retries, _Counter0) -&gt;    
+        |  %    UpperLimit = 2000,
+        |  %    MaxIntv = trunc(UpperLimit * (1-(4/((Retries*Retries)+4)))),
+  8747..|      UpperLimit = 500,
+  8747..|      Dup = Retries * Retries,
+  8747..|      MaxIntv = trunc(UpperLimit * (1-(50/((Dup)+50)))),
+        |      
+  8747..|      case get(random_seed) of
+        |  	undefined -&gt;
+        |          %% TODO OTP18
+    15..|  	    _ = random:seed(mnesia2_time:unique_integer(),
+        |  			    mnesia2_time:monotonic_time(),
+        |  			    mnesia2_time:unique_integer()),
+        |          % {X, Y, Z} = erlang:now(), %% time()
+        |          % _ = random:seed(X, Y, Z),
+    15..|  	    Time = Dup + random:uniform(MaxIntv),
+        |  	    %%	    dbg_out("---random_test rs ~w max ~w val ~w---~n", [Retries, MaxIntv, Time]),
+    15..|  	    Time;
+        |  	_ -&gt;
+  8732..|  	    Time = Dup + random:uniform(MaxIntv),
+        |  	    %%	    dbg_out("---random_test rs ~w max ~w val ~w---~n", [Retries, MaxIntv, Time]),
+  8732..|  	    Time	    
+        |      end.
+        |  
+        |  report_system_event(Event0) -&gt;
+   547..|      Event = {mnesia2_system_event, Event0},
+   547..|      report_system_event(catch_notify(Event), Event),
+   545..|      case ?catch_val(subscribers) of
+   126..|  	{'EXIT', _} -&gt; ignore;
+   419..|  	Pids -&gt; lists:foreach(fun(Pid) -&gt; Pid ! Event end, Pids)
+        |      end,
+   545..|      ok.
+        |  
+        |  catch_notify(Event) -&gt;
+   547..|      case whereis(mnesia2_event) of
+        |  	undefined -&gt;
+    46..|  	    {'EXIT', {badarg, {mnesia2_event, Event}}};
+        |  	Pid -&gt;
+   501..|  	    gen_event:notify(Pid, Event)
+        |      end.
+        |  
+        |  report_system_event({'EXIT', Reason}, Event) -&gt;
+    46..|      Mod = mnesia2_monitor:get_env(event_module),
+    46..|      case mnesia2_sup:start_event() of
+        |  	{ok, Pid} -&gt;
+    15..|  	    link(Pid),
+    15..|  	    gen_event:call(mnesia2_event, Mod, Event, infinity),
+    13..|  	    unlink(Pid),
+        |  
+        |              %% We get an exit signal if server dies
+    13..|              receive {'EXIT', Pid, _Reason} -&gt; ok
+    13..|              after 0 -&gt; gen_event:stop(mnesia2_event)
+        |              end;
+        |  
+        |  	Error -&gt;
+    31..|  	    Msg = "Mnesia2(~p): Cannot report event ~p: ~p (~p)~n",
+    31..|  	    error_logger:format(Msg, [node(), Event, Reason, Error])
+        |      end,
+    44..|      ok;
+        |  report_system_event(_Res, _Event) -&gt;
+   501..|      ok.
+        |  
+        |  %% important messages are reported regardless of debug level
+        |  important(Format, Args) -&gt;
+   332..|      save({Format, Args}),
+   332..|      report_system_event({mnesia2_info, Format, Args}).
+        |  
+        |  %% Warning messages are reported regardless of debug level
+        |  warning(Format, Args) -&gt;
+<font color=red>     0..|      save({Format, Args}),</font>
+<font color=red>     0..|      report_system_event({mnesia2_warning, Format, Args}).</font>
+        |  
+        |  %% error messages are reported regardless of debug level
+        |  error(Format, Args) -&gt;
+<font color=red>     0..|      save({Format, Args}),</font>
+<font color=red>     0..|      report_system_event({mnesia2_error, Format, Args}).</font>
+        |  
+        |  %% verbose messages are reported if debug level == debug or verbose
+        |  verbose(Format, Args) -&gt;
+ 88978..|      case mnesia2_monitor:get_env(debug) of
+ 88646..|  	none -&gt;    save({Format, Args});
+    75..|  	verbose -&gt; important(Format, Args);
+   182..|  	debug -&gt;   important(Format, Args);
+    75..|  	trace -&gt;   important(Format, Args)
+        |      end.
+        |  
+        |  %% debug message are display if debug level == 2
+        |  dbg_out(Format, Args) -&gt;
+266558..|      case mnesia2_monitor:get_env(debug) of
+266432..|  	none -&gt;    ignore;
+    31..|  	verbose -&gt; save({Format, Args});
+    95..|  	_ -&gt;  report_system_event({mnesia2_info, Format, Args})
+        |      end.
+        |  
+        |  %% Keep the last 10 debug print outs
+        |  save(DbgInfo) -&gt;
+ 89009..|      ?SAFE(save2(DbgInfo)).
+        |  
+        |  save2(DbgInfo) -&gt;
+ 89009..|      Key = {'$$$_report', current_pos},
+ 89009..|      P =
+        |  	case ?ets_lookup_element(mnesia2_gvar, Key, 2) of
+  2793..|  	    30 -&gt; -1;
+ 84944..|  	    I -&gt; I
+        |  	end,
+ 87737..|      set({'$$$_report', current_pos}, P+1),
+ 87737..|      set({'$$$_report', P+1}, {date(), time(), DbgInfo}).
+        |  
+        |  copy_file(From, To) -&gt;
+     1..|      case file:open(From, [raw, binary, read]) of
+        |  	{ok, F} -&gt;
+     1..|  	    case file:open(To, [raw, binary, write]) of
+        |  		{ok, T} -&gt;
+     1..|  		    Res = copy_file_loop(F, T, 8000),
+     1..|  		    ok = file:close(F),
+     1..|  		    ok = file:close(T),
+     1..|  		    Res;
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    {error, Reason}</font>
+        |  	    end;
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end.
+        |  
+        |  copy_file_loop(F, T, ChunkSize) -&gt;
+     2..|      case file:read(F, ChunkSize) of
+        |  	{ok, Bin} -&gt;
+     1..|  	    ok = file:write(T, Bin),
+     1..|  	    copy_file_loop(F, T, ChunkSize);
+        |  	eof -&gt;
+     1..|  	    ok;
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end.
+        |  
+        |  
+        |  %%%%%%%%%%%%
+        |  %% versions of all the lowlevel db funcs that determine whether we
+        |  %% shall go to disc or ram to do the actual operation.
+        |  
+        |  db_get(Tab, Key) -&gt;
+372107..|      db_get(val({Tab, storage_type}), Tab, Key).
+297044..|  db_get(ram_copies, Tab, Key) -&gt; ?ets_lookup(Tab, Key);
+ 73915..|  db_get(disc_copies, Tab, Key) -&gt; ?ets_lookup(Tab, Key);
+  1181..|  db_get(disc_only_copies, Tab, Key) -&gt; dets:lookup(Tab, Key).
+        |  
+        |  db_init_chunk(Tab) -&gt;
+<font color=red>     0..|      db_init_chunk(val({Tab, storage_type}), Tab, 1000).</font>
+        |  db_init_chunk(Tab, N) -&gt;
+<font color=red>     0..|      db_init_chunk(val({Tab, storage_type}), Tab, N).</font>
+        |  
+        |  db_init_chunk(disc_only_copies, Tab, N) -&gt;
+     3..|      dets:select(Tab, [{'_', [], ['$_']}], N);
+        |  db_init_chunk(_, Tab, N) -&gt;
+    68..|      ets:select(Tab, [{'_', [], ['$_']}], N).
+        |  
+        |  db_chunk(disc_only_copies, State) -&gt;
+<font color=red>     0..|      dets:select(State);</font>
+        |  db_chunk(_, State) -&gt;
+    79..|      ets:select(State).
+        |  
+        |  db_put(Tab, Val) -&gt;
+<font color=red>     0..|      db_put(val({Tab, storage_type}), Tab, Val).</font>
+        |  
+293562..|  db_put(ram_copies, Tab, Val) -&gt; ?ets_insert(Tab, Val), ok;
+ 97947..|  db_put(disc_copies, Tab, Val) -&gt; ?ets_insert(Tab, Val), ok;
+  1054..|  db_put(disc_only_copies, Tab, Val) -&gt; dets:insert(Tab, Val).
+        |  
+        |  db_match_object(Tab, Pat) -&gt;
+    31..|      db_match_object(val({Tab, storage_type}), Tab, Pat).
+        |  db_match_object(Storage, Tab, Pat) -&gt;
+    96..|      db_fixtable(Storage, Tab, true),
+    95..|      try
+    95..|  	case Storage of
+     7..|  	    disc_only_copies -&gt; dets:match_object(Tab, Pat);
+    88..|  	    _ -&gt; ets:match_object(Tab, Pat)
+        |  	end
+        |      after
+    95..|  	db_fixtable(Storage, Tab, false)
+        |      end.
+        |  
+        |  db_select(Tab, Pat) -&gt;
+    50..|      db_select(val({Tab, storage_type}), Tab, Pat).
+        |  
+        |  db_select(Storage, Tab, Pat) -&gt;
+    53..|      db_fixtable(Storage, Tab, true),
+    53..|      try
+    53..|  	case Storage of
+    16..|  	    disc_only_copies -&gt; dets:select(Tab, Pat);
+    37..|  	    _ -&gt; ets:select(Tab, Pat)
+        |  	end
+        |      after
+    53..|  	db_fixtable(Storage, Tab, false)
+        |      end.
+        |  
+        |  db_select_init(disc_only_copies, Tab, Pat, Limit) -&gt;
+    15..|      dets:select(Tab, Pat, Limit);
+        |  db_select_init(_, Tab, Pat, Limit) -&gt;
+    40..|      ets:select(Tab, Pat, Limit).
+        |  
+        |  db_select_cont(disc_only_copies, Cont0, Ms) -&gt;
+    71..|      Cont = dets:repair_continuation(Cont0, Ms),
+    71..|      dets:select(Cont);
+        |  db_select_cont(_, Cont0, Ms) -&gt;
+   126..|      Cont = ets:repair_continuation(Cont0, Ms),
+   126..|      ets:select(Cont).
+        |  
+        |  db_fixtable(ets, Tab, Bool) -&gt;
+<font color=red>     0..|      ets:safe_fixtable(Tab, Bool);</font>
+        |  db_fixtable(ram_copies, Tab, Bool) -&gt;
+   459..|      ets:safe_fixtable(Tab, Bool);
+        |  db_fixtable(disc_copies, Tab, Bool) -&gt;
+   116..|      ets:safe_fixtable(Tab, Bool);
+        |  db_fixtable(dets, Tab, Bool) -&gt;
+<font color=red>     0..|      dets:safe_fixtable(Tab, Bool);</font>
+        |  db_fixtable(disc_only_copies, Tab, Bool) -&gt;
+    96..|      dets:safe_fixtable(Tab, Bool).
+        |  
+        |  db_erase(Tab, Key) -&gt;
+<font color=red>     0..|      db_erase(val({Tab, storage_type}), Tab, Key).</font>
+    27..|  db_erase(ram_copies, Tab, Key) -&gt; ?ets_delete(Tab, Key), ok;
+    20..|  db_erase(disc_copies, Tab, Key) -&gt; ?ets_delete(Tab, Key), ok;
+    34..|  db_erase(disc_only_copies, Tab, Key) -&gt; dets:delete(Tab, Key).
+        |  
+        |  db_match_erase(Tab, '_') -&gt;
+<font color=red>     0..|      db_delete_all(val({Tab, storage_type}),Tab);</font>
+        |  db_match_erase(Tab, Pat) -&gt;
+<font color=red>     0..|      db_match_erase(val({Tab, storage_type}), Tab, Pat).</font>
+     4..|  db_match_erase(ram_copies, Tab, Pat) -&gt; ?ets_match_delete(Tab, Pat), ok;
+     2..|  db_match_erase(disc_copies, Tab, Pat) -&gt; ?ets_match_delete(Tab, Pat), ok;
+     2..|  db_match_erase(disc_only_copies, Tab, Pat) -&gt; dets:match_delete(Tab, Pat).
+        |  
+<font color=red>     0..|  db_delete_all(ram_copies, Tab) -&gt;       ets:delete_all_objects(Tab);</font>
+<font color=red>     0..|  db_delete_all(disc_copies, Tab) -&gt;      ets:delete_all_objects(Tab);</font>
+<font color=red>     0..|  db_delete_all(disc_only_copies, Tab) -&gt; dets:delete_all_objects(Tab).</font>
+        |  
+        |  db_first(Tab) -&gt;
+   125..|      db_first(val({Tab, storage_type}), Tab).
+   111..|  db_first(ram_copies, Tab) -&gt; ?ets_first(Tab);
+    26..|  db_first(disc_copies, Tab) -&gt; ?ets_first(Tab);
+    10..|  db_first(disc_only_copies, Tab) -&gt; dets:first(Tab).
+        |  
+        |  db_next_key(Tab, Key) -&gt;
+192460..|      db_next_key(val({Tab, storage_type}), Tab, Key).
+192104..|  db_next_key(ram_copies, Tab, Key) -&gt; ?ets_next(Tab, Key);
+   338..|  db_next_key(disc_copies, Tab, Key) -&gt; ?ets_next(Tab, Key);
+    18..|  db_next_key(disc_only_copies, Tab, Key) -&gt; dets:next(Tab, Key).
+        |  
+        |  db_last(Tab) -&gt;
+    18..|      db_last(val({Tab, storage_type}), Tab).
+     6..|  db_last(ram_copies, Tab) -&gt; ?ets_last(Tab);
+     6..|  db_last(disc_copies, Tab) -&gt; ?ets_last(Tab);
+     6..|  db_last(disc_only_copies, Tab) -&gt; dets:first(Tab). %% Dets don't have order
+        |  
+        |  db_prev_key(Tab, Key) -&gt;
+    54..|      db_prev_key(val({Tab, storage_type}), Tab, Key).
+    18..|  db_prev_key(ram_copies, Tab, Key) -&gt; ?ets_prev(Tab, Key);
+    18..|  db_prev_key(disc_copies, Tab, Key) -&gt; ?ets_prev(Tab, Key);
+    18..|  db_prev_key(disc_only_copies, Tab, Key) -&gt; dets:next(Tab, Key). %% Dets don't have order
+        |  
+        |  db_slot(Tab, Pos) -&gt;
+     1..|      db_slot(val({Tab, storage_type}), Tab, Pos).
+     1..|  db_slot(ram_copies, Tab, Pos) -&gt; ?ets_slot(Tab, Pos);
+<font color=red>     0..|  db_slot(disc_copies, Tab, Pos) -&gt; ?ets_slot(Tab, Pos);</font>
+<font color=red>     0..|  db_slot(disc_only_copies, Tab, Pos) -&gt; dets:slot(Tab, Pos).</font>
+        |  
+        |  db_update_counter(Tab, C, Val) -&gt;
+<font color=red>     0..|      db_update_counter(val({Tab, storage_type}), Tab, C, Val).</font>
+        |  db_update_counter(ram_copies, Tab, C, Val) -&gt;
+     1..|      ?ets_update_counter(Tab, C, Val);
+        |  db_update_counter(disc_copies, Tab, C, Val) -&gt;
+<font color=red>     0..|      ?ets_update_counter(Tab, C, Val);</font>
+        |  db_update_counter(disc_only_copies, Tab, C, Val) -&gt;
+<font color=red>     0..|      dets:update_counter(Tab, C, Val).</font>
+        |  
+        |  db_erase_tab(Tab) -&gt;
+<font color=red>     0..|      db_erase_tab(val({Tab, storage_type}), Tab).</font>
+<font color=red>     0..|  db_erase_tab(ram_copies, Tab) -&gt; ?ets_delete_table(Tab);</font>
+<font color=red>     0..|  db_erase_tab(disc_copies, Tab) -&gt; ?ets_delete_table(Tab);</font>
+<font color=red>     0..|  db_erase_tab(disc_only_copies, _Tab) -&gt; ignore.</font>
+        |  
+        |  %% assuming that Tab is a valid ets-table
+        |  dets_to_ets(Tabname, Tab, File, Type, Rep, Lock) -&gt;
+    60..|      {Open, Close} = mkfuns(Lock),
+    60..|      case Open(Tabname, [{file, File}, {type, disk_type(Tab, Type)},
+        |  			{keypos, 2}, {repair, Rep}]) of
+        |  	{ok, Tabname} -&gt;
+    60..|  	    Res = dets:to_ets(Tabname, Tab),
+    60..|  	    ok = Close(Tabname),
+    60..|  	    trav_ret(Res, Tab);
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end.
+        |  
+    60..|  trav_ret(Tabname, Tabname) -&gt; loaded;
+<font color=red>     0..|  trav_ret(Other, _Tabname) -&gt; Other.</font>
+        |  
+        |  mkfuns(yes) -&gt;
+<font color=red>     0..|      {fun(Tab, Args) -&gt; dets_sync_open(Tab, Args) end,</font>
+<font color=red>     0..|       fun(Tab) -&gt; dets_sync_close(Tab) end};</font>
+        |  mkfuns(no) -&gt;
+    60..|      {fun(Tab, Args) -&gt; dets:open_file(Tab, Args) end,
+    60..|       fun(Tab) -&gt; dets:close(Tab) end}.
+        |  
+        |  disk_type(Tab) -&gt;
+<font color=red>     0..|      disk_type(Tab, val({Tab, setorbag})).</font>
+        |  
+        |  disk_type(_Tab, ordered_set) -&gt;
+<font color=red>     0..|      set;</font>
+        |  disk_type(_, Type) -&gt;
+   236..|      Type.
+        |  
+        |  dets_sync_open(Tab, Ref, File) -&gt;
+<font color=red>     0..|      Args = [{file, File},</font>
+        |  	    {keypos, 2},
+        |  	    {repair, mnesia2_monitor:get_env(auto_repair)},
+        |  	    {type, disk_type(Tab)}],
+<font color=red>     0..|      dets_sync_open(Ref, Args).</font>
+        |  
+        |  lock_table(Tab) -&gt;
+   369..|      global:set_lock({{mnesia2_table_lock, Tab}, self()}, [node()], infinity).
+        |  %    dbg_out("dets_sync_open: ~p ~p~n", [T, self()]),
+        |  
+        |  unlock_table(Tab) -&gt;
+   369..|      global:del_lock({{mnesia2_table_lock, Tab}, self()}, [node()]).
+        |  %    dbg_out("unlock_table: ~p ~p~n", [T, self()]),
+        |  
+        |  dets_sync_open(Tab, Args) -&gt;
+   176..|      lock_table(Tab),
+   176..|      case dets:open_file(Tab, Args) of
+        |  	{ok, Tab} -&gt;
+   176..|  	    {ok, Tab};
+        |  	Other -&gt;
+<font color=red>     0..|  	    dets_sync_close(Tab),</font>
+<font color=red>     0..|  	    Other</font>
+        |      end.
+        |  
+        |  dets_sync_close(Tab) -&gt;
+   176..|      ?SAFE(dets:close(Tab)),
+   176..|      unlock_table(Tab),
+   176..|      ok.
+        |  
+        |  readable_indecies(Tab) -&gt;
+<font color=red>     0..|      val({Tab, index}).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Managing conditional debug functions
+        |  %%
+        |  %% The main idea with the debug_fun's is to allow test programs
+        |  %% to control the internal behaviour of Mnesia2. This is needed
+        |  %% to make the test programs independent of system load, swapping
+        |  %% and other circumstances that may affect the behaviour of Mnesia2.
+        |  %%
+        |  %% First should calls to ?eval_debug_fun be inserted at well
+        |  %% defined places in Mnesia2's code. E.g. in critical situations
+        |  %% of startup, transaction commit, backups etc.
+        |  %%
+        |  %% Then compile Mnesia2 with the compiler option 'debug'.
+        |  %%
+        |  %% In test programs ?activate_debug_fun should be called
+        |  %% in order to bind a fun to the debug identifier stated
+        |  %% in the call to ?eval_debug_fun.
+        |  %%
+        |  %% If eval_debug_fun finds that the fun is activated it
+        |  %% invokes the fun as NewContext = Fun(PreviousContext, EvalContext)
+        |  %% and replaces the PreviousContext with the NewContext.
+        |  %% The initial context of a debug_fun is given as argument to
+        |  %% activate_debug_fun.
+        |  
+        |  -define(DEBUG_TAB, mnesia2_debug).
+        |  -record(debug_info, {id, function, context, file, line}).
+        |  
+        |  scratch_debug_fun() -&gt;
+<font color=red>     0..|      dbg_out("scratch_debug_fun(): ~p~n", [?DEBUG_TAB]),</font>
+<font color=red>     0..|      ?SAFE(?ets_delete_table(?DEBUG_TAB)),</font>
+<font color=red>     0..|      ?ets_new_table(?DEBUG_TAB, [set, public, named_table, {keypos, 2}]).</font>
+        |  
+        |  activate_debug_fun(FunId, Fun, InitialContext, File, Line) -&gt;
+<font color=red>     0..|      Info = #debug_info{id = FunId,</font>
+        |  		       function = Fun,
+        |  		       context = InitialContext,
+        |  		       file = File,
+        |  		       line = Line
+        |  		      },
+<font color=red>     0..|      update_debug_info(Info).</font>
+        |  
+        |  update_debug_info(Info) -&gt;
+<font color=red>     0..|      try ?ets_insert(?DEBUG_TAB, Info),</font>
+<font color=red>     0..|  	 ok</font>
+        |      catch error:_ -&gt;
+<font color=red>     0..|  	    scratch_debug_fun(),</font>
+<font color=red>     0..|  	    ?ets_insert(?DEBUG_TAB, Info)</font>
+        |      end,
+<font color=red>     0..|      dbg_out("update_debug_info(~p)~n", [Info]),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  deactivate_debug_fun(FunId, _File, _Line) -&gt;
+<font color=red>     0..|      ?SAFE(?ets_delete(?DEBUG_TAB, FunId)),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  eval_debug_fun(FunId, EvalContext, EvalFile, EvalLine) -&gt;
+254795..|  	case catch ?ets_lookup(?DEBUG_TAB, FunId) of
+        |          {'EXIT', {badarg, _}} -&gt;
+254795..|              dbg_out("debug fun ~p in ets ~p does not exist, ignoring",
+        |                  [FunId, ?DEBUG_TAB]),
+254795..|              ok;
+<font color=red>     0..|  	    [] -&gt; ok;</font>
+        |  	    [Info] -&gt;
+<font color=red>     0..|      		OldContext = Info#debug_info.context,</font>
+<font color=red>     0..|      		dbg_out("~s(~p): ~w "</font>
+        |      			"activated in ~s(~p)~n  "
+        |      			"eval_debug_fun(~w, ~w)~n",
+        |      			[filename:basename(EvalFile), EvalLine, Info#debug_info.id,
+        |      			 filename:basename(Info#debug_info.file), Info#debug_info.line,
+        |      			 OldContext, EvalContext]),
+<font color=red>     0..|      		Fun = Info#debug_info.function,</font>
+<font color=red>     0..|      		NewContext = Fun(OldContext, EvalContext),</font>
+        |  
+<font color=red>     0..|      		case ?ets_lookup(?DEBUG_TAB, FunId) of</font>
+        |      		    [Info] when NewContext /= OldContext -&gt;
+<font color=red>     0..|      			NewInfo = Info#debug_info{context = NewContext},</font>
+<font color=red>     0..|      			update_debug_info(NewInfo);</font>
+        |      		    _ -&gt;
+<font color=red>     0..|      			ok</font>
+        |      		end
+        |  	end.
+        |  
+        |  -ifdef(debug).
+<font color=red>     0..|      is_debug_compiled() -&gt; true.</font>
+        |  -else.
+        |      is_debug_compiled() -&gt; false.
+        |  -endif.   
+        |  
+        |  
+</pre>
+</body>
+</html>
