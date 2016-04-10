@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test6839@testing-worker-linux-docker-8c38c70b-3384-linux-4.2016-04-10_16.49.28/mnesia2_sup.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_sup.erl by COVER 2016-04-10 at 16:54:00
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 1996-2013. All Rights Reserved.
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  %% Supervisor for the entire Mnesia2 application
+        |  
+        |  -module(mnesia2_sup).
+        |  
+        |  -behaviour(application).
+        |  -behaviour(supervisor).
+        |  
+        |  -export([start/0, start/2, init/1, stop/1, start_event/0, kill/0]).
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% application and suprvisor callback functions
+        |  
+        |  start(normal, Args) -&gt;
+    71..|      SupName = {local,?MODULE},
+    71..|      case supervisor:start_link(SupName, ?MODULE, [Args]) of
+        |  	{ok, Pid} -&gt;
+    70..|  	    {ok, Pid, {normal, Args}};
+        |  	Error -&gt; 
+     1..|  	    Error
+        |      end;
+        |  start(_, _) -&gt;
+<font color=red>     0..|      {error, badarg}.</font>
+        |  
+        |  start() -&gt;
+<font color=red>     0..|      SupName = {local,?MODULE},</font>
+<font color=red>     0..|      supervisor:start_link(SupName, ?MODULE, []).</font>
+        |  
+        |  stop(_StartArgs) -&gt;
+    70..|      ok.
+        |  
+        |  init([]) -&gt; % Supervisor
+<font color=red>     0..|      init();</font>
+        |  init([[]]) -&gt; % Application
+    71..|      init();
+        |  init(BadArg) -&gt;
+<font color=red>     0..|      {error, {badarg, BadArg}}.</font>
+        |      
+        |  init() -&gt;
+    71..|      ok = mnesia2_tab:init(),
+    71..|      Flags = {one_for_all, 0, 3600}, % Should be rest_for_one policy
+        |  
+    71..|      Event = event_procs(),
+    71..|      Kernel = kernel_procs(),
+        |  
+    71..|      {ok, {Flags, Event ++ Kernel}}.
+        |  
+        |  event_procs() -&gt;
+    71..|      KillAfter = timer:seconds(30),
+    71..|      KA = mnesia2_kernel_sup:supervisor_timeout(KillAfter),
+    71..|      E = mnesia2_event,
+    71..|      [{E, {?MODULE, start_event, []}, permanent, KA, worker, [E, gen_event]}].
+        |  
+        |  kernel_procs() -&gt;
+    71..|      K = mnesia2_kernel_sup,
+    71..|      KA = infinity,
+    71..|      [{K, {K, start, []}, permanent, KA, supervisor, [K, supervisor]}].
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% event handler
+        |  
+        |  start_event() -&gt;
+   145..|      case gen_event:start_link({local, mnesia2_event}) of
+        |  	{ok, Pid} -&gt;
+    78..|  	    case add_event_handler() of
+        |  		ok -&gt; 
+    78..|  		    {ok, Pid};
+        |  		Error -&gt;
+<font color=red>     0..|  		    Error</font>
+        |  	    end;
+        |  	Error  -&gt;
+    67..|  	    Error
+        |      end.
+        |  
+        |  add_event_handler() -&gt;
+    78..|      Handler = mnesia2_monitor:get_env(event_module),
+    78..|      gen_event:add_handler(mnesia2_event, Handler, []).
+        |      
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% debug functions
+        |  
+        |  kill() -&gt;
+   114..|      Mnesia2 = [mnesia2_fallback | mnesia2:ms()],
+   114..|      Kill = fun(Name) -&gt; catch exit(whereis(Name), kill) end,
+   114..|      lists:foreach(Kill, Mnesia2),
+   113..|      lists:foreach(fun ensure_dead/1, Mnesia2),
+   113..|      timer:sleep(10),
+   113..|      case lists:keymember(mnesia2, 1, application:which_applications()) of
+<font color=red>     0..|  	true -&gt; kill();</font>
+   113..|  	false -&gt; ok
+        |      end.
+        |  
+        |  ensure_dead(Name) -&gt;
+  3323..|      case whereis(Name) of
+        |  	undefined -&gt;
+  3277..|  	    ok;
+        |  	Pid when is_pid(Pid) -&gt;
+    46..|  	    exit(Pid, kill),
+    46..|  	    timer:sleep(10),
+    46..|  	    ensure_dead(Name)
+        |      end.
+        |  
+</pre>
+</body>
+</html>
