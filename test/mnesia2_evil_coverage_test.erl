@@ -113,6 +113,11 @@ system_info(Config) when is_list(Config) ->
     ?match(I when is_integer(I), mnesia2:system_info(send_compressed)),
     ?match(I when is_integer(I), mnesia2:system_info(send_max_packets)),
     ?match(I when is_integer(I), mnesia2:system_info(send_max_transfer_size)),
+    ?match(I when is_integer(I), mnesia2:system_info(async_dirty_buffer_size)),
+    ?match(I when is_integer(I), mnesia2:system_info(async_dirty_max_buffer_file_size)),
+    ?match(I when is_integer(I), mnesia2:system_info(async_dirty_tx_backlog_threshold)),
+    ?match(I when is_integer(I), mnesia2:system_info(async_dirty_buffer_min_runtime)),
+    ?match(I when is_integer(I), mnesia2:system_info(async_dirty_buffer_drained_cutoff)),
     ?match(L when is_list(L), mnesia2:system_info(all)),
     ?match({'EXIT', {aborted, Reason }} when element(1, Reason) == badarg
            , mnesia2:system_info(ali_baba)),

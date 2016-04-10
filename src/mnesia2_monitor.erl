@@ -681,7 +681,12 @@ env() ->
      dc_dump_limit,
      send_compressed,
      send_max_packets,
-     send_max_transfer_size
+     send_max_transfer_size,
+     async_dirty_buffer_size,
+     async_dirty_max_buffer_file_size,
+     async_dirty_tx_backlog_threshold,
+     async_dirty_buffer_min_runtime,
+     async_dirty_buffer_drained_cutoff
     ].
 
 default_env(access_module) ->
@@ -730,7 +735,17 @@ default_env(send_compressed) ->
 default_env(send_max_packets) ->
     20;
 default_env(send_max_transfer_size) ->
-    7500.
+    7500;
+default_env(async_dirty_buffer_size) ->
+    524288;
+default_env(async_dirty_max_buffer_file_size) ->
+    100000000;
+default_env(async_dirty_tx_backlog_threshold) ->
+    200000;
+default_env(async_dirty_buffer_min_runtime) ->
+    10000;
+default_env(async_dirty_buffer_drained_cutoff) ->
+    5.
 
 check_type(Env, Val) ->
     try do_check_type(Env, Val)
@@ -776,7 +791,12 @@ do_check_type(no_table_loaders, N) when is_integer(N), N > 0 -> N;
 do_check_type(dc_dump_limit,N) when is_number(N), N > 0 -> N;
 do_check_type(send_compressed, L) when is_integer(L), L >= 0, L =< 9 -> L;
 do_check_type(send_max_packets, L) when is_integer(L), L > 0 -> L;
-do_check_type(send_max_transfer_size, L) when is_integer(L), L > 0 -> L.
+do_check_type(send_max_transfer_size, L) when is_integer(L), L > 0 -> L;
+do_check_type(async_dirty_buffer_size, L) when is_integer(L), L > 0 -> L;
+do_check_type(async_dirty_max_buffer_file_size, L) when is_integer(L), L > 0 -> L;
+do_check_type(async_dirty_tx_backlog_threshold, L) when is_integer(L), L > 0 -> L;
+do_check_type(async_dirty_buffer_min_runtime, L) when is_integer(L), L > 0 -> L;
+do_check_type(async_dirty_buffer_drained_cutoff, L) when is_integer(L), L > 0 -> L.
 
 bool(true) -> true;
 bool(false) -> false.

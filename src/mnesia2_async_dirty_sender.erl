@@ -32,12 +32,6 @@
 
 -define(NUM_ASYNC_DIRTY_TM_SENDER, 3).
 
--define(BUFFER_LOG_WRITE_SIZE, 524288).
--define(BUFFER_LOG_MAX_FILE_SIZE, 100000000).
--define(BUFFER_BACKLOG_THRESHOLD, 200000).
--define(BUFFER_LOG_MIN_RUNTIME_USEC, 10000000).
--define(BUFFER_LOG_DRAINED_CUTOFF, 5*?BUFFER_LOG_WRITE_SIZE).
-
 -record(buffer_log, {fn,
                      fnum=0,
                      fsize=0,
@@ -111,6 +105,7 @@ async_dirty_sender_loop(Node, Num, Parent, Mode) ->
     {Txns, Msg} = async_dirty_dequeue(Timeout, []),
     verbose("dequeued txns: ~p, msg: ~p, mode: ~p",
         [Txns, Msg, Mode]),
+    TxBacklogThreshold = mnesia2_lib:val(async_dirty_tx_backlog_threshold),
     Mode1 = case Mode of
         Buffered when is_list(Buffered) ->
             RemTxns = case send_buffer_log_try(Node, Buffered) of
@@ -121,7 +116,7 @@ async_dirty_sender_loop(Node, Num, Parent, Mode) ->
                       % add newly dequeued txns to remaining queue
                       lists:append(Rem, Txns)
                   end,
-            if length(RemTxns) < ?BUFFER_BACKLOG_THRESHOLD ->
+            if length(RemTxns) < TxBacklogThreshold ->
                    % continue to buffer in-memory
                    RemTxns;
                true ->
@@ -168,7 +163,7 @@ async_dirty_sender_loop(Node, Num, Parent, Mode) ->
             exit(shutdown);
         {buffer_drained, FNum, SenderPid} when
                     length(Mode1#buffer_log.wtxns) +
-                    length(Mode1#buffer_log.newtxns) > ?BUFFER_BACKLOG_THRESHOLD ->
+                    length(Mode1#buffer_log.newtxns) > TxBacklogThreshold ->
             % the sender reached the drain threshold but we still have too much queued here;
             % continue spooling
             verbose("~s: DEFER-STOP async_dirty_sender buffer log (seq=~b wtxns=~b newtxns=~b)",
@@ -229,7 +224,12 @@ open_async_dirty_buffer_log(Log) ->
 
 async_dirty_buffer_sender(#buffer_log_send{parent=Parent, rf=RF, fnum=FNum, filepos=FilePos, rtxns=[], runmode=RunMode} = Log) ->
     Runtime = timer:now_diff(os:timestamp(), Log#buffer_log_send.starttime),
-    case prim_file:read(RF, ?BUFFER_LOG_WRITE_SIZE) of
+    BufferSize = mnesia2_lib:val(async_dirty_buffer_size),
+    %% buffer minimum run time is in milliseconds, convert it to micro
+    %% since it's to be compared with the output if timer:now_diff/2
+    BufferMinRuntime = mnesia2_lib:val(async_dirty_buffer_min_runtime) * 1000,
+    BufferDrainedCutoff = mnesia2_lib:val(async_dirty_buffer_drained_cutoff),
+    case prim_file:read(RF, BufferSize) of
         {ok, <<BufSize:32, Buf/binary>> = RBytes} ->
             if size(Buf) >= BufSize ->
                <<TxnBuf:BufSize/binary, Rest/binary>> = Buf,
@@ -241,8 +241,8 @@ async_dirty_buffer_sender(#buffer_log_send{parent=Parent, rf=RF, fnum=FNum, file
                NumTxns = Log#buffer_log_send.ntxns + NumRTxns,
                NewRunMode =
                 if RunMode =:= running andalso
-                   EofPos - NewFilePos =< ?BUFFER_LOG_DRAINED_CUTOFF andalso
-                   Runtime >= ?BUFFER_LOG_MIN_RUNTIME_USEC ->
+                   EofPos - NewFilePos =< (BufferDrainedCutoff * BufferSize) andalso
+                   Runtime >= BufferMinRuntime ->
                        Parent ! {buffer_drained, FNum, self()},
                        verbose("~s: PRE-EOF-READ async_dirty_sender buffer log (seq=~b ntxns=~b pos=~b eof=~b remaining=~b)",
                            [Log#buffer_log_send.logname, FNum, NumTxns, NewFilePos, EofPos, EofPos - NewFilePos]),
@@ -278,7 +278,7 @@ async_dirty_buffer_sender(#buffer_log_send{parent=Parent, rf=RF, fnum=FNum, file
         after 100 ->
             async_dirty_buffer_sender(Log)
         end;
-    eof when Runtime >= ?BUFFER_LOG_MIN_RUNTIME_USEC ->
+    eof when Runtime >= BufferMinRuntime ->
         Parent ! {buffer_drained, Log#buffer_log_send.fnum, self()},
         verbose("~s: EOF-READ async_dirty_sender buffer log (seq=~b ntxns=~b eof=~b)",
             [Log#buffer_log_send.logname,
@@ -312,12 +312,14 @@ append_buffer_log(Mode = #buffer_log{newtxns=[]}) ->
     Mode;
 append_buffer_log(Mode = #buffer_log{wtxns=WTxns, wtxnsize=WTxnSize, newtxns=[Txn | Tail]}) ->
     TxnSize = erlang:external_size(Txn),
-    if WTxnSize+TxnSize+4 > ?BUFFER_LOG_WRITE_SIZE ->
+    BufferSize = mnesia2_lib:val(async_dirty_buffer_size),
+    if WTxnSize+TxnSize+4 > BufferSize ->
        WBuf = term_to_binary(lists:reverse(WTxns)),
        WBufSize = size(WBuf),
 %%     verbose("Write ~b bytes: ~p", [WBufSize, Mode#buffer_log.fn]),
+       MaxBufferFileSize = mnesia2_lib:val(async_dirty_max_buffer_file_size),
        Mode1 =
-        if Mode#buffer_log.fsize >= ?BUFFER_LOG_MAX_FILE_SIZE ->
+        if Mode#buffer_log.fsize >= MaxBufferFileSize ->
           prim_file:close(Mode#buffer_log.wf),
           FNum = Mode#buffer_log.fnum+1,
           LogFile = lists:flatten(io_lib:format("~s.~4.10.0b", [Mode#buffer_log.fn, FNum])),
