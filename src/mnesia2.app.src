@@ -46,6 +46,11 @@
 		mnesia2_sup,
 		mnesia2_tm
   ]},
-  {applications, [kernel, stdlib]},
+  {applications, [
+    lager,
+    poolgirl,
+    kernel,
+    stdlib
+  ]},
   {mod, {mnesia2_sup, []}},
   {runtime_dependencies, []}]}.

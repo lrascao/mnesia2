@@ -57,6 +57,7 @@ init(BadArg) ->
     {error, {badarg, BadArg}}.
     
 init() ->
+    ok = mnesia2_tab:init(),
     Flags = {one_for_all, 0, 3600}, % Should be rest_for_one policy
 
     Event = event_procs(),

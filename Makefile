@@ -28,15 +28,18 @@ $(error "Rebar not available on this system")
 endif
 
 .PHONY: all compile clean dialyze typer distclean \
-  rebuild test travis_test help
+  rebuild test travis_test help deps
 
-all: compile dialyze
+all: deps compile dialyze
 
 travis: light-test
 
 # =============================================================================
 # Rules to build the system
 # =============================================================================
+
+deps:
+	- $(REBAR) get-deps
 
 compile:
 	- $(REBAR) compile
@@ -71,7 +74,7 @@ test: clean debug
 	$(REBAR) ct -v 3
 	@find ebin -type f -name "*.erl" -exec rm {} \;
 
-light-test: clean debug
+light-test: clean deps debug
 	@rm -rf ${CT_LOG}
 	@find src -type f -name *.erl -exec cp {} ebin \;
 	@find test -type f -name *.erl -exec cp {} ebin \;
@@ -85,5 +88,6 @@ distclean: clean
 	- rm -rf $(DEPS_PLT)
 	- rm -rvf ebin
 	- rm -rvf .rebar
+	- rm -rvf deps
 
 rebuild: distclean deps compile dialyze
