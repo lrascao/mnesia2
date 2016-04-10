@@ -1,0 +1,2692 @@
+2016-04-10 16:45:27 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.553.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.552.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10877
+  neighbours:
+2016-04-10 16:45:27 =ERROR REPORT====
+** Generic server <0.729.0> terminating 
+** Last message in was {'EXIT',<0.727.0>,killed}
+** When Server state == {state,{<0.729.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.672.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[],[],[<0.730.0>],[<0.731.0>],[<0.732.0>],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.672.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:27 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.729.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.664.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:45:27 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.663.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.662.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10877
+  neighbours:
+2016-04-10 16:45:28 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): ** ERROR ** (ignoring core) ** FATAL ** A fallback is installed and Mnesia2 must be restarted. Forcing shutdown after mnesia2_down from 'd533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16'...
+2016-04-10 16:45:28 =SUPERVISOR REPORT====
+     Supervisor: {local,mnesia2_kernel_sup}
+     Context:    child_terminated
+     Reason:     killed
+     Offender:   [{pid,<0.797.0>},{name,mnesia2_locker},{mfargs,{mnesia2_locker,start,[]}},{restart_type,permanent},{shutdown,86400000},{child_type,worker}]
+
+2016-04-10 16:45:28 =SUPERVISOR REPORT====
+     Supervisor: {local,mnesia2_kernel_sup}
+     Context:    shutdown
+     Reason:     reached_max_restart_intensity
+     Offender:   [{pid,<0.797.0>},{name,mnesia2_locker},{mfargs,{mnesia2_locker,start,[]}},{restart_type,permanent},{shutdown,86400000},{child_type,worker}]
+
+2016-04-10 16:45:28 =SUPERVISOR REPORT====
+     Supervisor: {local,mnesia2_sup}
+     Context:    child_terminated
+     Reason:     shutdown
+     Offender:   [{pid,<0.794.0>},{name,mnesia2_kernel_sup},{mfargs,{mnesia2_kernel_sup,start,[]}},{restart_type,permanent},{shutdown,infinity},{child_type,supervisor}]
+
+2016-04-10 16:45:28 =SUPERVISOR REPORT====
+     Supervisor: {local,mnesia2_sup}
+     Context:    shutdown
+     Reason:     reached_max_restart_intensity
+     Offender:   [{pid,<0.794.0>},{name,mnesia2_kernel_sup},{mfargs,{mnesia2_kernel_sup,start,[]}},{restart_type,permanent},{shutdown,infinity},{child_type,supervisor}]
+
+2016-04-10 16:45:29 =ERROR REPORT====
+** Generic server <0.525.0> terminating 
+** Last message in was {'EXIT',<0.524.0>,killed}
+** When Server state == {state,{<0.525.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.465.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.526.0>],[<0.527.0>],[<0.528.0>],[],[],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.465.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:29 =ERROR REPORT====
+** Generic server <0.1086.0> terminating 
+** Last message in was {'EXIT',<0.1084.0>,killed}
+** When Server state == {state,{<0.1086.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1025.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[<0.1087.0>],[<0.1088.0>],[<0.1089.0>],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1025.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:29 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.525.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.457.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 461
+  neighbours:
+2016-04-10 16:45:29 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.1086.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.1017.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:45:29 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.456.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.455.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10943
+  neighbours:
+2016-04-10 16:45:29 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1016.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1015.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10878
+  neighbours:
+2016-04-10 16:45:30 =ERROR REPORT====
+** Generic server <0.669.0> terminating 
+** Last message in was {'EXIT',<0.668.0>,killed}
+** When Server state == {state,{<0.669.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.554.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.670.0>],[<0.671.0>],[<0.672.0>],[],[],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.554.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:30 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.669.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.546.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 461
+  neighbours:
+2016-04-10 16:45:30 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.545.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.544.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10817
+  neighbours:
+2016-04-10 16:45:31 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1483.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1482.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21635
+  neighbours:
+2016-04-10 16:45:31 =ERROR REPORT====
+** Generic server <0.823.0> terminating 
+** Last message in was {'EXIT',<0.822.0>,killed}
+** When Server state == {state,{<0.823.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.768.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[<0.824.0>],[<0.825.0>],[<0.826.0>],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.768.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:31 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.823.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.760.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:45:31 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.759.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.758.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10800
+  neighbours:
+2016-04-10 16:45:31 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1598.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1597.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21642
+  neighbours:
+2016-04-10 16:45:31 =ERROR REPORT====
+** Generic server <0.922.0> terminating 
+** Last message in was {'EXIT',<0.919.0>,killed}
+** When Server state == {state,{<0.922.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.868.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[<0.923.0>],[<0.924.0>],[<0.925.0>],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.868.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:31 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.922.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.860.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:45:32 =ERROR REPORT====
+** Generic server mnesia2_monitor terminating 
+** Last message in was {'EXIT',<0.1975.0>,killed}
+** When Server state == {state,<0.1975.0>,[],[],true,[],undefined,[],[]}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:32 =ERROR REPORT====
+** Generic server mnesia2_recover terminating 
+** Last message in was {'EXIT',<0.1975.0>,killed}
+** When Server state == {state,<0.1975.0>,undefined,undefined,undefined,0,false,true,[]}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:32 =ERROR REPORT====
+** Generic server <0.1229.0> terminating 
+** Last message in was {'EXIT',<0.1228.0>,killed}
+** When Server state == {state,{<0.1229.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1174.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[<0.1230.0>],[<0.1231.0>],[<0.1232.0>],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1174.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:32 =CRASH REPORT====
+  crasher:
+    initial call: mnesia2_recover:init/1
+    pid: <0.1979.0>
+    registered_name: mnesia2_recover
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [mnesia2_kernel_sup,mnesia2_sup,<0.1972.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 2586
+    stack_size: 27
+    reductions: 5226
+  neighbours:
+2016-04-10 16:45:32 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): ** ERROR ** mnesia2_event got unexpected event: {'EXIT',<0.1977.0>,killed}
+2016-04-10 16:45:32 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.1229.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.1166.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:45:32 =ERROR REPORT====
+** Generic server <0.2037.0> terminating 
+** Last message in was {'EXIT',<0.2036.0>,killed}
+** When Server state == {state,{<0.2037.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1980.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[<0.2038.0>],[<0.2039.0>],[<0.2040.0>],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1980.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:32 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1165.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1164.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10800
+  neighbours:
+2016-04-10 16:45:32 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.2037.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.1972.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 1411
+  neighbours:
+2016-04-10 16:45:32 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1971.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1970.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 12936
+  neighbours:
+2016-04-10 16:45:33 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2105.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2104.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 25702
+  neighbours:
+2016-04-10 16:45:33 =ERROR REPORT====
+** Generic server <0.1331.0> terminating 
+** Last message in was {'EXIT',<0.1330.0>,killed}
+** When Server state == {state,{<0.1331.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1277.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[<0.1332.0>],[<0.1333.0>],[<0.1334.0>],[],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1277.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:33 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.1331.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.1269.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:45:33 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1268.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1267.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10806
+  neighbours:
+2016-04-10 16:45:33 =ERROR REPORT====
+** Generic server <0.1435.0> terminating 
+** Last message in was {'EXIT',<0.1434.0>,killed}
+** When Server state == {state,{<0.1435.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1383.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[<0.1436.0>],[<0.1437.0>],[<0.1438.0>],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1383.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:33 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.1435.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.1375.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 461
+  neighbours:
+2016-04-10 16:45:33 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1374.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1373.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10802
+  neighbours:
+2016-04-10 16:45:33 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2245.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2244.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21634
+  neighbours:
+2016-04-10 16:45:34 =SUPERVISOR REPORT====
+     Supervisor: {local,mnesia2_kernel_sup}
+     Context:    child_terminated
+     Reason:     killed
+     Offender:   [{pid,<0.2530.0>},{name,mnesia2_checkpoint_sup},{mfargs,{mnesia2_checkpoint_sup,start,[]}},{restart_type,permanent},{shutdown,infinity},{child_type,supervisor}]
+
+2016-04-10 16:45:34 =SUPERVISOR REPORT====
+     Supervisor: {local,mnesia2_kernel_sup}
+     Context:    shutdown
+     Reason:     reached_max_restart_intensity
+     Offender:   [{pid,<0.2530.0>},{name,mnesia2_checkpoint_sup},{mfargs,{mnesia2_checkpoint_sup,start,[]}},{restart_type,permanent},{shutdown,infinity},{child_type,supervisor}]
+
+2016-04-10 16:45:34 =ERROR REPORT====
+** Generic server <0.1635.0> terminating 
+** Last message in was {'EXIT',<0.1634.0>,killed}
+** When Server state == {state,{<0.1635.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1583.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[<0.1636.0>],[<0.1637.0>],[<0.1638.0>],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1583.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:45:34 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2509.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2508.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 27899
+  neighbours:
+2016-04-10 16:45:34 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.1635.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.1575.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:45:34 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1574.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1573.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10818
+  neighbours:
+2016-04-10 16:45:37 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2964.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2963.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10890
+  neighbours:
+2016-04-10 16:45:41 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.3238.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.3237.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10878
+  neighbours:
+2016-04-10 16:45:43 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_3,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_3,shutdown]}}}} ({error,{already_started,<0.3410.0>}})
+2016-04-10 16:45:43 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_5,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_5,shutdown]}}}} ({error,{already_started,<0.3410.0>}})
+2016-04-10 16:45:43 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_4,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_4,shutdown]}}}} ({error,{already_started,<0.3410.0>}})
+2016-04-10 16:45:43 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_2,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_2,shutdown]}}}} ({error,{already_started,<0.3410.0>}})
+2016-04-10 16:45:43 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_6,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_6,shutdown]}}}} ({error,{already_started,<0.3410.0>}})
+2016-04-10 16:45:43 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_7,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_7,shutdown]}}}} ({error,{already_started,<0.3410.0>}})
+2016-04-10 16:45:43 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_9,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_9,shutdown]}}}} ({error,{already_started,<0.3410.0>}})
+2016-04-10 16:45:53 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.3707.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.3706.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10874
+  neighbours:
+2016-04-10 16:45:56 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.3771.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.3770.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10874
+  neighbours:
+2016-04-10 16:46:04 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+2016-04-10 16:46:07 =ERROR REPORT====
+Mnesia2('test689@testing-worker-linux-docker-97867910-3370-linux-16'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+2016-04-10 16:46:12 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.3903.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.3902.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10877
+  neighbours:
+2016-04-10 16:46:20 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.4498.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.4497.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10878
+  neighbours:
+2016-04-10 16:46:25 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.4714.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.4713.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10878
+  neighbours:
+2016-04-10 16:46:27 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.4781.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.4780.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10878
+  neighbours:
+2016-04-10 16:46:30 =ERROR REPORT====
+** Generic server <0.1847.0> terminating 
+** Last message in was {'EXIT',<0.1845.0>,killed}
+** When Server state == {state,{<0.1847.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1797.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[<0.1850.0>],[<0.1851.0>],[<0.1852.0>],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1797.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:46:30 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.1847.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.1789.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:46:30 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1788.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1787.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10806
+  neighbours:
+2016-04-10 16:46:33 =ERROR REPORT====
+** Generic server <0.4945.0> terminating 
+** Last message in was {'EXIT',<0.4944.0>,killed}
+** When Server state == {state,{<0.4945.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.4882.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[],[],[],[<0.4946.0>],[<0.4947.0>],[<0.4948.0>]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.4882.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:46:33 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.4945.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.4874.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:46:33 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.4873.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.4872.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10919
+  neighbours:
+2016-04-10 16:46:34 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1856.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1855.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10812
+  neighbours:
+2016-04-10 16:46:36 =ERROR REPORT====
+** Generic server <0.5042.0> terminating 
+** Last message in was {'EXIT',<0.5041.0>,killed}
+** When Server state == {state,{<0.5042.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.4988.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.5045.0>],[],[],[],[],[],[],[],[],[],[],[],[],[],[<0.5043.0>],[<0.5044.0>]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.4988.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:46:36 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.5042.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.4980.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:46:36 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.4979.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.4978.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10880
+  neighbours:
+2016-04-10 16:46:36 =ERROR REPORT====
+** Generic server <0.1998.0> terminating 
+** Last message in was {'EXIT',<0.1997.0>,killed}
+** When Server state == {state,{<0.1998.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1946.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.2001.0>],[],[],[],[],[],[],[],[],[],[],[],[],[],[<0.1999.0>],[<0.2000.0>]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1946.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:46:36 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.1998.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.1938.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:46:36 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1937.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1936.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10800
+  neighbours:
+2016-04-10 16:46:51 =ERROR REPORT====
+** Generic server <0.2195.0> terminating 
+** Last message in was {'EXIT',<0.2194.0>,killed}
+** When Server state == {state,{<0.2195.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2143.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[],[],[<0.2196.0>],[<0.2197.0>],[<0.2198.0>],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2143.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:46:51 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.2195.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.2135.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:46:51 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2134.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2133.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10807
+  neighbours:
+2016-04-10 16:46:51 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.5314.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.5313.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10951
+  neighbours:
+2016-04-10 16:46:52 =SUPERVISOR REPORT====
+     Supervisor: {local,mnesia2_kernel_sup}
+     Context:    child_terminated
+     Reason:     killed
+     Offender:   [{pid,<0.5430.0>},{name,mnesia2_checkpoint_sup},{mfargs,{mnesia2_checkpoint_sup,start,[]}},{restart_type,permanent},{shutdown,infinity},{child_type,supervisor}]
+
+2016-04-10 16:46:52 =SUPERVISOR REPORT====
+     Supervisor: {local,mnesia2_kernel_sup}
+     Context:    shutdown
+     Reason:     reached_max_restart_intensity
+     Offender:   [{pid,<0.5430.0>},{name,mnesia2_checkpoint_sup},{mfargs,{mnesia2_checkpoint_sup,start,[]}},{restart_type,permanent},{shutdown,infinity},{child_type,supervisor}]
+
+2016-04-10 16:46:52 =ERROR REPORT====
+** Generic server <0.5481.0> terminating 
+** Last message in was {'EXIT',<0.5479.0>,killed}
+** When Server state == {state,{<0.5481.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5411.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[<0.5483.0>],[<0.5484.0>],[<0.5485.0>],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5411.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:46:52 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.5481.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.5403.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 467
+  neighbours:
+2016-04-10 16:46:52 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.5402.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.5401.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10892
+  neighbours:
+2016-04-10 16:46:53 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2222.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2221.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10806
+  neighbours:
+2016-04-10 16:46:54 =ERROR REPORT====
+** Generic server <0.5596.0> terminating 
+** Last message in was {'EXIT',<0.5595.0>,killed}
+** When Server state == {state,{<0.5596.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5534.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[<0.5597.0>],[<0.5598.0>],[<0.5599.0>],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5534.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:46:54 =ERROR REPORT====
+** Generic server <0.2343.0> terminating 
+** Last message in was {'EXIT',<0.2342.0>,killed}
+** When Server state == {state,{<0.2343.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2334.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[<0.2344.0>],[<0.2345.0>],[<0.2346.0>],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2334.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:46:54 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.5596.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.5526.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 467
+  neighbours:
+2016-04-10 16:46:54 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.2343.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.2326.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:46:54 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.5525.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.5524.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10895
+  neighbours:
+2016-04-10 16:46:54 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2325.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2324.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10797
+  neighbours:
+2016-04-10 16:46:56 =ERROR REPORT====
+** Generic server <0.5707.0> terminating 
+** Last message in was {'EXIT',<0.5706.0>,killed}
+** When Server state == {state,{<0.5707.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5645.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[<0.5708.0>],[<0.5709.0>],[<0.5710.0>],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5645.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:46:56 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2400.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2399.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 21524
+  neighbours:
+2016-04-10 16:46:56 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.5707.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.5637.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:46:56 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.5636.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.5635.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21785
+  neighbours:
+2016-04-10 16:46:58 =ERROR REPORT====
+** Generic server <0.5786.0> terminating 
+** Last message in was {'EXIT',<0.5785.0>,killed}
+** When Server state == {state,{<0.5786.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5725.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[<0.5787.0>],[<0.5788.0>],[<0.5789.0>],[],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5725.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:46:58 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.5786.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.5717.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:46:58 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.5716.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.5715.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10884
+  neighbours:
+2016-04-10 16:47:00 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2459.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2458.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10800
+  neighbours:
+2016-04-10 16:47:01 =ERROR REPORT====
+** Generic server <0.2608.0> terminating 
+** Last message in was {'EXIT',<0.2607.0>,killed}
+** When Server state == {state,{<0.2608.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2557.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[],[<0.2609.0>],[<0.2610.0>],[<0.2611.0>],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2557.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:01 =ERROR REPORT====
+** Generic server <0.5903.0> terminating 
+** Last message in was {'EXIT',<0.5902.0>,killed}
+** When Server state == {state,{<0.5903.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5850.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.5905.0>],[<0.5906.0>],[],[],[],[],[],[],[],[],[],[],[],[],[],[<0.5904.0>]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5850.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:01 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.5903.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.5842.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:47:01 =ERROR REPORT====
+** Generic server <0.5895.0> terminating 
+** Last message in was {'EXIT',<0.5894.0>,killed}
+** When Server state == {state,{<0.5895.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5850.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[<0.5896.0>],[<0.5897.0>],[<0.5898.0>],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5850.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:01 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.2608.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.2549.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:01 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.5895.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.5842.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 474
+  neighbours:
+2016-04-10 16:47:01 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2548.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2547.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21677
+  neighbours:
+2016-04-10 16:47:01 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.5841.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.5840.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21769
+  neighbours:
+2016-04-10 16:47:03 =ERROR REPORT====
+** Generic server <0.6007.0> terminating 
+** Last message in was {'EXIT',<0.6006.0>,killed}
+** When Server state == {state,{<0.6007.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5945.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[<0.6008.0>],[<0.6009.0>],[<0.6010.0>],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.5945.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:03 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6007.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.5937.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 467
+  neighbours:
+2016-04-10 16:47:03 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2629.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2628.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 21514
+  neighbours:
+2016-04-10 16:47:03 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.5936.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.5935.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10895
+  neighbours:
+2016-04-10 16:47:06 =ERROR REPORT====
+** Generic server <0.6083.0> terminating 
+** Last message in was {'EXIT',<0.6082.0>,killed}
+** When Server state == {state,{<0.6083.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6039.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[<0.6084.0>],[<0.6085.0>],[<0.6086.0>],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6039.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:06 =ERROR REPORT====
+** Generic server <0.2720.0> terminating 
+** Last message in was {'EXIT',<0.2717.0>,killed}
+** When Server state == {state,{<0.2720.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2708.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.2726.0>],[],[],[<0.2729.0>],[],[],[],[],[],[],[],[],[],[<0.2723.0>],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2708.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:06 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6083.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6031.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:47:06 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.6030.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.6029.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10883
+  neighbours:
+2016-04-10 16:47:06 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.2720.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.2700.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:06 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2699.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2698.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10804
+  neighbours:
+2016-04-10 16:47:08 =ERROR REPORT====
+** Generic server <0.2835.0> terminating 
+** Last message in was {'EXIT',<0.2834.0>,killed}
+** When Server state == {state,{<0.2835.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2783.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[<0.2836.0>],[<0.2837.0>],[<0.2838.0>],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2783.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:08 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.2835.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.2775.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:08 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2774.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2773.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10807
+  neighbours:
+2016-04-10 16:47:09 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.6116.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.6115.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10881
+  neighbours:
+2016-04-10 16:47:16 =ERROR REPORT====
+** Generic server <0.6266.0> terminating 
+** Last message in was {'EXIT',<0.6265.0>,killed}
+** When Server state == {state,{<0.6266.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6203.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[<0.6267.0>],[<0.6268.0>],[<0.6269.0>],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6203.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:16 =ERROR REPORT====
+** Generic server <0.2922.0> terminating 
+** Last message in was {'EXIT',<0.2921.0>,killed}
+** When Server state == {state,{<0.2922.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2853.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.2925.0>],[],[],[],[],[],[],[],[],[],[],[],[],[],[<0.2923.0>],[<0.2924.0>]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2853.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:16 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6266.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6195.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 467
+  neighbours:
+2016-04-10 16:47:16 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.6194.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.6193.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10877
+  neighbours:
+2016-04-10 16:47:16 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.2922.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.2845.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:16 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2844.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2843.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10800
+  neighbours:
+2016-04-10 16:47:18 =ERROR REPORT====
+** Generic server <0.3017.0> terminating 
+** Last message in was {'EXIT',<0.3016.0>,killed}
+** When Server state == {state,{<0.3017.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2952.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[],[],[],[<0.3018.0>],[<0.3019.0>],[<0.3020.0>]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2952.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.3017.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.2944.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:18 =ERROR REPORT====
+** Generic server <0.3010.0> terminating 
+** Last message in was {'EXIT',<0.3009.0>,killed}
+** When Server state == {state,{<0.3010.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2952.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[<0.3011.0>],[<0.3012.0>],[<0.3013.0>],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.2952.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.3010.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.2944.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 469
+  neighbours:
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.2943.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.2942.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10821
+  neighbours:
+2016-04-10 16:47:18 =ERROR REPORT====
+** Generic server <0.6401.0> terminating 
+** Last message in was {'EXIT',<0.6400.0>,killed}
+** When Server state == {state,{<0.6401.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6313.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[<0.6402.0>],[<0.6403.0>],[<0.6404.0>],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6313.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6401.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6305.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 467
+  neighbours:
+2016-04-10 16:47:18 =ERROR REPORT====
+** Generic server <0.6417.0> terminating 
+** Last message in was {'EXIT',<0.6416.0>,killed}
+** When Server state == {state,{<0.6417.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6313.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[<0.6418.0>],[<0.6419.0>],[<0.6420.0>],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6313.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6417.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6305.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 475
+  neighbours:
+2016-04-10 16:47:18 =ERROR REPORT====
+** Generic server <0.6378.0> terminating 
+** Last message in was {'EXIT',<0.6377.0>,killed}
+** When Server state == {state,{<0.6378.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6313.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[<0.6379.0>],[<0.6380.0>],[<0.6381.0>],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6313.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6378.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6305.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 467
+  neighbours:
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.6304.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.6303.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10883
+  neighbours:
+2016-04-10 16:47:18 =ERROR REPORT====
+** Generic server <0.274.0> terminating 
+** Last message in was {'EXIT',<0.273.0>,killed}
+** When Server state == {state,{<0.274.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.191.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[],[],[<0.275.0>],[<0.276.0>],[<0.277.0>],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.191.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.274.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.183.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 461
+  neighbours:
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.182.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.181.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10807
+  neighbours:
+2016-04-10 16:47:18 =ERROR REPORT====
+** Generic server <0.360.0> terminating 
+** Last message in was {'EXIT',<0.359.0>,killed}
+** When Server state == {state,{<0.360.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.295.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[<0.361.0>],[<0.362.0>],[<0.363.0>],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.295.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.360.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.287.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:18 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.286.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.285.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21556
+  neighbours:
+2016-04-10 16:47:21 =ERROR REPORT====
+** Generic server <0.6532.0> terminating 
+** Last message in was {'EXIT',<0.6531.0>,killed}
+** When Server state == {state,{<0.6532.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6436.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[<0.6533.0>],[<0.6534.0>],[<0.6535.0>],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6436.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6532.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6428.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:47:21 =ERROR REPORT====
+** Generic server <0.6492.0> terminating 
+** Last message in was {'EXIT',<0.6489.0>,killed}
+** When Server state == {state,{<0.6492.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6436.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.6495.0>],[],[],[],[],[<0.6500.0>],[],[],[<0.6503.0>],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6436.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6492.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6428.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.6427.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.6426.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10915
+  neighbours:
+2016-04-10 16:47:21 =ERROR REPORT====
+** Generic server <0.3232.0> terminating 
+** Last message in was {'EXIT',<0.3231.0>,killed}
+** When Server state == {state,{<0.3232.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3140.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[],[],[],[<0.3233.0>],[<0.3234.0>],[<0.3235.0>]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3140.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.3232.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.3132.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 461
+  neighbours:
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.3131.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.3130.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10804
+  neighbours:
+2016-04-10 16:47:21 =ERROR REPORT====
+** Generic server <0.573.0> terminating 
+** Last message in was {'EXIT',<0.572.0>,killed}
+** When Server state == {state,{<0.573.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.500.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.574.0>],[<0.575.0>],[<0.576.0>],[],[],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.500.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.573.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.492.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:21 =ERROR REPORT====
+** Generic server <0.567.0> terminating 
+** Last message in was {'EXIT',<0.566.0>,killed}
+** When Server state == {state,{<0.567.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.500.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[<0.568.0>],[<0.569.0>],[<0.570.0>],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.500.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.567.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.492.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 468
+  neighbours:
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.491.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.490.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10800
+  neighbours:
+2016-04-10 16:47:21 =ERROR REPORT====
+** Generic server <0.6640.0> terminating 
+** Last message in was {'EXIT',<0.6639.0>,killed}
+** When Server state == {state,{<0.6640.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6551.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[<0.6641.0>],[<0.6642.0>],[<0.6643.0>],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6551.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6640.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6543.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 467
+  neighbours:
+2016-04-10 16:47:21 =ERROR REPORT====
+** Generic server <0.6620.0> terminating 
+** Last message in was {'EXIT',<0.6619.0>,killed}
+** When Server state == {state,{<0.6620.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6551.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[<0.6624.0>],[<0.6625.0>],[],[],[],[],[],[],[],[],[],[],[],[<0.6621.0>],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6551.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6620.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6543.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:47:21 =ERROR REPORT====
+** Generic server <0.6647.0> terminating 
+** Last message in was {'EXIT',<0.6646.0>,killed}
+** When Server state == {state,{<0.6647.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6551.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[<0.6648.0>],[<0.6649.0>],[<0.6650.0>],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6551.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6647.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6543.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.6542.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.6541.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10902
+  neighbours:
+2016-04-10 16:47:21 =ERROR REPORT====
+** Generic server <0.3340.0> terminating 
+** Last message in was {'EXIT',<0.3339.0>,killed}
+** When Server state == {state,{<0.3340.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3253.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[<0.3341.0>],[<0.3342.0>],[<0.3343.0>],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3253.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.3340.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.3245.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:21 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.3244.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.3243.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21566
+  neighbours:
+2016-04-10 16:47:22 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.3352.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.3351.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21577
+  neighbours:
+2016-04-10 16:47:22 =ERROR REPORT====
+** Generic server <0.3515.0> terminating 
+** Last message in was {'EXIT',<0.3514.0>,killed}
+** When Server state == {state,{<0.3515.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3457.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[<0.3516.0>],[<0.3517.0>],[<0.3518.0>],[],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3457.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:22 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.3515.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.3449.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:22 =ERROR REPORT====
+** Generic server <0.3505.0> terminating 
+** Last message in was {'EXIT',<0.3504.0>,killed}
+** When Server state == {state,{<0.3505.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3457.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[<0.3506.0>],[<0.3507.0>],[<0.3508.0>],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3457.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:22 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.3505.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.3449.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 468
+  neighbours:
+2016-04-10 16:47:23 =ERROR REPORT====
+** Generic server <0.6777.0> terminating 
+** Last message in was {'EXIT',<0.6776.0>,killed}
+** When Server state == {state,{<0.6777.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6664.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[<0.6778.0>],[<0.6779.0>],[<0.6780.0>],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.6664.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:23 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.6777.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6656.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:47:23 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.6655.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.6654.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21661
+  neighbours:
+2016-04-10 16:47:23 =ERROR REPORT====
+** Generic server <0.824.0> terminating 
+** Last message in was {'EXIT',<0.823.0>,killed}
+** When Server state == {state,{<0.824.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.700.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[<0.826.0>],[<0.827.0>],[<0.828.0>],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.700.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:23 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.824.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.692.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:23 =ERROR REPORT====
+** Generic server <0.814.0> terminating 
+** Last message in was {'EXIT',<0.813.0>,killed}
+** When Server state == {state,{<0.814.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.700.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[<0.815.0>],[<0.816.0>],[<0.817.0>],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.700.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:23 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.814.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.692.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:23 =ERROR REPORT====
+** Generic server <0.774.0> terminating 
+** Last message in was {'EXIT',<0.773.0>,killed}
+** When Server state == {state,{<0.774.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.700.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[<0.775.0>],[<0.776.0>],[<0.777.0>],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.700.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:23 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.774.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.692.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 468
+  neighbours:
+2016-04-10 16:47:23 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.691.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.690.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10811
+  neighbours:
+2016-04-10 16:47:23 =ERROR REPORT====
+** Generic server <0.3549.0> terminating 
+** Last message in was {'EXIT',<0.3546.0>,killed}
+** When Server state == {state,{<0.3549.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3535.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[<0.3552.0>],[],[],[<0.3555.0>],[],[],[],[],[<0.3560.0>],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3535.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:23 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.3549.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.3527.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:23 =ERROR REPORT====
+** Generic server <0.3583.0> terminating 
+** Last message in was {'EXIT',<0.3573.0>,killed}
+** When Server state == {state,{<0.3583.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3535.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.3586.0>],[],[],[],[],[],[],[],[],[],[],[],[],[],[<0.3584.0>],[<0.3585.0>]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3535.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:23 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.3583.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.3527.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:23 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.3526.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.3525.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10824
+  neighbours:
+2016-04-10 16:47:24 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.3889.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.3888.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10804
+  neighbours:
+2016-04-10 16:47:25 =ERROR REPORT====
+** Generic server <0.7071.0> terminating 
+** Last message in was {'EXIT',<0.7070.0>,killed}
+** When Server state == {state,{<0.7071.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.7006.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[<0.7072.0>],[<0.7073.0>],[<0.7074.0>],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.7006.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:25 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.7071.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.6998.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 466
+  neighbours:
+2016-04-10 16:47:25 =ERROR REPORT====
+** Generic server <0.4022.0> terminating 
+** Last message in was {'EXIT',<0.4019.0>,killed}
+** When Server state == {state,{<0.4022.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3980.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[<0.4032.0>],[<0.4033.0>],[<0.4034.0>],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.3980.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:25 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.6997.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.6996.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 10881
+  neighbours:
+2016-04-10 16:47:25 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.4022.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.3972.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:25 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.3971.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.3970.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10804
+  neighbours:
+2016-04-10 16:47:25 =ERROR REPORT====
+** Generic server <0.4130.0> terminating 
+** Last message in was {'EXIT',<0.4129.0>,killed}
+** When Server state == {state,{<0.4130.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.4072.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[<0.4131.0>],[<0.4132.0>],[<0.4133.0>],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.4072.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:25 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.7098.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.7097.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21672
+  neighbours:
+2016-04-10 16:47:25 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.842.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.841.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 27
+    reductions: 21555
+  neighbours:
+2016-04-10 16:47:25 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.4130.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.4064.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:25 =ERROR REPORT====
+** Generic server <0.4125.0> terminating 
+** Last message in was {'EXIT',<0.4124.0>,killed}
+** When Server state == {state,{<0.4125.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.4072.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[<0.4128.0>],[],[],[],[],[],[],[],[],[],[],[],[],[],[<0.4126.0>],[<0.4127.0>]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.4072.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:25 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.4125.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.4064.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 468
+  neighbours:
+2016-04-10 16:47:25 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.4063.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.4062.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10808
+  neighbours:
+2016-04-10 16:47:25 =ERROR REPORT====
+** Generic server <0.1015.0> terminating 
+** Last message in was {'EXIT',<0.1014.0>,killed}
+** When Server state == {state,{<0.1015.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.956.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[<0.1016.0>],[<0.1017.0>],[<0.1018.0>],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['test689@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.956.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:25 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.1015.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@test689@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.948.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:35 =SUPERVISOR REPORT====
+     Supervisor: {local,mnesia2_sup}
+     Context:    start_error
+     Reason:     killed
+     Offender:   [{pid,undefined},{name,mnesia2_kernel_sup},{mfargs,{mnesia2_kernel_sup,start,[]}},{restart_type,permanent},{shutdown,infinity},{child_type,supervisor}]
+
+2016-04-10 16:47:35 =ERROR REPORT====
+** Generic server mnesia2_monitor terminating 
+** Last message in was {'EXIT',<0.7307.0>,killed}
+** When Server state == {state,<0.7307.0>,[],[],true,[],undefined,[],[]}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:35 =ERROR REPORT====
+** Generic server mnesia2_recover terminating 
+** Last message in was {'EXIT',<0.7307.0>,killed}
+** When Server state == {state,<0.7307.0>,undefined,undefined,undefined,0,false,true,[]}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:35 =CRASH REPORT====
+  crasher:
+    initial call: mnesia2_recover:init/1
+    pid: <0.7311.0>
+    registered_name: mnesia2_recover
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [mnesia2_kernel_sup,mnesia2_sup,<0.7304.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 1598
+    stack_size: 27
+    reductions: 5455
+  neighbours:
+2016-04-10 16:47:35 =ERROR REPORT====
+** Generic server mnesia2_snmp_sup terminating 
+** Last message in was {'EXIT',<0.7307.0>,killed}
+** When Server state == {state,{local,mnesia2_snmp_sup},simple_one_for_one,[{child,undefined,mnesia2_snmp_sup,{mnesia2_snmp_hook,start,[]},transient,86400000,worker,[mnesia2_snmp_sup,mnesia2_snmp_hook,supervisor]}],undefined,0,86400000,[],mnesia2_snmp_sup,[]}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:35 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:mnesia2_snmp_sup/1
+    pid: <0.7331.0>
+    registered_name: mnesia2_snmp_sup
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [mnesia2_kernel_sup,mnesia2_sup,<0.7304.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 233
+    stack_size: 27
+    reductions: 310
+  neighbours:
+2016-04-10 16:47:35 =ERROR REPORT====
+** Generic server mnesia2_subscr terminating 
+** Last message in was {'EXIT',<0.7307.0>,killed}
+** When Server state == {state,<0.7307.0>,247922750}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:35 =CRASH REPORT====
+  crasher:
+    initial call: mnesia2_subscr:init/1
+    pid: <0.7309.0>
+    registered_name: mnesia2_subscr
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [mnesia2_kernel_sup,mnesia2_sup,<0.7304.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 376
+    stack_size: 27
+    reductions: 280
+  neighbours:
+2016-04-10 16:47:35 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.7303.0>
+    registered_name: []
+    exception exit: {{{shutdown,{failed_to_start_child,mnesia2_kernel_sup,killed}},{mnesia2_sup,start,[normal,[]]}},[{application_master,init,4,[{file,"application_master.erl"},{line,133}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.7302.0>]
+    messages: [{'EXIT',<0.7304.0>,normal}]
+    links: [<0.7302.0>,<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 376
+    stack_size: 27
+    reductions: 111
+  neighbours:
+2016-04-10 16:47:35 =CRASH REPORT====
+  crasher:
+    initial call: mnesia2_monitor:init/1
+    pid: <0.7308.0>
+    registered_name: mnesia2_monitor
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [mnesia2_kernel_sup,mnesia2_sup,<0.7304.0>]
+    messages: []
+    links: [<37257.4236.0>,<0.7328.0>,<37256.1031.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 2586
+    stack_size: 27
+    reductions: 4812
+  neighbours:
+2016-04-10 16:47:35 =ERROR REPORT====
+** Generic server <0.4284.0> terminating 
+** Last message in was {'EXIT',<0.4283.0>,killed}
+** When Server state == {state,{<0.4284.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.4240.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[],[],[],[<0.4285.0>],[<0.4286.0>],[<0.4287.0>]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.4240.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:35 =ERROR REPORT====
+** Generic server <0.1084.0> terminating 
+** Last message in was {'EXIT',<0.1083.0>,killed}
+** When Server state == {state,{<0.1084.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1035.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[<0.1085.0>],[<0.1086.0>],[<0.1087.0>],[],[],[],[],[],[],[],[],[],[],[],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1035.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:35 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.4284.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.4232.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:35 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.4231.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.4230.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10800
+  neighbours:
+2016-04-10 16:47:35 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.1084.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533222o533246n533246@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.1027.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:35 =ERROR REPORT====
+** Generic server <0.1079.0> terminating 
+** Last message in was {'EXIT',<0.1078.0>,killed}
+** When Server state == {state,{<0.1079.0>,poolgirl_sup},simple_one_for_one,[{child,undefined,mnesia2_async_dirty_sender,{mnesia2_async_dirty_sender,start_link,[['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1035.0>]]},temporary,5000,worker,[mnesia2_async_dirty_sender]}],{set,3,16,16,8,80,48,{[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]},{{[],[],[],[],[],[],[],[],[],[],[],[],[<0.1080.0>],[<0.1081.0>],[<0.1082.0>],[]}}},0,1,[],poolgirl_sup,{mnesia2_async_dirty_sender,['d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',1,<0.1035.0>]}}
+** Reason for termination == 
+** killed
+2016-04-10 16:47:35 =CRASH REPORT====
+  crasher:
+    initial call: supervisor:poolgirl_sup/1
+    pid: <0.1079.0>
+    registered_name: []
+    exception exit: {killed,[{gen_server,terminate,7,[{file,"gen_server.erl"},{line,804}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: ['mnesia2_tm_async_dirty_sender_pool@d533227o533253n533251@testing-worker-linux-docker-97867910-3370-linux-16',mnesia2_tm,mnesia2_kernel_sup,mnesia2_sup,<0.1027.0>]
+    messages: []
+    links: []
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 460
+  neighbours:
+2016-04-10 16:47:35 =CRASH REPORT====
+  crasher:
+    initial call: application_master:init/4
+    pid: <0.1026.0>
+    registered_name: []
+    exception exit: {killed,[{application_master,terminate,2,[{file,"application_master.erl"},{line,227}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,237}]}]}
+    ancestors: [<0.1025.0>]
+    messages: []
+    links: [<0.7.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 610
+    stack_size: 27
+    reductions: 10800
+  neighbours:
