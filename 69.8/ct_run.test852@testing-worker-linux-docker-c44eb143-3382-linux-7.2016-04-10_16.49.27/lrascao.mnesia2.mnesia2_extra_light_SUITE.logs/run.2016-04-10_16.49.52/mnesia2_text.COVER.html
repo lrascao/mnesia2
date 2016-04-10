@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test852@testing-worker-linux-docker-c44eb143-3382-linux-7.2016-04-10_16.49.27/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_16.49.52/mnesia2_text.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_text.erl by COVER 2016-04-10 at 16:53:20
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 1996-2011. All Rights Reserved.
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_text).
+        |  
+        |  %% Avoid warning for local function error/1 clashing with autoimported BIF.
+        |  -compile({no_auto_import,[error/1]}).
+        |  -export([parse/1, file/1, load_textfile/1, dump_to_textfile/1]).
+        |  
+        |  load_textfile(File) -&gt;
+     1..|      ensure_started(),
+     1..|      case parse(File) of
+        |  	{ok, {Tabs, Data}} -&gt;
+     1..|  	    Badtabs = make_tabs(lists:map(fun validate_tab/1, Tabs)),
+     1..|  	    load_data(del_data(Badtabs, Data, []));
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end.
+        |  
+        |  dump_to_textfile(File) -&gt;
+     1..|      dump_to_textfile(mnesia2_lib:is_running(), file:open(File, [write])).
+        |  dump_to_textfile(yes, {ok, F}) -&gt;
+     1..|      Tabs = lists:delete(schema, mnesia2_lib:local_active_tables()),
+     1..|      Defs = lists:map(fun(T) -&gt; {T, [{record_name, mnesia2_lib:val({T, record_name})},
+        |  				    {attributes, mnesia2_lib:val({T, attributes})}]} 
+        |  		     end,
+        |  		     Tabs),
+     1..|      io:format(F, "~p.~n", [{tables, Defs}]),
+     1..|      lists:foreach(fun(T) -&gt; dump_tab(F, T) end, Tabs),
+     1..|      file:close(F);
+<font color=red>     0..|  dump_to_textfile(_,_) -&gt; error.</font>
+        |  
+        |      
+        |  dump_tab(F, T) -&gt;
+     4..|      W = mnesia2_lib:val({T, wild_pattern}),
+     4..|      {atomic,All} = mnesia2:transaction(fun() -&gt; mnesia2:match_object(T, W, read) end),
+     4..|      lists:foreach(fun(Term) -&gt; io:format(F,"~p.~n", [setelement(1, Term, T)]) end, All).
+        |  
+        |  
+        |  ensure_started() -&gt;
+     1..|      case mnesia2_lib:is_running() of
+        |  	yes -&gt;
+     1..|  	    yes;
+        |  	no -&gt;
+<font color=red>     0..|  	    case mnesia2_lib:exists(mnesia2_lib:dir("schema.DAT")) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    mnesia2:start();</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    mnesia2:create_schema([node()]),</font>
+<font color=red>     0..|  		    mnesia2:start()</font>
+        |  	    end
+        |      end.
+        |  
+        |  del_data(Bad, [H|T], Ack) -&gt;
+<font color=red>     0..|      case lists:member(element(1, H), Bad) of</font>
+<font color=red>     0..|  	true -&gt; del_data(Bad, T, Ack);</font>
+<font color=red>     0..|  	false -&gt; del_data(Bad, T, [H|Ack])</font>
+        |      end;
+        |  del_data(_Bad, [], Ack) -&gt;
+     1..|      lists:reverse(Ack).
+        |  		
+        |  %% Tis the place to call the validate func in mnesia2_schema
+        |  validate_tab({Tabname, List}) -&gt;
+     4..|      {Tabname, List};
+        |  validate_tab({Tabname, RecName, List}) -&gt;
+<font color=red>     0..|      {Tabname, RecName, List};</font>
+<font color=red>     0..|  validate_tab(_) -&gt; error(badtab).</font>
+        |  
+        |  make_tabs([{Tab, Def} | Tail]) -&gt;
+     4..|      try mnesia2:table_info(Tab, where_to_read) of
+        |  	Node -&gt;
+     4..|  	    io:format("** Table ~w already exists on ~p, just entering data~n",
+        |  		      [Tab, Node]),
+     4..|  	    make_tabs(Tail)
+        |      catch exit:_ -&gt; %% non-existing table
+<font color=red>     0..|  	    case mnesia2:create_table(Tab, Def) of</font>
+        |  		{aborted, Reason} -&gt;
+<font color=red>     0..|  		    io:format("** Failed to create table ~w ~n"</font>
+        |  			      "** Reason = ~w, Args = ~p~n", 
+        |  			      [Tab, Reason, Def]),
+<font color=red>     0..|  		    [Tab | make_tabs(Tail)];</font>
+        |  		_ -&gt; 
+<font color=red>     0..|  		    io:format("New table ~w~n", [Tab]),</font>
+<font color=red>     0..|  		    make_tabs(Tail)</font>
+        |  	    end
+        |      end;
+        |  
+        |  make_tabs([]) -&gt; 
+     1..|      [].
+        |  
+        |  load_data(L) -&gt;
+     1..|      mnesia2:transaction(fun() -&gt;
+     1..|  			       F = fun(X) -&gt; 
+<font color=red>     0..|  					   Tab = element(1, X),</font>
+<font color=red>     0..|  					   RN = mnesia2:table_info(Tab, record_name),</font>
+<font color=red>     0..|  					   Rec = setelement(1, X, RN),</font>
+<font color=red>     0..|  					   mnesia2:write(Tab, Rec, write) end,</font>
+     1..|  			       lists:foreach(F, L)
+        |  		       end).
+        |  
+        |  parse(File) -&gt;
+     1..|      case file(File) of
+        |  	{ok, Terms} -&gt;
+     1..|  	    try collect(Terms) of
+     1..|  		Other -&gt; {ok, Other}
+<font color=red>     0..|  	    catch throw:Error -&gt; Error</font>
+        |  	    end;
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end.
+        |  
+        |  collect([{_, {tables, Tabs}}|L]) -&gt;
+     1..|      {Tabs, collect_data(Tabs, L)};
+        |  
+        |  collect(_) -&gt;
+<font color=red>     0..|      io:format("No tables found\n", []),</font>
+<font color=red>     0..|      error(bad_header).</font>
+        |  
+        |  collect_data(Tabs, [{Line, Term} | Tail]) when is_tuple(Term) -&gt;
+<font color=red>     0..|      case lists:keysearch(element(1, Term), 1, Tabs) of</font>
+        |  	{value, _} -&gt;
+<font color=red>     0..|  	    [Term | collect_data(Tabs, Tail)];</font>
+        |  	_Other -&gt;
+<font color=red>     0..|  	    io:format("Object:~p at line ~w unknown\n", [Term,Line]),</font>
+<font color=red>     0..|  	    error(undefined_object)</font>
+        |      end;
+     1..|  collect_data(_Tabs, []) -&gt; [];
+        |  collect_data(_Tabs, [H|_T]) -&gt;
+<font color=red>     0..|      io:format("Object:~p unknown\n", [H]),</font>
+<font color=red>     0..|      error(undefined_object).</font>
+        |  
+<font color=red>     0..|  error(What) -&gt; throw({error, What}).</font>
+        |  
+        |  file(File) -&gt;
+     1..|      case file:open(File, [read]) of
+        |  	{ok, Stream} -&gt;
+     1..|  	    Res = read_terms(Stream, File, 1, []),
+     1..|  	    file:close(Stream),
+     1..|  	    Res;
+        |  	_Other -&gt;
+<font color=red>     0..|  	    {error, open}</font>
+        |      end.
+        |  
+        |  read_terms(Stream, File, Line, L) -&gt;
+     2..|      case read_term_from_stream(Stream, File, Line) of
+        |  	{ok, Term, NextLine} -&gt;
+     1..|  	    read_terms(Stream, File, NextLine, [Term|L]);
+        |  	error -&gt;
+<font color=red>     0..|  	    {error, read};</font>
+        |  	eof -&gt;
+     1..|  	    {ok, lists:reverse(L)}
+        |      end.
+        |  
+        |  read_term_from_stream(Stream, File, Line) -&gt;
+     2..|      R = io:request(Stream, {get_until,'',erl_scan,tokens,[Line]}),
+     2..|      case R of
+        |  	{ok,Toks,EndLine} -&gt;
+     1..|  	    case erl_parse:parse_term(Toks) of
+        |  		{ok, Term} -&gt;
+     1..|  		    {ok, {Line, Term}, EndLine};
+        |  		{error, {NewLine,Mod,What}} -&gt;
+<font color=red>     0..|  		    Str = Mod:format_error(What),</font>
+<font color=red>     0..|  		    io:format("Error in line:~p of:~p ~s\n",</font>
+        |  			      [NewLine, File, Str]),
+<font color=red>     0..|  		    error</font>
+        |  	    end;
+        |  	{eof,_EndLine} -&gt;
+     1..|  	    eof;
+        |  	Other -&gt;
+<font color=red>     0..|  	    io:format("Error1 **~p~n",[Other]),</font>
+<font color=red>     0..|  	    error</font>
+        |      end.
+        |  
+        |  			       
+</pre>
+</body>
+</html>
