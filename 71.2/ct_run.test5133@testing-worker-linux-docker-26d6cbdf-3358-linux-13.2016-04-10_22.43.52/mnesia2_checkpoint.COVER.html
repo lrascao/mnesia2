@@ -1,0 +1,1267 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test5133@testing-worker-linux-docker-26d6cbdf-3358-linux-13.2016-04-10_22.43.52/mnesia2_checkpoint.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_checkpoint.erl by COVER 2016-04-10 at 22:47:37
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 1996-2013
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_checkpoint).
+        |  
+        |  %% TM callback interface
+        |  -export([
+        |  	 tm_add_copy/2,
+        |  	 tm_change_table_copy_type/3,
+        |  	 tm_del_copy/2,
+        |  	 tm_mnesia2_down/1,
+        |  	 tm_prepare/1,
+        |  	 tm_retain/4,
+        |  	 tm_retain/5,
+        |  	 tm_enter_pending/1,
+        |  	 tm_enter_pending/3,
+        |  	 tm_exit_pending/1
+        |  	]).
+        |  
+        |  %% Public interface
+        |  -export([
+        |  	 activate/1,
+        |  	 checkpoints/0,
+        |  	 deactivate/1,
+        |  	 deactivate/2,
+        |  	 iterate/6,
+        |  	 most_local_node/2,
+        |  	 really_retain/2,
+        |  	 stop/0,
+        |  	 stop_iteration/1,
+        |  	 tables_and_cookie/1
+        |  	]).
+        |  
+        |  %% Internal
+        |  -export([
+        |  	 call/2,
+        |  	 cast/2,
+        |  	 init/1,
+        |  	 remote_deactivate/1,
+        |  	 start/1
+        |  	]).
+        |  
+        |  %% sys callback interface
+        |  -export([
+        |  	 system_code_change/4,
+        |  	 system_continue/3,
+        |  	 system_terminate/4
+        |  	]).
+        |  
+        |  -include("mnesia2.hrl").
+        |  -import(mnesia2_lib, [add/2, del/2, set/2, unset/1]).
+        |  -import(mnesia2_lib, [dbg_out/2]).
+        |  
+        |  -record(checkpoint_args, {name = {mnesia2_time:unique_integer([positive]), node()},
+        |  			  allow_remote = true,
+        |  			  ram_overrides_dump = false,
+        |  			  nodes = [],
+        |  			  node = node(),
+        |  			  now,  %% unused
+        |  			  cookie = ?unique_cookie,
+        |  			  min = [],
+        |  			  max = [],
+        |  			  pending_tab,
+        |  			  wait_for_old, % Initially undefined then List
+        |  			  is_activated = false,
+        |  			  ignore_new = [],
+        |  			  retainers = [],
+        |  			  iterators = [],
+        |  			  supervisor,
+        |  			  pid
+        |  			 }).
+        |  
+        |  -record(retainer, {cp_name, tab_name, store, writers = [], really_retain = true}).
+        |  
+        |  -record(iter, {tab_name, oid_tab, main_tab, retainer_tab, source, val, pid}).
+        |  
+        |  -record(pending, {tid, disc_nodes = [], ram_nodes = []}).
+        |  
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% TM callback functions
+        |  
+        |  stop() -&gt;
+    26..|      lists:foreach(fun(Name) -&gt; call(Name, stop) end,
+        |  		  checkpoints()),
+    26..|      ok.
+        |  
+        |  tm_prepare(Cp) when is_record(Cp, checkpoint_args) -&gt;
+     6..|      Name = Cp#checkpoint_args.name,
+     6..|      case lists:member(Name, checkpoints()) of
+        |  	false -&gt;
+     6..|  	    start_retainer(Cp);
+        |  	true -&gt;
+<font color=red>     0..|  	    {error, {already_exists, Name, node()}}</font>
+        |      end.
+        |  
+        |  tm_mnesia2_down(Node) -&gt;
+    18..|      lists:foreach(fun(Name) -&gt; cast(Name, {mnesia2_down, Node}) end,
+        |  		  checkpoints()).
+        |  
+        |  %% Returns pending
+        |  tm_enter_pending(Tid, DiscNs, RamNs) -&gt;
+102610..|      Pending = #pending{tid = Tid, disc_nodes = DiscNs, ram_nodes = RamNs},
+102610..|      tm_enter_pending(Pending).
+        |  
+        |  tm_enter_pending(Pending) -&gt;
+102610..|      PendingTabs = val(pending_checkpoints),
+102610..|      tm_enter_pending(PendingTabs, Pending).
+        |  
+        |  tm_enter_pending([], Pending) -&gt;
+102610..|      Pending;
+        |  tm_enter_pending([Tab | Tabs], Pending) -&gt;
+        |      %% io:format("Add ~p ~p ~p~n",[Tab, Pending, hd(tl(element(2, process_info(self(), current_stacktrace))))]),
+<font color=red>     0..|      ?SAFE(?ets_insert(Tab, Pending)),</font>
+<font color=red>     0..|      tm_enter_pending(Tabs, Pending).</font>
+        |  
+        |  tm_exit_pending(Tid) -&gt;
+106162..|      Pids = val(pending_checkpoint_pids),
+106162..|      tm_exit_pending(Pids, Tid).
+        |      
+        |  tm_exit_pending([], Tid) -&gt;
+106162..|      Tid;
+        |  tm_exit_pending([Pid | Pids], Tid) -&gt;
+     8..|      Pid ! {self(), {exit_pending, Tid}},
+     8..|      tm_exit_pending(Pids, Tid).
+        |  
+        |  enter_still_pending([Tid | Tids], Tab) -&gt;
+<font color=red>     0..|      ?ets_insert(Tab, #pending{tid = Tid}),</font>
+<font color=red>     0..|      enter_still_pending(Tids, Tab);</font>
+        |  enter_still_pending([], _Tab) -&gt;
+     6..|      ok.
+        |  
+        |  
+        |  %% Looks up checkpoints for functions in mnesia2_tm.
+        |  tm_retain(Tid, Tab, Key, Op) -&gt;
+   338..|      case val({Tab, commit_work}) of
+        |  	[{checkpoints, Checkpoints} | _ ] -&gt;
+     2..|  	    tm_retain(Tid, Tab, Key, Op, Checkpoints);
+        |  	_ -&gt; 
+   336..|  	    undefined
+        |      end.
+        |      
+        |  tm_retain(Tid, Tab, Key, Op, Checkpoints) -&gt;
+    55..|      case Op of
+        |  	clear_table -&gt;
+<font color=red>     0..|  	    OldRecs = mnesia2_lib:db_match_object(Tab, '_'),</font>
+<font color=red>     0..|  	    send_group_retain(OldRecs, Checkpoints, Tid, Tab, []),</font>
+<font color=red>     0..|  	    OldRecs;</font>
+        |  	_ -&gt;
+    55..|  	    OldRecs = mnesia2_lib:db_get(Tab, Key),
+    55..|  	    send_retain(Checkpoints, {retain, Tid, Tab, Key, OldRecs}),
+    55..|  	    OldRecs
+        |      end.
+        |  
+        |  send_group_retain([Rec | Recs], Checkpoints, Tid, Tab, [PrevRec | PrevRecs])
+        |    when element(2, Rec) /= element(2, PrevRec) -&gt;
+<font color=red>     0..|      Key = element(2, PrevRec),</font>
+<font color=red>     0..|      OldRecs = lists:reverse([PrevRec | PrevRecs]),</font>
+<font color=red>     0..|      send_retain(Checkpoints, {retain, Tid, Tab, Key, OldRecs}),</font>
+<font color=red>     0..|      send_group_retain(Recs, Checkpoints, Tid, Tab, [Rec]);</font>
+        |  send_group_retain([Rec | Recs], Checkpoints, Tid, Tab, Acc) -&gt;
+<font color=red>     0..|      send_group_retain(Recs, Checkpoints, Tid, Tab, [Rec | Acc]);</font>
+        |  send_group_retain([], Checkpoints, Tid, Tab, [PrevRec | PrevRecs]) -&gt;
+<font color=red>     0..|      Key = element(2, PrevRec),</font>
+<font color=red>     0..|      OldRecs = lists:reverse([PrevRec | PrevRecs]),</font>
+<font color=red>     0..|      send_retain(Checkpoints, {retain, Tid, Tab, Key, OldRecs}),</font>
+<font color=red>     0..|      ok;</font>
+        |  send_group_retain([], _Checkpoints, _Tid, _Tab, []) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  send_retain([Name | Names], Msg) -&gt;
+    55..|      cast(Name, Msg),
+    55..|      send_retain(Names, Msg);
+        |  send_retain([], _Msg) -&gt;
+    55..|      ok.
+        |      
+        |  tm_add_copy(Tab, Node) when Node /= node() -&gt;
+    23..|      case val({Tab, commit_work}) of
+        |  	[{checkpoints, Checkpoints} | _ ] -&gt;
+<font color=red>     0..|  	    Fun = fun(Name) -&gt; call(Name, {add_copy, Tab, Node}) end,</font>
+<font color=red>     0..|  	    map_call(Fun, Checkpoints, ok);</font>
+        |  	_  -&gt; 
+    23..|  	    ok
+        |      end.
+        |  
+        |  tm_del_copy(Tab, Node) when Node == node() -&gt;
+     3..|      mnesia2_subscr:unsubscribe_table(Tab),
+     3..|      case val({Tab, commit_work}) of
+        |  	[{checkpoints, Checkpoints} | _ ] -&gt;	    
+     1..|  	    Fun = fun(Name) -&gt; call(Name, {del_copy, Tab, Node}) end,
+     1..|  	    map_call(Fun, Checkpoints, ok);
+        |  	_ -&gt;
+     2..|  	    ok
+        |      end.
+        |  
+        |  tm_change_table_copy_type(Tab, From, To) -&gt;
+<font color=red>     0..|      case val({Tab, commit_work}) of</font>
+        |  	[{checkpoints, Checkpoints} | _ ] -&gt;
+<font color=red>     0..|  	    Fun = fun(Name) -&gt; call(Name, {change_copy, Tab, From, To}) end,</font>
+<font color=red>     0..|  	    map_call(Fun, Checkpoints, ok);</font>
+        |  	_ -&gt; 
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  map_call(Fun, [Name | Names], Res) -&gt;
+     1..|      case Fun(Name) of
+        |  	 ok -&gt;
+     1..|  	    map_call(Fun, Names, Res);
+        |  	{error, {no_exists, Name}} -&gt;
+<font color=red>     0..|  	    map_call(Fun, Names, Res);</font>
+        |  	{error, Reason} -&gt;
+        |  	    %% BUGBUG: We may end up with some checkpoint retainers
+        |  	    %% too much in the add_copy case. How do we remove them?
+<font color=red>     0..|  	    map_call(Fun, Names, {error, Reason})</font>
+        |      end;
+        |  map_call(_Fun, [], Res) -&gt;
+     1..|      Res.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Public functions
+        |  
+        |  deactivate(Name) -&gt;
+     6..|      case call(Name, get_checkpoint) of
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason};</font>
+        |  	Cp -&gt;
+     6..|  	    deactivate(Cp#checkpoint_args.nodes, Name)
+        |      end.
+        |  
+        |  deactivate(Nodes, Name) -&gt;
+     6..|      rpc:multicall(Nodes, ?MODULE, remote_deactivate, [Name]),
+     6..|      ok.
+        |  
+        |  remote_deactivate(Name) -&gt;
+     6..|      call(Name, deactivate).
+        |  
+    52..|  checkpoints() -&gt; val(checkpoints).
+        |  
+        |  tables_and_cookie(Name) -&gt;
+     7..|      case call(Name, get_checkpoint) of
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason};</font>
+        |  	Cp -&gt;
+     7..|  	    Tabs = Cp#checkpoint_args.min ++ Cp#checkpoint_args.max,
+     7..|  	    Cookie = Cp#checkpoint_args.cookie,
+     7..|  	    {ok, Tabs, Cookie}
+        |      end.
+        |  
+        |  most_local_node(Name, Tab) -&gt;
+    21..|      case ?catch_val({Tab, {retainer, Name}}) of
+        |  	{'EXIT', _} -&gt; 
+<font color=red>     0..|  	    {error, {"No retainer attached to table", [Tab, Name]}};</font>
+        |  	R -&gt; 	    
+    21..|  	    Writers = R#retainer.writers,
+    21..|  	    LocalWriter = lists:member(node(), Writers),
+    21..|  	    if
+        |  		LocalWriter == true -&gt;
+    20..|  		    {ok, node()};
+        |  		Writers /= [] -&gt;
+     1..|  		    {ok, hd(Writers)};
+        |  		true  -&gt;
+<font color=red>     0..|  		    {error, {"No retainer attached to table", [Tab, Name]}}</font>
+        |  	    end
+        |      end.
+        |  
+        |  really_retain(Name, Tab) -&gt;
+    40..|      R = val({Tab, {retainer, Name}}),
+    40..|      R#retainer.really_retain.
+        |   
+        |  %% Activate a checkpoint.
+        |  %%
+        |  %% A checkpoint is a transaction consistent state that may be used to
+        |  %% perform a distributed backup or to rollback the involved tables to
+        |  %% their old state. Backups may also be used to restore tables to
+        |  %% their old state. Args is a list of the following tuples:
+        |  %%
+        |  %% {name, Name}
+        |  %%    Name of checkpoint. Each checkpoint must have a name which
+        |  %%    is unique on the reachable nodes. The name may be reused when
+        |  %%    the checkpoint has been deactivated.
+        |  %%    By default a probably unique name is generated.
+        |  %%    Multiple checkpoints may be set on the same table.
+        |  %%
+        |  %% {allow_remote, Bool}
+        |  %%   false means that all retainers must be local. If the
+        |  %%   table does not reside locally, the checkpoint fails.
+        |  %%   true allows retainers on other nodes.
+        |  %%
+        |  %% {min, MinTabs}
+        |  %%   Minimize redundancy and only keep checkpoint info together with
+        |  %%   one replica, preferrably at the local node. If any node involved
+        |  %%   the checkpoint goes down, the checkpoint is deactivated.
+        |  %%
+        |  %% {max, MaxTabs}
+        |  %%    Maximize redundancy and keep checkpoint info together with all
+        |  %%    replicas. The checkpoint becomes more fault tolerant if the
+        |  %%    tables has several replicas. When new replicas are added, they
+        |  %%    will also get a retainer attached to them.
+        |  %%
+        |  %% {ram_overrides_dump, Bool}
+        |  %% {ram_overrides_dump, Tabs}
+        |  %%   Only applicable for ram_copies. Bool controls which versions of
+        |  %%   the records that should be included in the checkpoint state.
+        |  %%   true means that the latest comitted records in ram (i.e. the
+        |  %%   records that the application accesses) should be included
+        |  %%   in the checkpoint. false means that the records dumped to
+        |  %%   dat-files (the records that will be loaded at startup) should
+        |  %%   be included in the checkpoint. Tabs is a list of tables.
+        |  %%   Default is false.
+        |  %%
+        |  %% {ignore_new, TidList}
+        |  %%   Normally we wait for all pending transactions to complete
+        |  %%   before we allow iteration over the checkpoint. But in order
+        |  %%   to cope with checkpoint activation inside a transaction that
+        |  %%   currently prepares commit (mnesia2_init:get_net_work_copy) we
+        |  %%   need to have the ability to ignore the enclosing transaction.
+        |  %%   We do not wait for the transactions in TidList to end. The
+        |  %%   transactions in TidList are regarded as newer than the checkpoint.
+        |  
+        |  activate(Args) -&gt;
+     6..|      case args2cp(Args) of
+        |  	{ok, Cp} -&gt;
+     6..|  	    do_activate(Cp);
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end.
+        |  
+        |  args2cp(Args) when is_list(Args)-&gt;
+     6..|      try lists:foldl(fun check_arg/2, #checkpoint_args{}, Args) of
+        |  	Cp -&gt;
+     6..|  	    case check_tables(Cp) of
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    {error, Reason};</font>
+        |  		{ok, Overriders, AllTabs} -&gt;
+     6..|  		    arrange_retainers(Cp, Overriders, AllTabs)
+        |  	    end
+        |      catch exit:Reason -&gt;
+<font color=red>     0..|  	    {error, Reason};</font>
+        |  	  error:Reason -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end;
+        |  args2cp(Args) -&gt;
+<font color=red>     0..|      {error, {badarg, Args}}.</font>
+        |  
+        |  check_arg({name, Name}, Cp) -&gt;
+     2..|      case lists:member(Name, checkpoints()) of
+        |  	true -&gt;
+<font color=red>     0..|  	    exit({already_exists, Name});</font>
+        |  	false -&gt;
+     2..|  	    try
+     2..|  		[_|_] = tab2retainer({foo, Name}),
+     2..|  		Cp#checkpoint_args{name = Name}
+        |  	    catch _:_ -&gt;
+<font color=red>     0..|  		    exit({badarg, Name})</font>
+        |  	    end
+        |      end;
+        |  check_arg({allow_remote, true}, Cp) -&gt;
+<font color=red>     0..|      Cp#checkpoint_args{allow_remote = true};</font>
+        |  check_arg({allow_remote, false}, Cp) -&gt;
+<font color=red>     0..|      Cp#checkpoint_args{allow_remote = false};</font>
+        |  check_arg({ram_overrides_dump, true}, Cp) -&gt;
+     1..|      Cp#checkpoint_args{ram_overrides_dump = true};
+        |  check_arg({ram_overrides_dump, false}, Cp) -&gt;
+     4..|      Cp#checkpoint_args{ram_overrides_dump = false};
+        |  check_arg({ram_overrides_dump, Tabs}, Cp) when is_list(Tabs) -&gt;
+<font color=red>     0..|      Cp#checkpoint_args{ram_overrides_dump = Tabs};</font>
+        |  check_arg({min, Tabs}, Cp) when is_list(Tabs) -&gt;
+     1..|      Cp#checkpoint_args{min = Tabs};
+        |  check_arg({max, Tabs}, Cp) when is_list(Tabs) -&gt;
+     6..|      Cp#checkpoint_args{max = Tabs};
+        |  check_arg({ignore_new, Tids}, Cp) when is_list(Tids) -&gt;
+<font color=red>     0..|      Cp#checkpoint_args{ignore_new = Tids};</font>
+        |  check_arg(Arg, _) -&gt;
+<font color=red>     0..|      exit({badarg, Arg}).</font>
+        |  
+        |  check_tables(Cp) -&gt;
+     6..|      Min = Cp#checkpoint_args.min,
+     6..|      Max = Cp#checkpoint_args.max,
+     6..|      AllTabs = Min ++ Max,
+     6..|      DoubleTabs = [T || T &lt;- Min, lists:member(T, Max)],
+     6..|      Overriders = Cp#checkpoint_args.ram_overrides_dump,
+     6..|      if
+        |  	DoubleTabs /= [] -&gt;
+<font color=red>     0..|  	    {error, {combine_error, Cp#checkpoint_args.name,</font>
+        |  		     [{min, DoubleTabs}, {max, DoubleTabs}]}};
+        |  	Min == [], Max == [] -&gt;
+<font color=red>     0..|  	    {error, {combine_error, Cp#checkpoint_args.name,</font>
+        |  		     [{min, Min}, {max, Max}]}};
+        |  	Overriders == false -&gt;
+     5..|  	    {ok, [], AllTabs};
+        |  	Overriders == true -&gt;
+     1..|  	    {ok, AllTabs, AllTabs};
+        |  	is_list(Overriders) -&gt;
+<font color=red>     0..|  	    case [T || T &lt;- Overriders, not lists:member(T, Min)] of</font>
+        |  		[] -&gt;
+<font color=red>     0..|  		    case [T || T &lt;- Overriders, not lists:member(T, Max)] of</font>
+        |  			[] -&gt;
+<font color=red>     0..|  			    {ok, Overriders, AllTabs};</font>
+        |  			Outsiders -&gt;
+<font color=red>     0..|  			    {error, {combine_error, Cp#checkpoint_args.name,</font>
+        |  				     [{ram_overrides_dump, Outsiders},
+        |  				      {max, Outsiders}]}}
+        |  		    end;
+        |  		Outsiders -&gt;
+<font color=red>     0..|  		    {error, {combine_error, Cp#checkpoint_args.name,</font>
+        |  			     [{ram_overrides_dump, Outsiders},
+        |  			      {min, Outsiders}]}}
+        |  	    end
+        |      end.
+        |  
+        |  arrange_retainers(Cp, Overriders, AllTabs) -&gt;
+     6..|      R = #retainer{cp_name = Cp#checkpoint_args.name},
+     6..|      try [R#retainer{tab_name = Tab,
+        |  		    writers = select_writers(Cp, Tab)}
+     6..|  	 || Tab &lt;- AllTabs] of
+        |  	Retainers -&gt;
+     6..|  	    {ok, Cp#checkpoint_args{ram_overrides_dump = Overriders,
+        |  				    retainers = Retainers,
+        |  				    nodes = writers(Retainers)}}
+        |      catch throw:Reason -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end.
+        |  
+        |  select_writers(Cp, Tab) -&gt;
+    20..|      case filter_remote(Cp, val({Tab, active_replicas})) of
+        |  	[] -&gt;
+<font color=red>     0..|  	    throw({"Cannot prepare checkpoint (replica not available)",</font>
+        |  		   [Tab, Cp#checkpoint_args.name]});
+        |  	Writers -&gt;
+    20..|  	    This = node(),
+    20..|  	    case {lists:member(Tab, Cp#checkpoint_args.max),
+        |  		  lists:member(This, Writers)} of
+    18..|  		{true, _} -&gt; Writers; % Max
+     2..|  		{false, true} -&gt; [This];
+<font color=red>     0..|  		{false, false} -&gt; [hd(Writers)]</font>
+        |  	    end
+        |      end.
+        |  
+        |  filter_remote(Cp, Writers) when Cp#checkpoint_args.allow_remote == true -&gt;
+    20..|      Writers;
+        |  filter_remote(_Cp, Writers) -&gt;
+<font color=red>     0..|      This = node(),</font>
+<font color=red>     0..|      case lists:member(This, Writers) of</font>
+<font color=red>     0..|  	true -&gt; [This];</font>
+<font color=red>     0..|  	false  -&gt; []</font>
+        |      end.
+        |  	
+        |  writers(Retainers) -&gt;
+     7..|      Fun = fun(R, Acc) -&gt; R#retainer.writers ++ Acc end,
+     7..|      Writers = lists:foldl(Fun, [], Retainers),
+     7..|      mnesia2_lib:uniq(Writers).
+        |  
+        |  do_activate(Cp) -&gt;
+     6..|      Name = Cp#checkpoint_args.name,
+     6..|      Nodes = Cp#checkpoint_args.nodes,
+     6..|      case mnesia2_tm:prepare_checkpoint(Nodes, Cp) of
+        |  	{Replies, []} -&gt;
+     6..|  	    check_prep(Replies, Name, Nodes, Cp#checkpoint_args.ignore_new);
+        |  	{_, BadNodes} -&gt;
+<font color=red>     0..|  	    {error, {"Cannot prepare checkpoint (bad nodes)",</font>
+        |  		     [Name, BadNodes]}}
+        |      end.
+        |  	
+        |  check_prep([{ok, Name, IgnoreNew, _Node} | Replies], Name, Nodes, IgnoreNew) -&gt;
+    10..|      check_prep(Replies, Name, Nodes, IgnoreNew);
+        |  check_prep([{error, Reason} | _Replies], Name, _Nodes, _IgnoreNew) -&gt;
+<font color=red>     0..|      {error, {"Cannot prepare checkpoint (bad reply)",</font>
+        |  	     [Name, Reason]}};
+        |  check_prep([{badrpc, Reason} | _Replies], Name, _Nodes, _IgnoreNew) -&gt;
+<font color=red>     0..|      {error, {"Cannot prepare checkpoint (badrpc)",</font>
+        |  	     [Name, Reason]}};
+        |  check_prep([], Name, Nodes, IgnoreNew) -&gt;
+     6..|      collect_pending(Name, Nodes, IgnoreNew).
+        |  
+        |  collect_pending(Name, Nodes, IgnoreNew) -&gt;
+     6..|      case rpc:multicall(Nodes, ?MODULE, call, [Name, collect_pending]) of
+        |  	{Replies, []} -&gt;
+     6..|  	    try
+     6..|  		UnionTab = ?ets_new_table(mnesia2_union, [bag]),
+     6..|  		compute_union(Replies, Nodes, Name, UnionTab, IgnoreNew)
+        |  	    catch error:Reason -&gt; %% system limit
+<font color=red>     0..|  		    Msg = "Cannot create an ets table pending union",</font>
+<font color=red>     0..|  		    {error, {system_limit, Msg, Reason}}</font>
+        |  	    end;
+        |  	{_, BadNodes} -&gt;
+<font color=red>     0..|  	    deactivate(Nodes, Name),</font>
+<font color=red>     0..|  	    {error, {"Cannot collect from pending checkpoint", Name, BadNodes}}</font>
+        |      end.
+        |  
+        |  compute_union([{ok, Pending} | Replies], Nodes, Name, UnionTab, IgnoreNew) -&gt;
+    10..|      add_pending(Pending, UnionTab),
+    10..|      compute_union(Replies, Nodes, Name, UnionTab, IgnoreNew);
+        |  compute_union([{error, Reason} | _Replies], Nodes, Name, UnionTab, _IgnoreNew) -&gt;
+<font color=red>     0..|      deactivate(Nodes, Name),</font>
+<font color=red>     0..|      ?ets_delete_table(UnionTab),</font>
+<font color=red>     0..|      {error, Reason};</font>
+        |  compute_union([{badrpc, Reason} | _Replies], Nodes, Name, UnionTab, _IgnoreNew) -&gt;
+<font color=red>     0..|      deactivate(Nodes, Name),</font>
+<font color=red>     0..|      ?ets_delete_table(UnionTab),</font>
+<font color=red>     0..|      {error, {badrpc, Reason}};</font>
+        |  compute_union([], Nodes, Name, UnionTab, IgnoreNew) -&gt;
+     6..|      send_activate(Nodes, Nodes, Name, UnionTab, IgnoreNew).
+        |  
+        |  add_pending([P | Pending], UnionTab) -&gt;
+<font color=red>     0..|      add_pending_node(P#pending.disc_nodes, P#pending.tid, UnionTab),</font>
+<font color=red>     0..|      add_pending_node(P#pending.ram_nodes, P#pending.tid, UnionTab),</font>
+<font color=red>     0..|      add_pending(Pending, UnionTab);</font>
+        |  add_pending([], _UnionTab) -&gt;
+    10..|      ok.
+        |  
+        |  add_pending_node([Node | Nodes], Tid, UnionTab) -&gt;
+<font color=red>     0..|      ?ets_insert(UnionTab, {Node, Tid}),</font>
+<font color=red>     0..|      add_pending_node(Nodes, Tid, UnionTab);</font>
+        |  add_pending_node([], _Tid, _UnionTab) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  send_activate([Node | Nodes], AllNodes, Name, UnionTab, IgnoreNew) -&gt;
+    10..|      Pending = [Tid || {_, Tid} &lt;- ?ets_lookup(UnionTab, Node), 
+<font color=red>     0..|  		      not lists:member(Tid, IgnoreNew)],</font>
+    10..|      case rpc:call(Node, ?MODULE, call, [Name, {activate, Pending}]) of
+        |  	activated -&gt;
+    10..|  	    send_activate(Nodes, AllNodes, Name, UnionTab, IgnoreNew);
+        |  	{badrpc, Reason} -&gt;
+<font color=red>     0..|  	    deactivate(Nodes, Name),</font>
+<font color=red>     0..|  	    ?ets_delete_table(UnionTab),</font>
+<font color=red>     0..|  	    {error, {"Activation failed (bad node)", Name, Node, Reason}};</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    deactivate(Nodes, Name),</font>
+<font color=red>     0..|  	    ?ets_delete_table(UnionTab),</font>
+<font color=red>     0..|  	    {error, {"Activation failed", Name, Node, Reason}}</font>
+        |      end;
+        |  send_activate([], AllNodes, Name, UnionTab, _IgnoreNew) -&gt;
+     6..|      ?ets_delete_table(UnionTab),
+     6..|      {ok, Name, AllNodes}.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Checkpoint server
+        |  
+        |  cast(Name, Msg) -&gt;
+    55..|      case ?catch_val({checkpoint, Name}) of
+        |  	{'EXIT', _} -&gt;
+<font color=red>     0..|  	    {error, {no_exists, Name}};</font>
+        |  	
+        |  	Pid when is_pid(Pid) -&gt;
+    55..|  	    Pid ! {self(), Msg},
+    55..|  	    {ok, Pid}
+        |      end.
+        |  
+        |  call(Name, Msg) -&gt;
+   102..|      case ?catch_val({checkpoint, Name}) of
+        |  	{'EXIT', _} -&gt;
+<font color=red>     0..|  	    {error, {no_exists, Name}};</font>
+        |  
+        |  	Pid when is_pid(Pid) -&gt;
+   102..|  	    Monitor = erlang:monitor(process, Pid), %catch link(Pid), % Always local
+   102..|  	    Pid ! {self(), Msg},
+   102..|  	    Self = self(),
+   102..|  	    receive
+        |  		{'EXIT', Pid, Reason} -&gt;
+<font color=red>     0..|  		    {error, {"Got exit", [Name, Reason]}};</font>
+        |  		{'DOWN', Monitor, _, Pid, Reason} -&gt;
+<font color=red>     0..|  		    {error, {"Got exit", [Name, Reason]}};</font>
+        |  		{Name, Self, Reply} -&gt;
+   102..|  		    erlang:demonitor(Monitor),
+   102..|  		    Reply
+        |  	    end;
+        |  	Error -&gt;
+<font color=red>     0..|  	    Error</font>
+        |      end.
+        |  
+        |  abcast(Nodes, Name, Msg) -&gt;
+     1..|      rpc:eval_everywhere(Nodes, ?MODULE, cast, [Name, Msg]).
+        |  
+        |  reply(nopid, _Name, _Reply) -&gt;
+<font color=red>     0..|      ignore;</font>
+        |  reply(ReplyTo, Name, Reply) -&gt;
+   102..|      ReplyTo ! {Name, ReplyTo, Reply}.
+        |  
+        |  %% Returns {ok, NewCp} or {error, Reason}
+        |  start_retainer(Cp) -&gt;
+        |      % Will never be restarted
+     6..|      Name = Cp#checkpoint_args.name,
+     6..|      case supervisor:start_child(mnesia2_checkpoint_sup, [Cp]) of
+        |  	{ok, _Pid} -&gt;
+     6..|  	    {ok, Name, Cp#checkpoint_args.ignore_new, node()};
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, {"Cannot create checkpoint retainer",</font>
+        |  		     Name, node(), Reason}}
+        |      end.
+        |  
+        |  start(Cp) -&gt;
+     6..|      Name = Cp#checkpoint_args.name,
+     6..|      Args = [Cp#checkpoint_args{supervisor = self()}],
+     6..|      mnesia2_monitor:start_proc({?MODULE, Name}, ?MODULE, init, Args).
+        |  
+        |  init(Cp) -&gt;
+     6..|      process_flag(trap_exit, true),
+     6..|      process_flag(priority, high), %% Needed dets files might starve the system
+     6..|      Name = Cp#checkpoint_args.name,
+     6..|      Props = [set, public, {keypos, 2}],
+     6..|      try ?ets_new_table(mnesia2_pending_checkpoint, Props) of
+        |  	PendingTab -&gt;
+     6..|  	    Rs = [prepare_tab(Cp, R) || R &lt;- Cp#checkpoint_args.retainers],
+     6..|  	    Cp2 = Cp#checkpoint_args{retainers = Rs,
+        |  				pid = self(),
+        |  				pending_tab = PendingTab},
+     6..|  	    add(pending_checkpoint_pids, self()),
+     6..|  	    add(pending_checkpoints, PendingTab),
+     6..|  	    set({checkpoint, Name}, self()),
+     6..|  	    add(checkpoints, Name),
+     6..|  	    dbg_out("Checkpoint ~p (~p) started~n", [Name, self()]),
+     6..|  	    proc_lib:init_ack(Cp2#checkpoint_args.supervisor, {ok, self()}),
+     6..|  	    retainer_loop(Cp2)
+        |      catch error:Reason -&gt; %% system limit
+<font color=red>     0..|  	    Msg = "Cannot create an ets table for pending transactions",</font>
+<font color=red>     0..|  	    Error = {error, {system_limit, Name, Msg, Reason}},</font>
+<font color=red>     0..|  	    proc_lib:init_ack(Cp#checkpoint_args.supervisor, Error)</font>
+        |      end.
+        |      
+        |  prepare_tab(Cp, R) -&gt;
+    20..|      Tab = R#retainer.tab_name,
+    20..|      prepare_tab(Cp, R, val({Tab, storage_type})).
+        |  
+        |  prepare_tab(Cp, R, Storage) -&gt;
+    20..|      Tab = R#retainer.tab_name,
+    20..|      Name = R#retainer.cp_name,
+    20..|      case lists:member(node(), R#retainer.writers) of
+        |  	true -&gt;
+    20..|  	    R2 = retainer_create(Cp, R, Tab, Name, Storage),
+    20..|  	    set({Tab, {retainer, Name}}, R2),
+        |  	    %% Keep checkpoint info for table_info &amp; mnesia2_session 
+    20..|  	    add({Tab, checkpoints}, Name), 
+    20..|  	    add_chkp_info(Tab, Name),
+    20..|  	    R2;
+        |  	false -&gt;
+<font color=red>     0..|  	    set({Tab, {retainer, Name}}, R#retainer{store = undefined}),</font>
+<font color=red>     0..|  	    R</font>
+        |      end.
+        |  
+        |  add_chkp_info(Tab, Name) -&gt;
+    20..|      case val({Tab, commit_work}) of
+        |  	[{checkpoints, OldList} | CommitList] -&gt;
+<font color=red>     0..|  	    case lists:member(Name, OldList) of </font>
+        |  		true -&gt; 
+<font color=red>     0..|  		    ok;</font>
+        |  		false -&gt; 
+<font color=red>     0..|  		    NewC = [{checkpoints, [Name | OldList]} | CommitList],</font>
+<font color=red>     0..|  		    mnesia2_lib:set({Tab, commit_work}, NewC)</font>
+        |  	    end;
+        |  	CommitList -&gt;
+    20..|  	    Chkp = {checkpoints, [Name]},
+        |  	    %% OBS checkpoints needs to be first in the list!
+    20..|  	    mnesia2_lib:set({Tab, commit_work}, [Chkp | CommitList])
+        |      end.
+        |  
+        |  tab2retainer({Tab, Name}) -&gt;
+     6..|      FlatName = lists:flatten(io_lib:write(Name)),
+     6..|      mnesia2_lib:dir(lists:concat([?MODULE, "_", Tab, "_", FlatName, ".RET"])).
+        |  
+        |  retainer_create(_Cp, R, Tab, Name, disc_only_copies) -&gt;
+     2..|      Fname = tab2retainer({Tab, Name}),
+     2..|      file:delete(Fname),
+     2..|      Args = [{file, Fname}, {type, set}, {keypos, 2}, {repair, false}],
+     2..|      {ok, _} = mnesia2_lib:dets_sync_open({Tab, Name}, Args),
+     2..|      dbg_out("Checkpoint retainer created ~p ~p~n", [Name, Tab]),
+     2..|      R#retainer{store = {dets, {Tab, Name}}, really_retain = true};
+        |  retainer_create(Cp, R, Tab, Name, Storage) -&gt;
+    18..|      T = ?ets_new_table(mnesia2_retainer, [set, public, {keypos, 2}]),
+    18..|      Overriders = Cp#checkpoint_args.ram_overrides_dump,
+    18..|      ReallyR = R#retainer.really_retain,
+    18..|      ReallyCp = lists:member(Tab, Overriders),
+    18..|      ReallyR2 = prepare_ram_tab(Tab, T, Storage, ReallyR, ReallyCp),
+    18..|      dbg_out("Checkpoint retainer created ~p ~p~n", [Name, Tab]),
+    18..|      R#retainer{store = {ets, T}, really_retain = ReallyR2}.
+        |  
+        |  %% Copy the dumped table into retainer if needed
+        |  %% If the really_retain flag already has been set to false,
+        |  %% it should remain false even if we change storage type
+        |  %% while the checkpoint is activated.
+        |  prepare_ram_tab(Tab, T, ram_copies, true, false) -&gt;
+     5..|      Fname = mnesia2_lib:tab2dcd(Tab),
+     5..|      case mnesia2_lib:exists(Fname) of
+        |  	true -&gt; 
+<font color=red>     0..|  	    Log = mnesia2_log:open_log(prepare_ram_tab, </font>
+        |  				      mnesia2_log:dcd_log_header(), 
+        |  				      Fname, true, 
+        |  				      mnesia2_monitor:get_env(auto_repair), 
+        |  				      read_only),
+<font color=red>     0..|  	    Add = fun(Rec) -&gt;</font>
+<font color=red>     0..|  			  Key = element(2, Rec),</font>
+<font color=red>     0..|  			  Recs =</font>
+        |  			      case ?ets_lookup(T, Key) of
+<font color=red>     0..|  				  [] -&gt; [];</font>
+<font color=red>     0..|  				  [{_, _, Old}] -&gt; Old</font>
+        |  			      end,
+<font color=red>     0..|  			  ?ets_insert(T, {Tab, Key, [Rec | Recs]}),</font>
+<font color=red>     0..|  			  continue</font>
+        |  		  end,
+<font color=red>     0..|  	    traverse_dcd(mnesia2_log:chunk_log(Log, start), Log, Add),</font>
+<font color=red>     0..|  	    mnesia2_log:close_log(Log);</font>
+        |  	false -&gt;
+     5..|  	    ok
+        |      end,
+     5..|      false;
+        |  prepare_ram_tab(_, _, _, ReallyRetain, _) -&gt;
+    13..|      ReallyRetain.
+        |  
+        |  traverse_dcd({Cont, [LogH | Rest]}, Log, Fun) 
+        |    when is_record(LogH, log_header),  
+        |         LogH#log_header.log_kind == dcd_log, 
+        |         LogH#log_header.log_version &gt;= "1.0" -&gt;    
+<font color=red>     0..|      traverse_dcd({Cont, Rest}, Log, Fun);   %% BUGBUG Error handling repaired files</font>
+        |  traverse_dcd({Cont, Recs}, Log, Fun) -&gt;     %% trashed data?? 
+<font color=red>     0..|      lists:foreach(Fun, Recs), </font>
+<font color=red>     0..|      traverse_dcd(mnesia2_log:chunk_log(Log, Cont), Log, Fun);</font>
+        |  traverse_dcd(eof, _Log, _Fun) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+    94..|  retainer_get({ets, Store}, Key) -&gt; ?ets_lookup(Store, Key);
+    40..|  retainer_get({dets, Store}, Key) -&gt; dets:lookup(Store, Key).
+        |  
+    33..|  retainer_put({ets, Store}, Val) -&gt; ?ets_insert(Store, Val);
+    19..|  retainer_put({dets, Store}, Val) -&gt; dets:insert(Store, Val).
+        |  
+    33..|  retainer_first({ets, Store}) -&gt; ?ets_first(Store);
+     2..|  retainer_first({dets, Store}) -&gt; dets:first(Store).
+        |   
+    58..|  retainer_next({ets, Store}, Key) -&gt; ?ets_next(Store, Key);
+    21..|  retainer_next({dets, Store}, Key) -&gt; dets:next(Store, Key).
+        |  
+        |  %% retainer_next_slot(Tab, Pos) -&gt;
+        |  %%     case retainer_slot(Tab, Pos) of
+        |  %% 	   '$end_of_table' -&gt;
+        |  %% 	       '$end_of_table';
+        |  %% 	   [] -&gt;
+        |  %% 	       retainer_next_slot(Tab, Pos + 1);
+        |  %% 	   Recs when is_list(Recs) -&gt;
+        |  %% 	       {Pos, Recs}
+        |  %%     end.
+        |  %% 
+        |  %% retainer_slot({ets, Store}, Pos) -&gt; ?ets_next(Store, Pos);
+        |  %% retainer_slot({dets, Store}, Pos) -&gt; dets:slot(Store, Pos).
+        |  
+        |  retainer_fixtable(Tab, Bool) when is_atom(Tab) -&gt;
+<font color=red>     0..|      mnesia2_lib:db_fixtable(val({Tab, storage_type}), Tab, Bool);</font>
+        |  retainer_fixtable({ets, Tab}, Bool) -&gt;
+    66..|      mnesia2_lib:db_fixtable(ram_copies, Tab, Bool);
+        |  retainer_fixtable({dets, Tab}, Bool) -&gt;
+     4..|      mnesia2_lib:db_fixtable(disc_only_copies, Tab, Bool).
+        |  
+        |  retainer_delete({ets, Store}) -&gt;
+    18..|      ?ets_delete_table(Store);
+        |  retainer_delete({dets, Store}) -&gt;
+     2..|      mnesia2_lib:dets_sync_close(Store),
+     2..|      Fname = tab2retainer(Store),
+     2..|      file:delete(Fname).
+        |  
+        |  retainer_loop(Cp = #checkpoint_args{is_activated=false, name=Name}) -&gt;
+    12..|      receive
+        |  	%% Adm
+        |  	{From, {activate, Pending}} -&gt;
+     6..|              StillPending = mnesia2_recover:still_pending(Pending),
+     6..|              enter_still_pending(StillPending, Cp#checkpoint_args.pending_tab),
+     6..|  	    Local = [Tid || #tid{pid=Pid} = Tid &lt;- StillPending, node(Pid) =/= node()],
+     6..|              Cp2 = maybe_activate(Cp#checkpoint_args{wait_for_old = Local}),
+        |  
+     6..|              reply(From, Name, activated),
+     6..|  	    retainer_loop(Cp2);
+        |  
+        |  	{_From, {exit_pending, Tid}} when is_list(Cp#checkpoint_args.wait_for_old) -&gt;
+<font color=red>     0..|  	    StillPending = lists:delete(Tid, Cp#checkpoint_args.wait_for_old),</font>
+<font color=red>     0..|  	    Cp2 = Cp#checkpoint_args{wait_for_old = StillPending},</font>
+<font color=red>     0..|  	    Cp3 = maybe_activate(Cp2),</font>
+<font color=red>     0..|  	    retainer_loop(Cp3);</font>
+        |  
+        |  	{From, deactivate} -&gt;
+<font color=red>     0..|  	    do_stop(Cp),</font>
+<font color=red>     0..|  	    reply(From, Name, deactivated),</font>
+<font color=red>     0..|  	    unlink(From),</font>
+<font color=red>     0..|  	    exit(shutdown);</font>
+        |  
+        |  	{From, get_checkpoint} -&gt;
+<font color=red>     0..|  	    reply(From, Name, Cp),</font>
+<font color=red>     0..|  	    retainer_loop(Cp);</font>
+        |  	{_From, {add_retainer, R, Node}} -&gt;
+<font color=red>     0..|  	    Cp2 = do_add_retainer(Cp, R, Node),</font>
+<font color=red>     0..|  	    retainer_loop(Cp2);</font>
+        |  
+        |  	{From, collect_pending} -&gt;
+     6..|  	    PendingTab = Cp#checkpoint_args.pending_tab,
+     6..|  	    del(pending_checkpoints, PendingTab),
+     6..|  	    Pending = ?ets_match_object(PendingTab, '_'),
+     6..|  	    reply(From, Name, {ok, Pending}),
+     6..|  	    retainer_loop(Cp);
+        |  
+        |  	{_From, {mnesia2_down, Node}} -&gt;
+<font color=red>     0..|  	    Cp2 = do_del_retainers(Cp, Node),</font>
+<font color=red>     0..|  	    retainer_loop(Cp2);</font>
+        |  
+        |  	{'EXIT', Parent, _} when Parent == Cp#checkpoint_args.supervisor -&gt;
+        |  	    %% do_stop(Cp),
+        |  	    %% assume that entire mnesia2 is terminating
+<font color=red>     0..|  	    exit(shutdown);</font>
+        |  
+        |  	{'EXIT', From, _Reason} -&gt;
+<font color=red>     0..|  	    Iters = [Iter || Iter &lt;- Cp#checkpoint_args.iterators,</font>
+<font color=red>     0..|  			     check_iter(From, Iter)],</font>
+<font color=red>     0..|  	    retainer_loop(Cp#checkpoint_args{iterators = Iters});</font>
+        |  
+        |  	{system, From, Msg} -&gt;
+<font color=red>     0..|  	    dbg_out("~p got {system, ~p, ~p}~n", [?MODULE, From, Msg]),</font>
+<font color=red>     0..|  	    sys:handle_system_msg(Msg, From, Cp#checkpoint_args.supervisor,</font>
+        |  				  ?MODULE, [], Cp)
+        |      end;
+        |  
+        |  retainer_loop(Cp = #checkpoint_args{name=Name}) -&gt;
+   153..|      receive
+        |  	{_From, {retain, Tid, Tab, Key, OldRecs}} -&gt;
+    55..|  	    R = val({Tab, {retainer, Name}}),
+    55..|  	    PendingTab = Cp#checkpoint_args.pending_tab,
+    55..|  	    case R#retainer.really_retain of
+        |  		true -&gt;
+    55..|  		    Store = R#retainer.store,
+    55..|  		    try true = ets:member(PendingTab, Tid),
+        |  			 %% io:format("CP: ~p ~p ~p ~p~n",[true, Tab, Key, Tid]),
+<font color=red>     0..|  			 case retainer_get(Store, Key) of</font>
+<font color=red>     0..|  			     [] -&gt; ignore;</font>
+<font color=red>     0..|  			     _  -&gt; ets:delete(element(2,Store), Key)</font>
+        |  			 end
+        |  		    catch _:_ -&gt;
+        |  			    %% io:format("CP: ~p ~p ~p ~p~n",[false, Tab, Key, Tid]),
+    55..|  			    case retainer_get(Store, Key) of
+    52..|  				[] -&gt; retainer_put(Store, {Tab, Key, OldRecs});
+     3..|  				_  -&gt; already_retained
+        |  			    end
+        |  		    end;
+        |  		false -&gt;
+<font color=red>     0..|  		    ignore</font>
+        |  	    end,
+    55..|  	    retainer_loop(Cp);
+        |  
+        |  	%% Adm
+        |  	{From, get_checkpoint} -&gt;
+    13..|  	    reply(From, Name, Cp),
+    13..|  	    retainer_loop(Cp);
+        |  	{From, {add_copy, Tab, Node}} -&gt;
+<font color=red>     0..|  	    {Res, Cp2} = do_add_copy(Cp, Tab, Node),</font>
+<font color=red>     0..|  	    reply(From, Name, Res),</font>
+<font color=red>     0..|  	    retainer_loop(Cp2);</font>
+        |  	{From, {del_copy, Tab, Node}} -&gt;
+     1..|  	    Cp2 = do_del_copy(Cp, Tab, Node),
+     1..|  	    reply(From, Name, ok),
+     1..|  	    retainer_loop(Cp2);
+        |  	{From, {change_copy, Tab, From, To}} -&gt;
+<font color=red>     0..|  	    Cp2 = do_change_copy(Cp, Tab, From, To),</font>
+<font color=red>     0..|  	    reply(From, Name, ok),</font>
+<font color=red>     0..|  	    retainer_loop(Cp2);</font>
+        |  	{_From, {add_retainer, R, Node}} -&gt;
+<font color=red>     0..|  	    Cp2 = do_add_retainer(Cp, R, Node),</font>
+<font color=red>     0..|  	    retainer_loop(Cp2);</font>
+        |  	{_From, {del_retainer, R, Node}} -&gt;
+<font color=red>     0..|  	    Cp2 = do_del_retainer(Cp, R, Node),</font>
+<font color=red>     0..|  	    retainer_loop(Cp2);</font>
+        |  
+        |  	%% Iteration
+        |  	{From, {iter_begin, Iter}} -&gt;
+    35..|  	    Cp2 = iter_begin(Cp, From, Iter),
+    35..|  	    retainer_loop(Cp2);
+        |  
+        |  	{From, {iter_end, Iter}}  -&gt;
+    35..|  	    retainer_fixtable(Iter#iter.oid_tab, false),
+    35..|  	    Iters = Cp#checkpoint_args.iterators -- [Iter],
+    35..|  	    reply(From, Name, ok),
+    35..|  	    retainer_loop(Cp#checkpoint_args{iterators = Iters});
+        |  
+        |  	{_From, {exit_pending, _Tid}} -&gt;
+     8..|  	    retainer_loop(Cp);
+        |  
+        |  	{From, deactivate} -&gt;
+     6..|  	    do_stop(Cp),
+     6..|  	    reply(From, Name, deactivated),
+     6..|  	    unlink(From),
+     6..|  	    exit(shutdown);
+        |  
+        |  	{_From, {mnesia2_down, Node}} -&gt;
+<font color=red>     0..|  	    Cp2 = do_del_retainers(Cp, Node),</font>
+<font color=red>     0..|  	    retainer_loop(Cp2);</font>
+        |  
+        |  	{'EXIT', Parent, _} when Parent == Cp#checkpoint_args.supervisor -&gt;
+        |  	    %% do_stop(Cp),
+        |  	    %% assume that entire Mnesia2 is terminating
+<font color=red>     0..|  	    exit(shutdown);</font>
+        |  
+        |  	{'EXIT', From, _Reason} -&gt;
+<font color=red>     0..|  	    Iters = [Iter || Iter &lt;- Cp#checkpoint_args.iterators,</font>
+<font color=red>     0..|  			     check_iter(From, Iter)],</font>
+<font color=red>     0..|  	    retainer_loop(Cp#checkpoint_args{iterators = Iters});</font>
+        |  
+        |  	{system, From, Msg} -&gt;
+<font color=red>     0..|  	    dbg_out("~p got {system, ~p, ~p}~n", [?MODULE, From, Msg]),</font>
+<font color=red>     0..|  	    sys:handle_system_msg(Msg, From, Cp#checkpoint_args.supervisor,</font>
+        |  				  ?MODULE, [], Cp);
+        |  	Msg -&gt;
+<font color=red>     0..|  	    dbg_out("~p got ~p~n", [?MODULE, Msg])</font>
+        |      end.
+        |  
+        |  maybe_activate(Cp)
+        |    when Cp#checkpoint_args.wait_for_old == [],
+        |         Cp#checkpoint_args.is_activated == false -&gt;
+     6..|      Cp#checkpoint_args{%% pending_tab = undefined,
+        |  		       is_activated = true};
+        |  maybe_activate(Cp) -&gt;
+<font color=red>     0..|      Cp.</font>
+        |  
+        |  iter_begin(Cp, From, Iter) -&gt;
+    35..|      Name = Cp#checkpoint_args.name,
+    35..|      R = val({Iter#iter.tab_name, {retainer, Name}}),
+    35..|      Iter2 = init_tabs(R, Iter),
+    35..|      Iter3 = Iter2#iter{pid = From},
+    35..|      retainer_fixtable(Iter3#iter.oid_tab, true),
+    35..|      Iters = [Iter3 | Cp#checkpoint_args.iterators],
+    35..|      reply(From, Name, {ok, Iter3, self()}),
+    35..|      Cp#checkpoint_args{iterators = Iters}.
+        |  
+        |  do_stop(Cp) -&gt;
+     6..|      Name = Cp#checkpoint_args.name,
+     6..|      del(pending_checkpoints, Cp#checkpoint_args.pending_tab),
+     6..|      del(pending_checkpoint_pids, self()),
+     6..|      del(checkpoints, Name),
+     6..|      unset({checkpoint, Name}),
+     6..|      lists:foreach(fun deactivate_tab/1, Cp#checkpoint_args.retainers),
+     6..|      Iters = Cp#checkpoint_args.iterators,
+     6..|      lists:foreach(fun(I) -&gt; retainer_fixtable(I#iter.oid_tab, false) end, Iters).
+        |  
+        |  deactivate_tab(R) -&gt;
+    21..|      Name = R#retainer.cp_name,
+    21..|      Tab = R#retainer.tab_name,
+    21..|      try
+    21..|  	Active = lists:member(node(), R#retainer.writers),
+    21..|  	case R#retainer.store of
+        |  	    undefined -&gt;
+<font color=red>     0..|  		ignore;</font>
+        |  	    Store when Active == true -&gt;
+    20..|  		retainer_delete(Store);
+        |  	    _ -&gt;
+     1..|  		ignore
+        |  	end,
+    21..|  	unset({Tab, {retainer, Name}}),
+    21..|  	del({Tab, checkpoints}, Name),   %% Keep checkpoint info for table_info &amp; mnesia2_session 
+    21..|  	del_chkp_info(Tab, Name)
+<font color=red>     0..|      catch _:_ -&gt; ignore</font>
+        |      end.
+        |  
+        |  del_chkp_info(Tab, Name) -&gt;   
+    21..|      case val({Tab, commit_work}) of
+        |  	[{checkpoints, ChkList} | Rest] -&gt; 
+    20..|  	    case lists:delete(Name, ChkList) of
+        |  		[] -&gt; 
+        |  		    %% The only checkpoint was deleted
+    20..|  		    mnesia2_lib:set({Tab, commit_work}, Rest);
+        |  		NewList -&gt;
+<font color=red>     0..|  		    mnesia2_lib:set({Tab, commit_work}, </font>
+        |  				   [{checkpoints, NewList} | Rest])
+        |  	    end;
+     1..|  	_  -&gt; ignore
+        |      end.
+        |  
+        |  do_del_retainers(Cp, Node) -&gt;
+<font color=red>     0..|      Rs = [do_del_retainer2(Cp, R, Node) || R &lt;- Cp#checkpoint_args.retainers],</font>
+<font color=red>     0..|      Cp#checkpoint_args{retainers = Rs, nodes = writers(Rs)}.</font>
+        |  
+        |  do_del_retainer2(Cp, R, Node) -&gt;
+     1..|      Writers = R#retainer.writers -- [Node],
+     1..|      R2 = R#retainer{writers = Writers},
+     1..|      set({R2#retainer.tab_name, {retainer, R2#retainer.cp_name}}, R2),
+     1..|      if
+        |  	Writers == [] -&gt;
+<font color=red>     0..|  	    Event = {mnesia2_checkpoint_deactivated, Cp#checkpoint_args.name},</font>
+<font color=red>     0..|  	    mnesia2_lib:report_system_event(Event),</font>
+<font color=red>     0..|  	    do_stop(Cp),</font>
+<font color=red>     0..|  	    exit(shutdown);</font>
+        |  	Node == node() -&gt;
+     1..|  	    deactivate_tab(R), % Avoids unnecessary tm_retain accesses
+     1..|  	    set({R2#retainer.tab_name, {retainer, R2#retainer.cp_name}}, R2),
+     1..|  	    R2; 
+        |  	true -&gt;
+<font color=red>     0..|  	    R2</font>
+        |      end.
+        |  
+        |  do_del_retainer(Cp, R0, Node) -&gt;
+     1..|      {R, Rest} = find_retainer(R0, Cp#checkpoint_args.retainers, []),
+     1..|      R2 = do_del_retainer2(Cp, R, Node),
+     1..|      Rs = [R2|Rest],
+     1..|      Cp#checkpoint_args{retainers = Rs, nodes = writers(Rs)}.
+        |  
+        |  do_del_copy(Cp, Tab, ThisNode) when ThisNode == node() -&gt;
+     1..|      Name = Cp#checkpoint_args.name,
+     1..|      Others = Cp#checkpoint_args.nodes -- [ThisNode],
+     1..|      R = val({Tab, {retainer, Name}}),
+     1..|      abcast(Others, Name, {del_retainer, R, ThisNode}),
+     1..|      do_del_retainer(Cp, R, ThisNode).
+        |  
+        |  do_add_copy(Cp, Tab, Node) when Node /= node()-&gt;
+<font color=red>     0..|      case lists:member(Tab, Cp#checkpoint_args.max) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    {ok, Cp};</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Name = Cp#checkpoint_args.name,</font>
+<font color=red>     0..|  	    R0 = val({Tab, {retainer, Name}}),</font>
+<font color=red>     0..|  	    W = R0#retainer.writers,</font>
+<font color=red>     0..|  	    R = R0#retainer{writers = W ++ [Node]},</font>
+        |  
+<font color=red>     0..|  	    case lists:member(Node, Cp#checkpoint_args.nodes) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    send_retainer(Cp, R, Node);</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    case tm_remote_prepare(Node, Cp) of</font>
+        |  			{ok, Name, _IgnoreNew, Node} -&gt;
+<font color=red>     0..|  			    case lists:member(schema, Cp#checkpoint_args.max) of</font>
+        |  				true -&gt;
+        |  				    %% We need to send schema retainer somewhere
+<font color=red>     0..|  				    RS0 = val({schema, {retainer, Name}}),</font>
+<font color=red>     0..|  				    WS = RS0#retainer.writers,</font>
+<font color=red>     0..|  				    RS1 = RS0#retainer{writers = WS ++ [Node]},</font>
+<font color=red>     0..|  				    {ok, Cp1} = send_retainer(Cp, RS1, Node),</font>
+<font color=red>     0..|  				    send_retainer(Cp1, R, Node);</font>
+        |  				false -&gt;
+<font color=red>     0..|  				    send_retainer(Cp, R, Node)</font>
+        |  			    end;
+        |  			{badrpc, Reason} -&gt;
+<font color=red>     0..|  			    {{error, {badrpc, Reason}}, Cp};</font>
+        |  			{error, Reason} -&gt;
+<font color=red>     0..|  			    {{error, Reason}, Cp}</font>
+        |  		    end
+        |  	    end
+        |      end.
+        |  
+        |  tm_remote_prepare(Node, Cp) -&gt;
+<font color=red>     0..|      rpc:call(Node, ?MODULE, tm_prepare, [Cp]).</font>
+        |    
+        |  do_add_retainer(Cp, R0, Node) -&gt;
+<font color=red>     0..|      Writers = R0#retainer.writers,</font>
+<font color=red>     0..|      {R, Rest} = find_retainer(R0, Cp#checkpoint_args.retainers, []),    </font>
+<font color=red>     0..|      NewRet = </font>
+        |  	if 
+        |  	    Node == node() -&gt;
+<font color=red>     0..|  		prepare_tab(Cp, R#retainer{writers = Writers});</font>
+        |  	    true -&gt; 
+<font color=red>     0..|  		R#retainer{writers = Writers}</font>
+        |  	end,
+<font color=red>     0..|      Rs = [NewRet | Rest],</font>
+<font color=red>     0..|      set({NewRet#retainer.tab_name, {retainer, NewRet#retainer.cp_name}}, NewRet),</font>
+<font color=red>     0..|      Cp#checkpoint_args{retainers = Rs, nodes = writers(Rs)}.</font>
+        |  
+        |  find_retainer(#retainer{cp_name = CP, tab_name = Tab}, 
+        |  	      [Ret = #retainer{cp_name = CP, tab_name = Tab} | R], Acc) -&gt;
+     1..|      {Ret, R ++ Acc};
+        |  find_retainer(Ret, [H|R], Acc) -&gt;
+     2..|      find_retainer(Ret, R, [H|Acc]).
+        |  
+        |  send_retainer(Cp, R, Node) -&gt;
+<font color=red>     0..|      Name = Cp#checkpoint_args.name,</font>
+<font color=red>     0..|      Nodes0 = Cp#checkpoint_args.nodes -- [Node],</font>
+<font color=red>     0..|      Nodes = Nodes0 -- [node()],</font>
+<font color=red>     0..|      Msg = {add_retainer, R, Node},</font>
+<font color=red>     0..|      abcast(Nodes, Name, Msg),</font>
+<font color=red>     0..|      {ok, _} = rpc:call(Node, ?MODULE, cast, [Name, Msg]),</font>
+<font color=red>     0..|      Store = R#retainer.store,</font>
+<font color=red>     0..|      send_retainer2(Node, Name, Store, retainer_first(Store)),</font>
+<font color=red>     0..|      Cp2 = do_add_retainer(Cp, R, Node),</font>
+<font color=red>     0..|      {ok, Cp2}.</font>
+        |  
+        |  send_retainer2(_, _, _, '$end_of_table') -&gt;
+<font color=red>     0..|      ok;</font>
+        |  %%send_retainer2(Node, Name, Store, {Slot, Records}) -&gt;
+        |  send_retainer2(Node, Name, Store, Key) -&gt;
+<font color=red>     0..|      [{Tab, _, Records}] = retainer_get(Store, Key),</font>
+<font color=red>     0..|      abcast([Node], Name, {retain, {dirty, send_retainer}, Tab, Key, Records}),</font>
+<font color=red>     0..|      send_retainer2(Node, Name, Store, retainer_next(Store, Key)).</font>
+        |  
+        |  do_change_copy(Cp, Tab, FromType, ToType) -&gt;
+<font color=red>     0..|      Name = Cp#checkpoint_args.name,</font>
+<font color=red>     0..|      R = val({Tab, {retainer, Name}}),</font>
+<font color=red>     0..|      R2 = prepare_tab(Cp, R, ToType),</font>
+<font color=red>     0..|      {_, Old} = R#retainer.store,</font>
+<font color=red>     0..|      {_, New} = R2#retainer.store,</font>
+        |  
+<font color=red>     0..|      Fname = tab2retainer({Tab, Name}),</font>
+<font color=red>     0..|      if</font>
+        |  	FromType == disc_only_copies -&gt;
+<font color=red>     0..|  	    mnesia2_lib:dets_sync_close(Old),</font>
+<font color=red>     0..|  	    loaded = mnesia2_lib:dets_to_ets(Old, New, Fname, set, no, yes),</font>
+<font color=red>     0..|  	    ok = file:delete(Fname);</font>
+        |  	ToType == disc_only_copies -&gt;
+<font color=red>     0..|  	    TabSize = ?ets_info(Old, size),</font>
+<font color=red>     0..|  	    Props = [{file, Fname},</font>
+        |  		     {type, set},
+        |  		     {keypos, 2},
+        |  %%	             {ram_file, true},
+        |  		     {estimated_no_objects, TabSize + 256},
+        |  		     {repair, false}],
+<font color=red>     0..|  	    {ok, _} = mnesia2_lib:dets_sync_open(New, Props),</font>
+<font color=red>     0..|  	    ok = mnesia2_dumper:raw_dump_table(New, Old),</font>
+<font color=red>     0..|  	    ?ets_delete_table(Old);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      Pos = #retainer.tab_name,</font>
+<font color=red>     0..|      Rs = lists:keyreplace(Tab, Pos, Cp#checkpoint_args.retainers, R2),</font>
+<font color=red>     0..|      Cp#checkpoint_args{retainers = Rs, nodes = writers(Rs)}.</font>
+        |  
+        |  check_iter(From, Iter) when Iter#iter.pid == From -&gt;
+<font color=red>     0..|      retainer_fixtable(Iter#iter.oid_tab, false),</font>
+<font color=red>     0..|      false;</font>
+        |  check_iter(_From, _Iter) -&gt;
+<font color=red>     0..|      true.</font>
+        |  
+        |  init_tabs(R, Iter) -&gt;
+    35..|      {Kind, _} = Store = R#retainer.store,
+    35..|      Main = {Kind, Iter#iter.tab_name},
+    35..|      Ret = Store,
+    35..|      Iter2 = Iter#iter{main_tab = Main, retainer_tab = Ret},
+    35..|      case Iter#iter.source of
+    15..|  	table -&gt; Iter2#iter{oid_tab = Main};
+    20..|  	retainer -&gt; Iter2#iter{oid_tab = Ret}
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Iteration
+        |  %%
+        |  %% Iterates over a table and applies Fun(ListOfRecords)
+        |  %% with a suitable amount of records, e.g. 1000 or so.
+        |  %% ListOfRecords is [] when the iteration is over.
+        |  %%
+        |  %% OidKind affects which internal table to be iterated over and
+        |  %% ValKind affects which table to pick the actual records from. Legal
+        |  %% values for OidKind and ValKind is the atom table or the atom
+        |  %% retainer.
+        |  %%
+        |  %% The iteration may either be performed over the main table (which
+        |  %% contains the latest values of the records, i.e. the values that
+        |  %% are visible to the applications) or over the checkpoint retainer
+        |  %% (which contains the values as the looked like the timepoint when
+        |  %% the checkpoint was activated).
+        |  %%
+        |  %% It is possible to iterate over the main table and pick values
+        |  %% from the retainer and vice versa.
+        |  
+        |  iterate(Name, Tab, Fun, Acc, Source, Val) -&gt;
+    35..|      Iter0 = #iter{tab_name = Tab, source = Source, val = Val},
+    35..|      case call(Name, {iter_begin, Iter0}) of
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason};</font>
+        |  	{ok, Iter, Pid} -&gt;
+    35..|  	    link(Pid), % We don't want any pending fixtable's
+    35..|  	    Res = ?CATCH(iter(Fun, Acc, Iter)),
+    35..|  	    unlink(Pid),
+    35..|  	    call(Name, {iter_end, Iter}),
+    35..|  	    case Res of
+<font color=red>     0..|  		{'EXIT', Reason} -&gt; {error, Reason};</font>
+<font color=red>     0..|  		{error, Reason} -&gt; {error, Reason};</font>
+    35..|  		Acc2 -&gt; {ok, Acc2}
+        |  	    end
+        |      end.
+        |  
+        |  iter(Fun, Acc, Iter)-&gt;
+    35..|      iter(Fun, Acc, Iter, retainer_first(Iter#iter.oid_tab)).
+        |  
+        |  iter(Fun, Acc, Iter, Key) -&gt;
+    35..|      case get_records(Iter, Key) of
+        |  	{'$end_of_table', []} -&gt;
+    24..|  	    Fun([], Acc);
+        |  	{'$end_of_table', Records} -&gt;
+    11..|  	    Acc2 = Fun(Records, Acc),
+    11..|  	    Fun([], Acc2);
+        |  	{Next, Records} -&gt;
+<font color=red>     0..|  	    Acc2 = Fun(Records, Acc),</font>
+<font color=red>     0..|  	    iter(Fun, Acc2, Iter, Next)</font>
+        |      end.
+        |  
+        |  stop_iteration(Reason) -&gt;
+<font color=red>     0..|      throw({error, {stopped, Reason}}).</font>
+        |  
+        |  get_records(Iter, Key) -&gt;
+    35..|      get_records(Iter, Key, 500, []). % 500 keys
+        |  
+        |  get_records(_Iter, Key, 0, Acc) -&gt;
+<font color=red>     0..|      {Key, lists:append(lists:reverse(Acc))};</font>
+        |  get_records(_Iter, '$end_of_table', _I, Acc) -&gt;
+    35..|      {'$end_of_table', lists:append(lists:reverse(Acc))};
+        |  get_records(Iter, Key, I, Acc) -&gt;
+    79..|      Recs = get_val(Iter, Key),
+    79..|      Next = retainer_next(Iter#iter.oid_tab, Key),
+    79..|      get_records(Iter, Next, I-1, [Recs | Acc]).
+        |  
+        |  get_val(Iter, Key) when Iter#iter.val == latest -&gt;
+    69..|      get_latest_val(Iter, Key);
+        |  get_val(Iter, Key) when Iter#iter.val == checkpoint -&gt;
+    10..|      get_checkpoint_val(Iter, Key).
+        |  
+        |  get_latest_val(Iter, Key) when Iter#iter.source == table -&gt;
+    69..|      retainer_get(Iter#iter.main_tab, Key);
+        |  get_latest_val(Iter, Key) when Iter#iter.source == retainer -&gt;
+<font color=red>     0..|      DeleteOid = {Iter#iter.tab_name, Key},</font>
+<font color=red>     0..|      [DeleteOid | retainer_get(Iter#iter.main_tab, Key)].</font>
+        |  
+        |  get_checkpoint_val(Iter, Key) when Iter#iter.source == table -&gt;
+<font color=red>     0..|      retainer_get(Iter#iter.main_tab, Key);</font>
+        |  get_checkpoint_val(Iter, Key) when Iter#iter.source == retainer -&gt;
+    10..|      DeleteOid = {Iter#iter.tab_name, Key},
+    10..|      case retainer_get(Iter#iter.retainer_tab, Key) of
+     1..|  	[{_, _, []}] -&gt; [DeleteOid];
+     9..|  	[{_, _, Records}] -&gt; [DeleteOid | Records]
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% System upgrade
+        |  
+        |  system_continue(_Parent, _Debug, Cp) -&gt;
+<font color=red>     0..|      retainer_loop(Cp).</font>
+        |  
+        |  system_terminate(_Reason, _Parent,_Debug, Cp) -&gt;
+<font color=red>     0..|      do_stop(Cp).</font>
+        |  
+        |  system_code_change(Cp, _Module, _OldVsn, _Extra) -&gt;
+<font color=red>     0..|      {ok, Cp}.</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  val(Var) -&gt;
+209400..|      case ?catch_val(Var) of
+<font color=red>     0..|  	{'EXIT', _} -&gt; mnesia2_lib:other_val(Var);</font>
+209400..|  	_VaLuE_ -&gt; _VaLuE_
+        |      end.
+        |  
+</pre>
+</body>
+</html>
