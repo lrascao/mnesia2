@@ -1,0 +1,3206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test946@testing-worker-linux-docker-c74eb140-3365-linux-10.2016-04-10_22.44.38/mnesia2_schema.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_schema.erl by COVER 2016-04-10 at 22:48:39
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1996-2016. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  %% In this module we provide a number of explicit functions
+        |  %% to maninpulate the schema. All these functions are called
+        |  %% within a special schema transaction.
+        |  %%
+        |  %% We also have an init/1 function defined here, this func is
+        |  %% used by mnesia:start() to initialize the entire schema.
+        |  
+        |  -module(mnesia2_schema).
+        |  
+        |  -export([
+        |           add_snmp/2,
+        |           add_table_copy/3,
+        |           add_table_index/2,
+        |  	 arrange_restore/3,
+        |           attr_tab_to_pos/2,
+        |           attr_to_pos/2,
+        |           change_table_copy_type/3,
+        |           change_table_access_mode/2,
+        |           change_table_load_order/2,
+        |  	 change_table_majority/2,
+        |  	 change_table_frag/2,
+        |  %%	 clear_table/1,  %% removed since it is not a schema op anymore
+        |           create_table/1,
+        |  	 cs2list/1,
+        |  	 vsn_cs2list/1,
+        |           del_snmp/1,
+        |           del_table_copy/2,
+        |           del_table_index/2,
+        |           delete_cstruct/2,
+        |           delete_schema/1,
+        |           delete_schema2/0,
+        |           delete_table/1,
+        |           delete_table_property/2,
+        |           dump_tables/1,
+        |           ensure_no_schema/1,
+        |  	 get_create_list/1,
+        |           get_initial_schema/2,
+        |  	 get_table_properties/1,
+        |           info/0,
+        |           info/1,
+        |           init/1,
+        |           insert_cstruct/3,
+        |  	 is_remote_member/1,
+        |           list2cs/1,
+        |           lock_schema/0,
+        |           merge_schema/0,
+        |           merge_schema/1,
+        |           move_table/3,
+        |  	 normalize_cs/2,
+        |           opt_create_dir/2,
+        |           prepare_commit/3,
+        |           purge_dir/2,
+        |           purge_tmp_files/0,
+        |           ram_delete_table/2,
+        |  %         ram_delete_table/3,
+        |  	 read_cstructs_from_disc/0,
+        |           read_nodes/0,
+        |           remote_read_schema/0,
+        |  	 restore/1,
+        |           restore/2,
+        |           restore/3,
+        |  	 schema_coordinator/3,
+        |  	 set_where_to_read/3,
+        |           transform_table/4,
+        |           undo_prepare_commit/2,
+        |           unlock_schema/0,
+        |           version/0,
+        |           write_table_property/2
+        |          ]).
+        |  
+        |  %% Exports for mnesia2_frag
+        |  -export([
+        |  	 get_tid_ts_and_lock/2,
+        |  	 make_create_table/1,
+        |           ensure_active/1,
+        |  	 pick/4,
+        |  	 verify/3,
+        |  	 incr_version/1,
+        |  	 check_keys/3,
+        |  	 check_duplicates/2,
+        |  	 make_delete_table/2
+        |  	]).
+        |  
+        |  %% Needed outside to be able to use/set table_properties
+        |  %% from user (not supported)
+        |  -export([schema_transaction/1,
+        |  	 insert_schema_ops/2,
+        |  	 do_create_table/1,
+        |  	 do_delete_table/1,
+        |  	 do_read_table_property/2,
+        |  	 do_delete_table_property/2,
+        |   	 do_write_table_property/2]).
+        |  
+        |  -include("mnesia2.hrl").
+        |  -include_lib("kernel/include/file.hrl").
+        |  
+        |  -import(mnesia2_lib, [set/2, del/2, verbose/2, dbg_out/2]).
+        |  
+        |  -dialyzer({no_improper_lists, make_delete_table/2}).
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Here comes the init function which also resides in
+        |  %% this module, it is called upon by the trans server
+        |  %% at startup of the system
+        |  %%
+        |  %% We have a meta table which looks like
+        |  %% {table, schema,
+        |  %%    {type, set},
+        |  %%    {disc_copies, all},
+        |  %%    {arity, 2}
+        |  %%    {attributes, [key, val]}
+        |  %%
+        |  %% This means that we have a series of {schema, Name, Cs} tuples
+        |  %% in a table called schema !!
+        |  
+        |  init(IgnoreFallback) -&gt;
+    71..|      Res = read_schema(true, IgnoreFallback),
+    71..|      {ok, Source, _CreateList} = exit_on_error(Res),
+    71..|      verbose("Schema initiated from: ~p~n", [Source]),
+    71..|      set({schema, tables}, []),
+    71..|      set({schema, local_tables}, []),
+    71..|      Tabs = set_schema(?ets_first(schema)),
+    71..|      lists:foreach(fun(Tab) -&gt; clear_whereabouts(Tab) end, Tabs),
+    71..|      set({schema, where_to_read}, node()),
+    71..|      set({schema, load_node}, node()),
+    71..|      set({schema, load_reason}, initial),
+    71..|      mnesia2_controller:add_active_replica(schema, node()).
+        |  
+        |  exit_on_error({error, Reason}) -&gt;
+<font color=red>     0..|      exit(Reason);</font>
+        |  exit_on_error(GoodRes) -&gt;
+    71..|      GoodRes.
+        |  
+        |  val(Var) -&gt;
+  1319..|      case ?catch_val(Var) of
+   119..|  	{'EXIT', _} -&gt; mnesia2_lib:other_val(Var);
+  1200..|  	Value -&gt; Value
+        |      end.
+        |  
+        |  %% This function traverses all cstructs in the schema and
+        |  %% sets all values in mnesia2_gvar accordingly for each table/cstruct
+        |  
+        |  set_schema('$end_of_table') -&gt;
+    71..|      [];
+        |  set_schema(Tab) -&gt;
+   101..|      do_set_schema(Tab),
+   101..|      [Tab | set_schema(?ets_next(schema, Tab))].
+        |  
+        |  get_create_list(Tab) -&gt;
+   114..|      ?ets_lookup_element(schema, Tab, 3).
+        |  
+        |  do_set_schema(Tab) -&gt;
+   101..|      List = get_create_list(Tab),
+   101..|      Cs = list2cs(List),
+   101..|      do_set_schema(Tab, Cs).
+        |  
+        |  do_set_schema(Tab, Cs) -&gt;
+   438..|      Type = Cs#cstruct.type,
+   438..|      set({Tab, setorbag}, Type),
+   438..|      set({Tab, local_content}, Cs#cstruct.local_content),
+   438..|      set({Tab, ram_copies}, Cs#cstruct.ram_copies),
+   438..|      set({Tab, disc_copies}, Cs#cstruct.disc_copies),
+   438..|      set({Tab, disc_only_copies}, Cs#cstruct.disc_only_copies),
+   438..|      set({Tab, load_order}, Cs#cstruct.load_order),
+   438..|      set({Tab, access_mode}, Cs#cstruct.access_mode),
+   438..|      set({Tab, majority}, Cs#cstruct.majority),
+   438..|      set({Tab, all_nodes}, mnesia2_lib:cs_to_nodes(Cs)),
+   438..|      set({Tab, snmp}, Cs#cstruct.snmp),
+   438..|      set({Tab, user_properties}, Cs#cstruct.user_properties),
+   438..|      [set({Tab, user_property, element(1, P)}, P) || P &lt;- Cs#cstruct.user_properties],
+   438..|      set({Tab, frag_properties}, Cs#cstruct.frag_properties),
+   438..|      mnesia2_frag:set_frag_hash(Tab, Cs#cstruct.frag_properties),
+   438..|      set({Tab, storage_properties}, Cs#cstruct.storage_properties),
+   438..|      set({Tab, attributes}, Cs#cstruct.attributes),
+   438..|      Arity = length(Cs#cstruct.attributes) + 1,
+   438..|      set({Tab, arity}, Arity),
+   438..|      RecName =  Cs#cstruct.record_name,
+   438..|      set({Tab, record_name}, RecName),
+   438..|      set({Tab, record_validation}, {RecName, Arity, Type}),
+   438..|      set({Tab, wild_pattern}, wild(RecName, Arity)),
+   438..|      set({Tab, index}, Cs#cstruct.index),
+        |      %% create actual index tabs later
+   438..|      set({Tab, cookie}, Cs#cstruct.cookie),
+   438..|      set({Tab, version}, Cs#cstruct.version),
+   438..|      set({Tab, cstruct}, Cs),
+   438..|      Storage = mnesia2_lib:schema_cs_to_storage_type(node(), Cs),
+   438..|      set({Tab, storage_type}, Storage),
+   438..|      mnesia2_lib:add({schema, tables}, Tab),
+   438..|      Ns = mnesia2_lib:cs_to_nodes(Cs),
+   438..|      case lists:member(node(), Ns) of
+        |          true -&gt;
+   328..|              mnesia2_lib:add({schema, local_tables}, Tab);
+        |          false when Tab == schema -&gt;
+<font color=red>     0..|              mnesia2_lib:add({schema, local_tables}, Tab);</font>
+        |          false -&gt;
+   110..|              ignore
+        |      end.
+        |  
+        |  wild(RecName, Arity) -&gt;
+   438..|      Wp0 = list_to_tuple(lists:duplicate(Arity, '_')),
+   438..|      setelement(1, Wp0, RecName).
+        |  
+        |  %% Temporarily read the local schema and return a list
+        |  %% of all nodes mentioned in the schema.DAT file
+        |  read_nodes() -&gt;
+        |      %% Ensure that we access the intended Mnesia2
+        |      %% directory. This function may not be called
+        |      %% during startup since it will cause the
+        |      %% application_controller to get into deadlock
+     1..|      case mnesia2_lib:ensure_loaded(?APPLICATION) of
+        |  	ok -&gt;
+     1..|  	    case read_schema(false) of
+        |  		{ok, _Source, CreateList} -&gt;
+     1..|  		    Cs = list2cs(CreateList),
+     1..|  		    {ok, Cs#cstruct.disc_copies ++ Cs#cstruct.ram_copies};
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    {error, Reason}</font>
+        |  	    end;
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end.
+        |  
+        |  %% Returns Version from the tuple {Version,MasterNodes}
+        |  version() -&gt;
+     1..|      case read_schema(false) of
+        |          {ok, Source, CreateList} when Source /= default -&gt;
+     1..|  	    Cs = list2cs(CreateList),
+     1..|              {Version, _Details} = Cs#cstruct.version,
+     1..|              Version;
+        |          _ -&gt;
+<font color=red>     0..|              case dir_exists(mnesia2_lib:dir()) of</font>
+<font color=red>     0..|                  true -&gt; {1,0};</font>
+<font color=red>     0..|                  false -&gt; {0,0}</font>
+        |              end
+        |      end.
+        |  
+        |  %% Calculate next table version from old cstruct
+        |  incr_version(Cs) -&gt;
+    34..|      {{Major, Minor}, _} = Cs#cstruct.version,
+    34..|      Nodes = mnesia2_lib:intersect(val({schema, disc_copies}),
+        |                                   mnesia2_lib:cs_to_nodes(Cs)),
+    34..|      V =
+        |          case Nodes -- val({Cs#cstruct.name, active_replicas}) of
+    29..|              [] -&gt; {Major + 1, 0};    % All replicas are active
+     5..|              _ -&gt; {Major, Minor + 1}  % Some replicas are inactive
+        |          end,
+    34..|      Cs#cstruct{version = {V, {node(), mnesia2_time:timestamp()}}}.
+        |  
+        |  %% Returns table name
+        |  insert_cstruct(Tid, Cs, KeepWhereabouts) -&gt;
+   337..|      Tab = Cs#cstruct.name,
+   337..|      TabDef = cs2list(Cs),
+   337..|      Val = {schema, Tab, TabDef},
+   337..|      mnesia2_checkpoint:tm_retain(Tid, schema, Tab, write),
+   337..|      mnesia2_subscr:report_table_event(schema, Tid, Val, write),
+   337..|      Active = val({Tab, active_replicas}),
+        |  
+   337..|      case KeepWhereabouts of
+        |          true -&gt;
+    37..|              ignore;
+        |          false when Active == [] -&gt;
+   270..|              clear_whereabouts(Tab);
+        |          false -&gt;
+        |              %% Someone else has initiated table
+    30..|              ignore
+        |      end,
+   337..|      set({Tab, cstruct}, Cs),
+   337..|      ?ets_insert(schema, Val),
+   337..|      do_set_schema(Tab, Cs),
+   337..|      Val.
+        |  
+        |  clear_whereabouts(Tab) -&gt;
+   371..|      set({Tab, checkpoints}, []),
+   371..|      set({Tab, subscribers}, []),
+   371..|      set({Tab, where_to_read}, nowhere),
+   371..|      set({Tab, active_replicas}, []),
+   371..|      set({Tab, commit_work}, []),
+   371..|      set({Tab, where_to_write}, []),
+   371..|      set({Tab, where_to_commit}, []),
+   371..|      set({Tab, load_by_force}, false),
+   371..|      set({Tab, load_node}, unknown),
+   371..|      set({Tab, load_reason}, unknown).
+        |  
+        |  %% Returns table name
+        |  delete_cstruct(Tid, Cs) -&gt;
+     1..|      Tab = Cs#cstruct.name,
+     1..|      TabDef = cs2list(Cs),
+     1..|      Val = {schema, Tab, TabDef},
+     1..|      mnesia2_checkpoint:tm_retain(Tid, schema, Tab, delete),
+     1..|      mnesia2_subscr:report_table_event(schema, Tid, Val, delete),
+     1..|      mnesia2_controller:update(
+        |        fun() -&gt;
+     1..|  	      ?ets_match_delete(mnesia2_gvar, {{Tab, '_'}, '_'}),
+     1..|  	      ?ets_match_delete(mnesia2_gvar, {{Tab, '_', '_'}, '_'}),
+     1..|  	      del({schema, local_tables}, Tab),
+     1..|  	      del({schema, tables}, Tab),
+     1..|  	      ?ets_delete(schema, Tab)
+        |        end),
+     1..|      Val.
+        |  
+        |  %% Delete the Mnesia2 directory on all given nodes
+        |  %% Requires that Mnesia2 is not running anywhere
+        |  %% Returns ok | {error,Reason}
+        |  delete_schema(Ns) when is_list(Ns), Ns /= [] -&gt;
+   131..|      RunningNs = mnesia2_lib:running_nodes(Ns),
+   131..|      Reason = "Cannot delete schema on all nodes",
+   131..|      if
+        |          RunningNs == [] -&gt;
+   131..|  	    case rpc:multicall(Ns, ?MODULE, delete_schema2, []) of
+        |  		{Replies, []} -&gt;
+   131..|  		    case [R || R &lt;- Replies, R /= ok]  of
+        |  			[] -&gt;
+   131..|  			    ok;
+        |  			BadReplies -&gt;
+<font color=red>     0..|  			    verbose("~s: ~p~n", [Reason, BadReplies]),</font>
+<font color=red>     0..|  			    {error, {"All nodes not running", BadReplies}}</font>
+        |  		    end;
+        |  		{_Replies, BadNs} -&gt;
+<font color=red>     0..|                      verbose("~s: ~p~n", [Reason, BadNs]),</font>
+<font color=red>     0..|                      {error, {"All nodes not running", BadNs}}</font>
+        |              end;
+        |          true -&gt;
+<font color=red>     0..|              verbose("~s: ~p~n", [Reason, RunningNs]),</font>
+<font color=red>     0..|              {error, {"Mnesia2 is not stopped everywhere", RunningNs}}</font>
+        |      end;
+        |  delete_schema(Ns) -&gt;
+<font color=red>     0..|      {error, {badarg, Ns}}.</font>
+        |  
+        |  delete_schema2() -&gt;
+        |      %% Ensure that we access the intended Mnesia2
+        |      %% directory. This function may not be called
+        |      %% during startup since it will cause the
+        |      %% application_controller to get into deadlock
+    59..|      case mnesia2_lib:ensure_loaded(?APPLICATION) of
+        |  	ok -&gt;
+    59..|  	    case mnesia2_lib:is_running() of
+        |  		no -&gt;
+    59..|  		    Dir = mnesia2_lib:dir(),
+    59..|  		    purge_dir(Dir, []),
+    59..|  		    ok;
+        |  		_ -&gt;
+<font color=red>     0..|  		    {error, {"Mnesia2 still running", node()}}</font>
+        |  	    end;
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end.
+        |  
+        |  ensure_no_schema([H|T]) when is_atom(H) -&gt;
+    82..|      case rpc:call(H, ?MODULE, remote_read_schema, []) of
+        |          {badrpc, Reason} -&gt;
+<font color=red>     0..|              {H, {"All nodes not running", H, Reason}};</font>
+        |          {ok,Source, _} when Source /= default -&gt;
+<font color=red>     0..|              {H, {already_exists, H}};</font>
+        |          _ -&gt;
+    82..|              ensure_no_schema(T)
+        |      end;
+        |  ensure_no_schema([H|_]) -&gt;
+<font color=red>     0..|      {error,{badarg, H}};</font>
+        |  ensure_no_schema([]) -&gt;
+    43..|      ok.
+        |  
+        |  remote_read_schema() -&gt;
+        |      %% Ensure that we access the intended Mnesia2
+        |      %% directory. This function may not be called
+        |      %% during startup since it will cause the
+        |      %% application_controller to get into deadlock
+    43..|      case mnesia2_lib:ensure_loaded(?APPLICATION) of
+        |  	ok -&gt;
+    43..|  	    case mnesia2_monitor:get_env(schema_location) of
+        |  		opt_disc -&gt;
+    43..|  		    read_schema(false);
+        |  		_ -&gt;
+<font color=red>     0..|  		    read_schema(false)</font>
+        |  	    end;
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end.
+        |  
+        |  dir_exists(Dir) -&gt;
+   211..|      dir_exists(Dir, mnesia2_monitor:use_dir()).
+        |  dir_exists(Dir, true) -&gt;
+   285..|      case file:read_file_info(Dir) of
+   238..|          {ok, _} -&gt; true;
+    47..|          _ -&gt; false
+        |      end;
+        |  dir_exists(_Dir, false) -&gt;
+    17..|      false.
+        |  
+        |  opt_create_dir(UseDir, Dir) when UseDir == true-&gt;
+    91..|      case dir_exists(Dir, UseDir) of
+        |          true -&gt;
+    90..|              check_can_write(Dir);
+        |          false -&gt;
+     1..|              case file:make_dir(Dir) of
+        |                  ok -&gt;
+     1..|                      verbose("Create Directory ~p~n", [Dir]),
+     1..|                      ok;
+        |                  {error, Reason} -&gt;
+<font color=red>     0..|                      verbose("Cannot create mnesia2 dir ~p~n", [Reason]),</font>
+<font color=red>     0..|                      {error, {"Cannot create Mnesia2 dir", Dir, Reason}}</font>
+        |              end
+        |      end;
+        |  opt_create_dir(false, _) -&gt;
+<font color=red>     0..|      {error, {has_no_disc, node()}}.</font>
+        |  
+        |  check_can_write(Dir) -&gt;
+    90..|      case file:read_file_info(Dir) of
+        |          {ok, FI} when FI#file_info.type == directory,
+        |  		      FI#file_info.access == read_write -&gt;
+    90..|              ok;
+        |          {ok, _} -&gt;
+<font color=red>     0..|              {error, "Not allowed to write in Mnesia2 dir", Dir};</font>
+        |          _ -&gt;
+<font color=red>     0..|              {error, "Non existent Mnesia2 dir", Dir}</font>
+        |      end.
+        |  
+        |  lock_schema() -&gt;
+   187..|      mnesia2_lib:lock_table(schema).
+        |  
+        |  unlock_schema() -&gt;
+   187..|      mnesia2_lib:unlock_table(schema).
+        |  
+        |  read_schema(Keep) -&gt;
+    45..|      read_schema(Keep, false).
+        |  
+        |  %% The schema may be read for several reasons.
+        |  %% If Mnesia2 is not already started the read intention
+        |  %% we normally do not want the ets table named schema
+        |  %% be left around.
+        |  %% If Keep == true, the ets table schema is kept
+        |  %% If Keep == false, the ets table schema is removed
+        |  %%
+        |  %% Returns {ok, Source, SchemaCstruct} or {error, Reason}
+        |  %% Source may be: default | ram | disc | fallback
+        |  
+        |  read_schema(Keep, IgnoreFallback) -&gt;
+   116..|      lock_schema(),
+   116..|      Res =
+        |          case mnesia2:system_info(is_running) of
+        |              yes -&gt;
+     2..|                  {ok, ram, get_create_list(schema)};
+        |              _IsRunning -&gt;
+   114..|                      case mnesia2_monitor:use_dir() of
+        |                          true -&gt;
+    60..|                              read_disc_schema(Keep, IgnoreFallback);
+        |                          false when Keep == true -&gt;
+    11..|                              Args = [{keypos, 2}, public, named_table, set],
+    11..|                              mnesia2_monitor:mktab(schema, Args),
+    11..|                              CreateList = get_initial_schema(ram_copies, []),
+    11..|                              ?ets_insert(schema,{schema, schema, CreateList}),
+    11..|                              {ok, default, CreateList};
+        |                          false when Keep == false -&gt;
+    43..|  			    CreateList = get_initial_schema(ram_copies, []),
+    43..|                              {ok, default, CreateList}
+        |                      end
+        |          end,
+   116..|      unlock_schema(),
+   116..|      Res.
+        |  
+        |  read_disc_schema(Keep, IgnoreFallback) -&gt;
+    60..|      Running = mnesia2:system_info(is_running),
+    60..|      case mnesia2_bup:fallback_exists() of
+        |          true when IgnoreFallback == false, Running /= yes -&gt;
+<font color=red>     0..|               mnesia2_bup:fallback_to_schema();</font>
+        |          _ -&gt;
+        |              %% If we're running, we read the schema file even
+        |              %% if fallback exists
+    60..|              Dat = mnesia2_lib:tab2dat(schema),
+    60..|              case mnesia2_lib:exists(Dat) of
+        |                  true -&gt;
+    60..|                      do_read_disc_schema(Dat, Keep);
+        |                  false -&gt;
+<font color=red>     0..|  		    Dmp = mnesia2_lib:tab2dmp(schema),</font>
+<font color=red>     0..|  		    case mnesia2_lib:exists(Dmp) of</font>
+        |  			true -&gt;
+        |  			    %% May only happen when toggling of
+        |  			    %% schema storage type has been
+        |  			    %% interrupted
+<font color=red>     0..|  			    do_read_disc_schema(Dmp, Keep);</font>
+        |  			false -&gt;
+<font color=red>     0..|  			    {error, "No schema file exists"}</font>
+        |  		    end
+        |              end
+        |      end.
+        |  
+        |  do_read_disc_schema(Fname, Keep) -&gt;
+    60..|      T =
+        |          case Keep of
+        |              false -&gt;
+<font color=red>     0..|                  Args = [{keypos, 2}, public, set],</font>
+<font color=red>     0..|                  ?ets_new_table(schema, Args);</font>
+        |              true -&gt;
+    60..|                  Args = [{keypos, 2}, public, named_table, set],
+    60..|                  mnesia2_monitor:mktab(schema, Args)
+        |          end,
+    60..|      Repair = mnesia2_monitor:get_env(auto_repair),
+    60..|      Res =  % BUGBUG Fixa till dcl!
+        |          case mnesia2_lib:dets_to_ets(schema, T, Fname, set, Repair, no) of
+    60..|              loaded -&gt; {ok, disc, ?ets_lookup_element(T, schema, 3)};
+<font color=red>     0..|              Other -&gt; {error, {"Cannot read schema", Fname, Other}}</font>
+        |          end,
+    60..|      case Keep of
+    60..|          true -&gt; ignore;
+<font color=red>     0..|          false -&gt; ?ets_delete_table(T)</font>
+        |      end,
+    60..|      Res.
+        |  
+        |  get_initial_schema(SchemaStorage, Nodes) -&gt;
+    97..|      Cs = #cstruct{name = schema,
+        |  		  record_name = schema,
+        |  		  attributes = [table, cstruct]},
+    97..|      Cs2 =
+        |  	case SchemaStorage of
+    54..|          ram_copies -&gt; Cs#cstruct{ram_copies = Nodes};
+    43..|          disc_copies -&gt; Cs#cstruct{disc_copies = Nodes}
+        |      end,
+    97..|      cs2list(Cs2).
+        |  
+        |  read_cstructs_from_disc() -&gt;
+        |      %% Assumptions:
+        |      %% - local schema lock in global
+        |      %% - use_dir is true
+        |      %% - Mnesia2 is not running
+        |      %% - Ignore fallback
+        |  
+<font color=red>     0..|      Fname = mnesia2_lib:tab2dat(schema),</font>
+<font color=red>     0..|      case mnesia2_lib:exists(Fname) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Args = [{file, Fname},</font>
+        |  		    {keypos, 2},
+        |  		    {repair, mnesia2_monitor:get_env(auto_repair)},
+        |  		    {type, set}],
+<font color=red>     0..|  	    case dets:open_file(make_ref(), Args) of</font>
+        |  		{ok, Tab} -&gt;
+<font color=red>     0..|  		    Fun = fun({_, _, List}) -&gt;</font>
+<font color=red>     0..|  				  {continue, list2cs(List)}</font>
+        |  			  end,
+<font color=red>     0..|  		    Cstructs = dets:traverse(Tab, Fun),</font>
+<font color=red>     0..|  		    dets:close(Tab),</font>
+<font color=red>     0..|  		    {ok, Cstructs};</font>
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    {error, Reason}</font>
+        |  	    end;
+        |  	false -&gt;
+<font color=red>     0..|  	    {error, "No schema file exists"}</font>
+        |      end.
+        |  
+        |  %% We run a very special type of transactions when we
+        |  %% we want to manipulate the schema.
+        |  
+        |  get_tid_ts_and_lock(Tab, Intent) -&gt;
+   672..|      TidTs = get(mnesia2_activity_state),
+   672..|      case TidTs of
+        |  	{_Mod, Tid, Ts} when is_record(Ts, tidstore)-&gt;
+   672..|  	    Store = Ts#tidstore.store,
+   672..|  	    case Intent of
+     6..|  		read -&gt; mnesia2_locker:rlock_table(Tid, Store, Tab);
+   432..|  		write -&gt; mnesia2_locker:wlock_table(Tid, Store, Tab);
+   234..|  		none -&gt; ignore
+        |  	    end,
+   666..|  	    TidTs;
+        |  	_ -&gt;
+<font color=red>     0..|  	    mnesia2:abort(no_transaction)</font>
+        |      end.
+        |  
+        |  schema_transaction(Fun) -&gt;
+   257..|      case get(mnesia2_activity_state) of
+        |  	undefined -&gt;
+   257..|  	    Args = [self(), Fun, whereis(mnesia2_controller)],
+   257..|  	    Pid = spawn_link(?MODULE, schema_coordinator, Args),
+   257..|  	    receive
+   257..|  		{transaction_done, Res, Pid} -&gt; Res;
+<font color=red>     0..|  		{'EXIT', Pid, R} -&gt; {aborted, {transaction_crashed, R}}</font>
+        |  	    end;
+        |  	_ -&gt;
+<font color=red>     0..|              {aborted, nested_transaction}</font>
+        |      end.
+        |  
+        |  %% This process may dump the transaction log, and should
+        |  %% therefore not be run in an application process
+        |  %%
+        |  schema_coordinator(Client, _Fun, undefined) -&gt;
+<font color=red>     0..|      Res = {aborted, {node_not_running, node()}},</font>
+<font color=red>     0..|      Client ! {transaction_done, Res, self()},</font>
+<font color=red>     0..|      unlink(Client);</font>
+        |  
+        |  schema_coordinator(Client, Fun, Controller) when is_pid(Controller) -&gt;
+        |      %% Do not trap exit in order to automatically die
+        |      %% when the controller dies
+        |  
+   257..|      link(Controller),
+   257..|      unlink(Client),
+        |  
+        |      %% Fulfull the transaction even if the client dies
+   257..|      Res = mnesia2:transaction(Fun),
+   257..|      Client ! {transaction_done, Res, self()},
+   257..|      unlink(Controller),         % Avoids spurious exit message
+   257..|      unlink(whereis(mnesia2_tm)), % Avoids spurious exit message
+   256..|      exit(normal).
+        |  
+        |  %% The make* rotines return a list of ops, this function
+        |  %% inserts em all in the Store and maintains the local order
+        |  %% of ops.
+        |  
+        |  insert_schema_ops({_Mod, _Tid, Ts}, SchemaIOps) -&gt;
+    30..|      do_insert_schema_ops(Ts#tidstore.store, SchemaIOps).
+        |  
+        |  do_insert_schema_ops(Store, [Head | Tail]) -&gt;
+   191..|      ?ets_insert(Store, Head),
+   191..|      do_insert_schema_ops(Store, Tail);
+        |  do_insert_schema_ops(_Store, []) -&gt;
+   178..|      ok.
+        |  
+        |  api_list2cs(List) when is_list(List) -&gt;
+    96..|      Name = pick(unknown, name, List, must),
+    96..|      Keys = check_keys(Name, List, record_info(fields, cstruct)),
+    96..|      check_duplicates(Name, Keys),
+    96..|      list2cs(List);
+        |  api_list2cs(Other) -&gt;
+<font color=red>     0..|      mnesia2:abort({badarg, Other}).</font>
+        |  
+        |  vsn_cs2list(Cs) -&gt;
+   149..|      cs2list(need_old_cstructs(), Cs).
+        |  
+        |  cs2list(Cs) when is_record(Cs, cstruct) -&gt;
+   606..|      Tags = record_info(fields, cstruct),
+   606..|      rec2list(Tags, Tags, 2, Cs);
+        |  cs2list(CreateList) when is_list(CreateList) -&gt;
+    63..|      CreateList;
+        |  %% 4.6
+        |  cs2list(Cs) when element(1, Cs) == cstruct, tuple_size(Cs) == 19 -&gt;
+<font color=red>     0..|      Tags = [name,type,ram_copies,disc_copies,disc_only_copies,</font>
+        |  	    load_order,access_mode,majority,index,snmp,local_content,
+        |  	    record_name,attributes,
+        |  	    user_properties,frag_properties,storage_properties,
+        |  	    cookie,version],
+<font color=red>     0..|      rec2list(Tags, Tags, 2, Cs);</font>
+        |  %% 4.4.19
+        |  cs2list(Cs) when element(1, Cs) == cstruct, tuple_size(Cs) == 18 -&gt;
+<font color=red>     0..|      Tags = [name,type,ram_copies,disc_copies,disc_only_copies,</font>
+        |  	    load_order,access_mode,majority,index,snmp,local_content,
+        |  	    record_name,attributes,user_properties,frag_properties,
+        |  	    cookie,version],
+<font color=red>     0..|      rec2list(Tags, Tags, 2, Cs);</font>
+        |  %% 4.4.18 and earlier
+        |  cs2list(Cs) when element(1, Cs) == cstruct, tuple_size(Cs) == 17 -&gt;
+<font color=red>     0..|      Tags = [name,type,ram_copies,disc_copies,disc_only_copies,</font>
+        |  	    load_order,access_mode,index,snmp,local_content,
+        |  	    record_name,attributes,user_properties,frag_properties,
+        |  	    cookie,version],
+<font color=red>     0..|      rec2list(Tags, Tags, 2, Cs).</font>
+        |  
+        |  cs2list(false, Cs) -&gt;
+   166..|      cs2list(Cs);
+        |  cs2list(ver4_4_18, Cs) -&gt; %% Or earlier
+<font color=red>     0..|      Orig = record_info(fields, cstruct),</font>
+<font color=red>     0..|      Tags = [name,type,ram_copies,disc_copies,disc_only_copies,</font>
+        |  	    load_order,access_mode,index,snmp,local_content,
+        |  	    record_name,attributes,user_properties,frag_properties,
+        |  	    cookie,version],
+<font color=red>     0..|      rec2list(Tags, Orig, 2, Cs);</font>
+        |  cs2list(ver4_4_19, Cs) -&gt;
+<font color=red>     0..|      Orig = record_info(fields, cstruct),</font>
+<font color=red>     0..|      Tags = [name,type,ram_copies,disc_copies,disc_only_copies,</font>
+        |  	    load_order,access_mode,majority,index,snmp,local_content,
+        |  	    record_name,attributes,user_properties,frag_properties,
+        |  	    cookie,version],
+<font color=red>     0..|      rec2list(Tags, Orig, 2, Cs);</font>
+        |  cs2list(ver4_6, Cs) -&gt;
+<font color=red>     0..|      Orig = record_info(fields, cstruct),</font>
+<font color=red>     0..|      Tags = [name,type,ram_copies,disc_copies,disc_only_copies,</font>
+        |  	    load_order,access_mode,majority,index,snmp,local_content,
+        |  	    record_name,attributes,
+        |  	    user_properties,frag_properties,storage_properties,
+        |  	    cookie,version],
+<font color=red>     0..|      rec2list(Tags, Orig, 2, Cs).</font>
+        |  
+        |  
+        |  rec2list([Tag | Tags], [Tag | Orig], Pos, Rec) -&gt;
+ 10908..|      Val = element(Pos, Rec),
+ 10908..|      [{Tag, Val} | rec2list(Tags, Orig, Pos + 1, Rec)];
+        |  rec2list([], _, _Pos, _Rec) -&gt;
+   606..|      [];
+        |  rec2list(Tags, [_|Orig], Pos, Rec) -&gt;
+<font color=red>     0..|      rec2list(Tags, Orig, Pos+1, Rec).</font>
+        |  
+        |  normalize_cs(Cstructs, Node) -&gt;
+        |      %% backward-compatibility hack; normalize before returning
+    45..|      case need_old_cstructs([Node]) of
+        |  	false -&gt;
+    45..|  	    Cstructs;
+        |  	Version -&gt;
+        |  	    %% some other format
+<font color=red>     0..|  	    [convert_cs(Version, Cs) || Cs &lt;- Cstructs]</font>
+        |      end.
+        |  
+        |  convert_cs(Version, Cs) -&gt;
+<font color=red>     0..|      Fields = [Value || {_, Value} &lt;- cs2list(Version, Cs)],</font>
+<font color=red>     0..|      list_to_tuple([cstruct|Fields]).</font>
+        |  
+        |  list2cs(List) when is_list(List) -&gt;
+   722..|      Name = pick(unknown, name, List, must),
+   722..|      Type = pick(Name, type, List, set),
+   722..|      Rc0 = pick(Name, ram_copies, List, []),
+   722..|      Dc = pick(Name, disc_copies, List, []),
+   722..|      Doc = pick(Name, disc_only_copies, List, []),
+   722..|      Rc = case {Rc0, Dc, Doc} of
+    24..|               {[], [], []} -&gt; [node()];
+   698..|               _ -&gt; Rc0
+        |           end,
+   722..|      LC = pick(Name, local_content, List, false),
+   722..|      RecName = pick(Name, record_name, List, Name),
+   722..|      Attrs = pick(Name, attributes, List, [key, val]),
+   722..|      Snmp = pick(Name, snmp, List, []),
+   722..|      LoadOrder = pick(Name, load_order, List, 0),
+   722..|      AccessMode = pick(Name, access_mode, List, read_write),
+   722..|      Majority = pick(Name, majority, List, false),
+   722..|      UserProps = pick(Name, user_properties, List, []),
+   722..|      verify({alt, [nil, list]}, mnesia2_lib:etype(UserProps),
+        |  	   {bad_type, Name, {user_properties, UserProps}}),
+   722..|      Cookie = pick(Name, cookie, List, ?unique_cookie),
+   722..|      Version = pick(Name, version, List, {{2, 0}, []}),
+   722..|      Ix = pick(Name, index, List, []),
+   722..|      verify({alt, [nil, list]}, mnesia2_lib:etype(Ix),
+        |  	   {bad_type, Name, {index, [Ix]}}),
+   722..|      Ix2 = [attr_to_pos(I, Attrs) || I &lt;- Ix],
+        |  
+   722..|      Frag = pick(Name, frag_properties, List, []),
+   722..|      verify({alt, [nil, list]}, mnesia2_lib:etype(Frag),
+        |  	   {badarg, Name, {frag_properties, Frag}}),
+        |  
+   722..|      BEProps = pick(Name, storage_properties, List, []),
+   722..|      verify({alt, [nil, list]}, mnesia2_lib:etype(Ix),
+        |  	   {badarg, Name, {storage_properties, BEProps}}),
+   722..|      CheckProp = fun(Opt, Opts) when is_atom(Opt) -&gt;
+<font color=red>     0..|  			lists:member(Opt, Opts)</font>
+<font color=red>     0..|  			    andalso mnesia2:abort({badarg, Name, Opt});</font>
+        |  		   (Tuple, Opts) when is_tuple(Tuple) -&gt;
+<font color=red>     0..|  			lists:member(element(1,Tuple), Opts)</font>
+<font color=red>     0..|  			    andalso mnesia2:abort({badarg, Name, Tuple});</font>
+        |  		   (What,_) -&gt;
+<font color=red>     0..|  			mnesia2:abort({badarg, Name, What})</font>
+        |  		end,
+   722..|      BadEtsOpts = [set, ordered_set, bag, duplicate_bag,
+        |  		  public, private, protected,
+        |  		  keypos, named_table],
+   722..|      EtsOpts = proplists:get_value(ets, BEProps, []),
+   722..|      is_list(EtsOpts) orelse mnesia2:abort({badarg, Name, {ets, EtsOpts}}),
+   722..|      [CheckProp(Prop, BadEtsOpts) || Prop &lt;- EtsOpts],
+   722..|      BadDetsOpts = [type, keypos, repair, access, file],
+   722..|      DetsOpts = proplists:get_value(dets, BEProps, []),
+   722..|      is_list(DetsOpts) orelse mnesia2:abort({badarg, Name, {dets, DetsOpts}}),
+   722..|      [CheckProp(Prop, BadDetsOpts) || Prop &lt;- DetsOpts],
+   722..|      #cstruct{name = Name,
+        |               ram_copies = Rc,
+        |               disc_copies = Dc,
+        |               disc_only_copies = Doc,
+        |               type = Type,
+        |               index = Ix2,
+        |               snmp = Snmp,
+        |               load_order = LoadOrder,
+        |               access_mode = AccessMode,
+        |  	     majority = Majority,
+        |               local_content = LC,
+        |  	     record_name = RecName,
+        |               attributes = Attrs,
+        |               user_properties = lists:sort(UserProps),
+        |  	     frag_properties = lists:sort(Frag),
+        |  	     storage_properties = lists:sort(BEProps),
+        |               cookie = Cookie,
+        |               version = Version}.
+        |  
+        |  pick(Tab, Key, List, Default) -&gt;
+ 13388..|      case lists:keysearch(Key, 1, List) of
+        |          false  when Default == must -&gt;
+<font color=red>     0..|              mnesia2:abort({badarg, Tab, "Missing key", Key, List});</font>
+        |          false -&gt;
+  1721..|              Default;
+        |          {value, {Key, Value}} -&gt;
+ 11667..|              Value;
+        |  	{value, BadArg} -&gt;
+<font color=red>     0..|  	    mnesia2:abort({bad_type, Tab, BadArg})</font>
+        |      end.
+        |  
+        |  %% Convert attribute name to integer if neccessary
+        |  attr_tab_to_pos(_Tab, Pos) when is_integer(Pos) -&gt;
+    19..|      Pos;
+        |  attr_tab_to_pos(Tab, Attr) -&gt;
+    50..|      attr_to_pos(Attr, val({Tab, attributes})).
+        |  
+        |  %% Convert attribute name to integer if neccessary
+        |  attr_to_pos(Pos, _Attrs) when is_integer(Pos) -&gt;
+    50..|      Pos;
+        |  attr_to_pos(Attr, Attrs) when is_atom(Attr) -&gt;
+    53..|      attr_to_pos(Attr, Attrs, 2);
+        |  attr_to_pos(Attr, _) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Attr}).</font>
+        |  
+        |  attr_to_pos(Attr, [Attr | _Attrs], Pos) -&gt;
+    53..|      Pos;
+        |  attr_to_pos(Attr, [_ | Attrs], Pos) -&gt;
+    53..|      attr_to_pos(Attr, Attrs, Pos + 1);
+        |  attr_to_pos(Attr, _, _) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Attr}).</font>
+        |  
+        |  check_keys(Tab, [{Key, _Val} | Tail], Items) -&gt;
+   317..|      case lists:member(Key, Items) of
+   317..|          true -&gt;  [Key | check_keys(Tab, Tail, Items)];
+<font color=red>     0..|          false -&gt; mnesia2:abort({badarg, Tab, Key})</font>
+        |      end;
+        |  check_keys(_, [], _) -&gt;
+   110..|      [];
+        |  check_keys(Tab, Arg, _) -&gt;
+<font color=red>     0..|      mnesia2:abort({badarg, Tab, Arg}).</font>
+        |  
+        |  check_duplicates(Tab, Keys) -&gt;
+   110..|      case has_duplicates(Keys) of
+   110..|          false -&gt; ok;
+<font color=red>     0..|          true -&gt; mnesia2:abort({badarg, Tab, "Duplicate keys", Keys})</font>
+        |      end.
+        |  
+        |  has_duplicates([H | T]) -&gt;
+   581..|      case lists:member(H, T) of
+<font color=red>     0..|          true -&gt; true;</font>
+   581..|          false -&gt; has_duplicates(T)
+        |      end;
+        |  has_duplicates([]) -&gt;
+   264..|      false.
+        |  
+        |  %% This is the only place where we check the validity of data
+        |  verify_cstruct(Cs) when is_record(Cs, cstruct) -&gt;
+   154..|      verify_nodes(Cs),
+        |  
+   154..|      Tab = Cs#cstruct.name,
+   154..|      verify(atom, mnesia2_lib:etype(Tab), {bad_type, Tab}),
+   154..|      Type = Cs#cstruct.type,
+   154..|      verify(true, lists:member(Type, [set, bag, ordered_set]),
+        |  	   {bad_type, Tab, {type, Type}}),
+        |  
+        |      %% Currently ordered_set is not supported for disk_only_copies.
+   154..|      if
+        |   	Type == ordered_set, Cs#cstruct.disc_only_copies /= [] -&gt;
+<font color=red>     0..|  	    mnesia2:abort({bad_type, Tab, {not_supported, Type, disc_only_copies}});</font>
+        |  	true -&gt;
+   154..|  	    ok
+        |      end,
+        |  
+   154..|      RecName = Cs#cstruct.record_name,
+   154..|      verify(atom, mnesia2_lib:etype(RecName),
+        |  	   {bad_type, Tab, {record_name, RecName}}),
+        |  
+   154..|      Attrs = Cs#cstruct.attributes,
+   154..|      verify(list, mnesia2_lib:etype(Attrs),
+        |  	   {bad_type, Tab, {attributes, Attrs}}),
+        |  
+   154..|      Arity = length(Attrs) + 1,
+   154..|      verify(true, Arity &gt; 2, {bad_type, Tab, {attributes, Attrs}}),
+        |  
+   154..|      lists:foldl(fun(Attr,_Other) when Attr == snmp -&gt;
+<font color=red>     0..|                          mnesia2:abort({bad_type, Tab, {attributes, [Attr]}});</font>
+        |                     (Attr,Other) -&gt;
+   495..|                          verify(atom, mnesia2_lib:etype(Attr),
+        |                                 {bad_type, Tab, {attributes, [Attr]}}),
+   495..|                          verify(false, lists:member(Attr, Other),
+        |                                 {combine_error, Tab, {attributes, [Attr | Other]}}),
+   495..|                          [Attr | Other]
+        |                  end,
+        |                  [],
+        |                  Attrs),
+        |  
+   154..|      Index = Cs#cstruct.index,
+   154..|      verify({alt, [nil, list]}, mnesia2_lib:etype(Index),
+        |  	   {bad_type, Tab, {index, Index}}),
+        |  
+   154..|      IxFun =
+        |          fun(Pos) -&gt;
+    15..|                  verify(true, fun() -&gt;
+    15..|                                       if
+        |  					 is_integer(Pos),
+        |                                           Pos &gt; 2,
+        |                                           Pos =&lt; Arity -&gt;
+    15..|                                               true;
+<font color=red>     0..|                                           true -&gt; false</font>
+        |                                       end
+        |                               end,
+        |                         {bad_type, Tab, {index, [Pos]}})
+        |          end,
+   154..|      lists:foreach(IxFun, Index),
+        |  
+   154..|      LC = Cs#cstruct.local_content,
+   154..|      verify({alt, [true, false]}, LC,
+        |  	   {bad_type, Tab, {local_content, LC}}),
+   154..|      Access = Cs#cstruct.access_mode,
+   154..|      verify({alt, [read_write, read_only]}, Access,
+        |  	   {bad_type, Tab, {access_mode, Access}}),
+   154..|      Majority = Cs#cstruct.majority,
+   154..|      verify({alt, [true, false]}, Majority,
+        |  	   {bad_type, Tab, {majority, Majority}}),
+   154..|      case Majority of
+        |  	true -&gt;
+<font color=red>     0..|  	    verify(false, LC,</font>
+        |  		   {combine_error, Tab, [{local_content,true},{majority,true}]});
+        |  	false -&gt;
+   154..|  	    ok
+        |      end,
+   154..|      Snmp = Cs#cstruct.snmp,
+   154..|      verify(true, mnesia2_snmp_hook:check_ustruct(Snmp),
+        |  	   {badarg, Tab, {snmp, Snmp}}),
+        |  
+   154..|      CheckProp = fun(Prop) when is_tuple(Prop), size(Prop) &gt;= 1 -&gt; ok;
+<font color=red>     0..|  		   (Prop) -&gt; mnesia2:abort({bad_type, Tab, {user_properties, [Prop]}})</font>
+        |  		end,
+   154..|      lists:foreach(CheckProp, Cs#cstruct.user_properties),
+        |  
+   154..|      case Cs#cstruct.cookie of
+        |  	{{MegaSecs, Secs, MicroSecs}, _Node}
+        |  	when is_integer(MegaSecs), is_integer(Secs),
+        |  	     is_integer(MicroSecs), is_atom(node) -&gt;
+   154..|              ok;
+        |          Cookie -&gt;
+<font color=red>     0..|              mnesia2:abort({bad_type, Tab, {cookie, Cookie}})</font>
+        |      end,
+   154..|      case Cs#cstruct.version of
+        |          {{Major, Minor}, _Detail}
+        |                  when is_integer(Major), is_integer(Minor) -&gt;
+   154..|              ok;
+        |          Version -&gt;
+<font color=red>     0..|              mnesia2:abort({bad_type, Tab, {version, Version}})</font>
+        |      end.
+        |  
+        |  verify_nodes(Cs) -&gt;
+   154..|      Tab = Cs#cstruct.name,
+   154..|      Ram = Cs#cstruct.ram_copies,
+   154..|      Disc = Cs#cstruct.disc_copies,
+   154..|      DiscOnly = Cs#cstruct.disc_only_copies,
+   154..|      LoadOrder = Cs#cstruct.load_order,
+        |  
+   154..|      verify({alt, [nil, list]}, mnesia2_lib:etype(Ram),
+        |  	   {bad_type, Tab, {ram_copies, Ram}}),
+   154..|      verify({alt, [nil, list]}, mnesia2_lib:etype(Disc),
+        |  	   {bad_type, Tab, {disc_copies, Disc}}),
+   154..|      case Tab of
+        |  	schema -&gt;
+    21..|  	    verify([], DiscOnly, {bad_type, Tab, {disc_only_copies, DiscOnly}});
+        |  	_ -&gt;
+   133..|  	    verify({alt, [nil, list]},
+        |  		   mnesia2_lib:etype(DiscOnly),
+        |  		   {bad_type, Tab, {disc_only_copies, DiscOnly}})
+        |      end,
+   154..|      verify(integer, mnesia2_lib:etype(LoadOrder),
+        |  	   {bad_type, Tab, {load_order, LoadOrder}}),
+        |  
+   154..|      Nodes = Ram ++ Disc ++ DiscOnly,
+   154..|      verify(list, mnesia2_lib:etype(Nodes),
+        |  	   {combine_error, Tab,
+        |  	    [{ram_copies, []}, {disc_copies, []}, {disc_only_copies, []}]}),
+   154..|      verify(false, has_duplicates(Nodes), {combine_error, Tab, Nodes}),
+   154..|      AtomCheck = fun(N) -&gt; verify(atom, mnesia2_lib:etype(N), {bad_type, Tab, N}) end,
+   154..|      lists:foreach(AtomCheck, Nodes).
+        |  
+        |  verify(Expected, Fun, Error) when is_function(Fun) -&gt;
+    15..|      do_verify(Expected, catch Fun(), Error);
+        |  verify(Expected, Actual, Error) -&gt;
+  6993..|      do_verify(Expected, Actual, Error).
+        |  
+        |  do_verify({alt, Values}, Value, Error) -&gt;
+  3959..|      case lists:member(Value, Values) of
+  3959..|          true -&gt; ok;
+<font color=red>     0..|          false -&gt; mnesia2:abort(Error)</font>
+        |      end;
+        |  do_verify(Value, Value, _) -&gt;
+  3047..|      ok;
+        |  do_verify(_Value, _, Error) -&gt;
+     2..|       mnesia2:abort(Error).
+        |  
+        |  ensure_writable(Tab) -&gt;
+   160..|      case val({Tab, where_to_write}) of
+<font color=red>     0..|          [] -&gt; mnesia2:abort({read_only, Tab});</font>
+   160..|          _ -&gt; ok
+        |      end.
+        |  
+        |  %% Ensure that all replicas on disk full nodes are active
+        |  ensure_active(Cs) -&gt;
+    20..|      ensure_active(Cs, active_replicas).
+        |  
+        |  ensure_active(Cs, What) -&gt;
+    20..|      Tab = Cs#cstruct.name,
+    20..|      W = {Tab, What},
+    20..|      ensure_non_empty(W),
+    20..|      Nodes = mnesia2_lib:intersect(val({schema, disc_copies}),
+        |                                   mnesia2_lib:cs_to_nodes(Cs)),
+    20..|      case Nodes -- val(W) of
+        |          [] -&gt;
+    20..|              ok;
+        |          Ns -&gt;
+<font color=red>     0..|              Expl = "All replicas on diskfull nodes are not active yet",</font>
+<font color=red>     0..|              case val({Tab, local_content}) of</font>
+        |                  true -&gt;
+<font color=red>     0..|  		    case rpc:multicall(Ns, ?MODULE, is_remote_member, [W]) of</font>
+        |  			{Replies, []} -&gt;
+<font color=red>     0..|  			    check_active(Replies, Expl, Tab);</font>
+        |  			{_Replies, BadNs} -&gt;
+<font color=red>     0..|  			    mnesia2:abort({not_active, Expl, Tab, BadNs})</font>
+        |                      end;
+        |                  false -&gt;
+<font color=red>     0..|                      mnesia2:abort({not_active, Expl, Tab, Ns})</font>
+        |              end
+        |      end.
+        |  
+        |  ensure_non_empty({Tab, Vhat}) -&gt;
+    20..|         case val({Tab, Vhat}) of
+<font color=red>     0..|          [] -&gt; mnesia2:abort({no_exists, Tab});</font>
+    20..|          _ -&gt; ok
+        |      end.
+        |  
+        |  ensure_not_active(Tab = schema, Node) -&gt;
+     1..|      Active = val({Tab, active_replicas}),
+     1..|      case lists:member(Node, Active) of
+        |  	false when Active =/= [] -&gt;
+     1..|  	    ok;
+        |  	false -&gt;
+<font color=red>     0..|  	    mnesia2:abort({no_exists, Tab});</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Expl = "Mnesia2 is running",</font>
+<font color=red>     0..|  	    mnesia2:abort({active, Expl, Node})</font>
+        |      end.
+        |  
+        |  is_remote_member(Key) -&gt;
+<font color=red>     0..|      IsActive = lists:member(node(), val(Key)),</font>
+<font color=red>     0..|      {IsActive, node()}.</font>
+        |  
+        |  check_active([{true, _Node} | Replies], Expl, Tab) -&gt;
+<font color=red>     0..|      check_active(Replies, Expl, Tab);</font>
+        |  check_active([{false, Node} | _Replies], Expl, Tab) -&gt;
+<font color=red>     0..|      mnesia2:abort({not_active, Expl, Tab, [Node]});</font>
+        |  check_active([{badrpc, Reason} | _Replies], Expl, Tab) -&gt;
+<font color=red>     0..|      mnesia2:abort({not_active, Expl, Tab, Reason});</font>
+        |  check_active([], _Expl, _Tab) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Here's the real interface function to create a table
+        |  
+        |  create_table(TabDef) -&gt;
+    96..|      schema_transaction(fun() -&gt; do_multi_create_table(TabDef) end).
+        |  
+        |  %% And the corresponding do routines ....
+        |  
+        |  do_multi_create_table(TabDef) -&gt;
+    99..|      get_tid_ts_and_lock(schema, write),
+    96..|      ensure_writable(schema),
+    96..|      Cs = api_list2cs(TabDef),
+    96..|      case Cs#cstruct.frag_properties of
+        |  	[] -&gt;
+    84..|  	    do_create_table(Cs);
+        |  	_Props -&gt;
+    12..|  	    CsList = mnesia2_frag:expand_cstruct(Cs),
+    12..|  	    lists:foreach(fun do_create_table/1, CsList)
+        |      end,
+    94..|      ok.
+        |  
+        |  do_create_table(Cs) -&gt;
+   116..|      {_Mod, _Tid, Ts} =  get_tid_ts_and_lock(schema, none),
+   116..|      Store = Ts#tidstore.store,
+   116..|      do_insert_schema_ops(Store, make_create_table(Cs)).
+        |  
+        |  make_create_table(Cs) -&gt;
+   118..|      Tab = Cs#cstruct.name,
+   118..|      verify(false, check_if_exists(Tab), {already_exists, Tab}),
+   116..|      unsafe_make_create_table(Cs).
+        |  
+        |  % unsafe_do_create_table(Cs) -&gt;
+        |  %     {_Mod, Tid, Ts} =  get_tid_ts_and_lock(schema, none),
+        |  %     Store = Ts#tidstore.store,
+        |  %     do_insert_schema_ops(Store, unsafe_make_create_table(Cs)).
+        |  
+        |  unsafe_make_create_table(Cs) -&gt;
+   116..|      {_Mod, Tid, Ts} =  get_tid_ts_and_lock(schema, none),
+   116..|      verify_cstruct(Cs),
+   116..|      Tab = Cs#cstruct.name,
+        |  
+        |      %% Check that we have all disc replica nodes running
+   116..|      DiscNodes = Cs#cstruct.disc_copies ++ Cs#cstruct.disc_only_copies,
+   116..|      RunningNodes = val({current, db_nodes}),
+   116..|      CheckDisc = fun(N) -&gt;
+    40..|  			verify(true, lists:member(N, RunningNodes),
+        |  			       {not_active, Tab, N})
+        |  		end,
+   116..|      lists:foreach(CheckDisc, DiscNodes),
+        |  
+   116..|      Nodes = mnesia2_lib:intersect(mnesia2_lib:cs_to_nodes(Cs), RunningNodes),
+   116..|      Store = Ts#tidstore.store,
+   116..|      mnesia2_locker:wlock_no_exist(Tid, Store, Tab, Nodes),
+   116..|      [{op, create_table, vsn_cs2list(Cs)}].
+        |  
+        |  check_if_exists(Tab) -&gt;
+   118..|      TidTs = get_tid_ts_and_lock(schema, write),
+   118..|      {_, _, Ts} = TidTs,
+   118..|      Store = Ts#tidstore.store,
+   118..|      ets:foldl(
+        |        fun({op, create_table, [{name, T}|_]}, _Acc) when T==Tab -&gt;
+<font color=red>     0..|  	      true;</font>
+        |  	 ({op, delete_table, [{name,T}|_]}, _Acc) when T==Tab -&gt;
+<font color=red>     0..|  	      false;</font>
+        |  	 (_Other, Acc) -&gt;
+   419..|  	      Acc
+        |        end, existed_before(Tab), Store).
+        |  
+        |  existed_before(Tab) -&gt;
+   155..|      ('EXIT' =/= element(1, ?catch_val({Tab,cstruct}))).
+        |  
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Delete a table entirely on all nodes.
+        |  
+        |  delete_table(Tab) -&gt;
+    37..|      schema_transaction(fun() -&gt; do_delete_table(Tab) end).
+        |  
+        |  do_delete_table(schema) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  do_delete_table(Tab) -&gt;
+    37..|      TidTs = get_tid_ts_and_lock(schema, write),
+    37..|      ensure_writable(schema),
+    37..|      insert_schema_ops(TidTs, make_delete_table(Tab, whole_table)).
+        |  
+        |  make_delete_table(Tab, Mode) -&gt;
+    37..|      case existed_before(Tab) of
+        |  	false -&gt;
+        |  	    %% Deleting a table that was created in this very
+        |  	    %% schema transaction. Delete all ops in the Store
+        |  	    %% that operate on this table. We cannot run a normal
+        |  	    %% delete operation, since that involves checking live
+        |  	    %% nodes etc.
+    36..|  	    TidTs = get_tid_ts_and_lock(schema, write),
+    36..|  	    {_, _, Ts} = TidTs,
+    36..|  	    Store = Ts#tidstore.store,
+    36..|  	    Deleted = ets:select_delete(
+        |  			Store, [{{op,'$1',[{name,Tab}|'_']},
+        |  				 [{'or',
+        |  				   {'==','$1',create_table},
+        |  				   {'==','$1',delete_table}}], [true]}]),
+    36..|  	    ets:select_delete(
+        |  	      Store, [{{op,'$1',[{name,Tab}|'_'],'_'},
+        |  		       [{'or',
+        |  			 {'==','$1',write_table_property},
+        |  			 {'==','$1',delete_table_property}}],
+        |  		       [true]}]),
+    36..|  	    case Deleted of
+    36..|  		0 -&gt; mnesia2:abort({no_exists, Tab});
+<font color=red>     0..|  		_ -&gt; []</font>
+        |  	    end;
+        |  	true -&gt;
+     1..|  	    case Mode of
+        |  		whole_table -&gt;
+     1..|  		    case val({Tab, frag_properties}) of
+        |  			[] -&gt;
+     1..|  			    [make_delete_table2(Tab)];
+        |  			_Props -&gt;
+        |  			    %% Check if it is a base table
+<font color=red>     0..|  			    mnesia2_frag:lookup_frag_hash(Tab),</font>
+        |  
+        |  			    %% Check for foreigners
+<font color=red>     0..|  			    F = mnesia2_frag:lookup_foreigners(Tab),</font>
+<font color=red>     0..|  			    verify([], F, {combine_error,</font>
+        |  					   Tab, "Too many foreigners", F}),
+<font color=red>     0..|  			    [make_delete_table2(T) ||</font>
+<font color=red>     0..|  				T &lt;- mnesia2_frag:frag_names(Tab)]</font>
+        |  		    end;
+        |  		single_frag -&gt;
+<font color=red>     0..|  		    [make_delete_table2(Tab)]</font>
+        |  	    end
+        |      end.
+        |  
+        |  make_delete_table2(Tab) -&gt;
+     1..|      get_tid_ts_and_lock(Tab, write),
+     1..|      Cs = val({Tab, cstruct}),
+     1..|      ensure_active(Cs),
+     1..|      ensure_writable(Tab),
+     1..|      {op, delete_table, vsn_cs2list(Cs)}.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Change fragmentation of a table
+        |  
+        |  change_table_frag(Tab, Change) -&gt;
+     4..|      schema_transaction(fun() -&gt; do_change_table_frag(Tab, Change) end).
+        |  
+        |  do_change_table_frag(Tab, Change) when is_atom(Tab), Tab /= schema -&gt;
+     4..|      TidTs = get_tid_ts_and_lock(schema, write),
+     4..|      Ops = mnesia2_frag:change_table_frag(Tab, Change),
+     4..|      [insert_schema_ops(TidTs, Op) || Op &lt;- Ops],
+     4..|      ok;
+        |  do_change_table_frag(Tab, _Change) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Tab}).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Clear a table
+        |  
+        |  do_clear_table(schema) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  do_clear_table(Tab) -&gt;
+<font color=red>     0..|      TidTs = get_tid_ts_and_lock(schema, write),</font>
+<font color=red>     0..|      get_tid_ts_and_lock(Tab, write),</font>
+<font color=red>     0..|      insert_schema_ops(TidTs, make_clear_table(Tab)).</font>
+        |  
+        |  make_clear_table(Tab) -&gt;
+<font color=red>     0..|      Cs = val({Tab, cstruct}),</font>
+<font color=red>     0..|      ensure_writable(Tab),</font>
+<font color=red>     0..|      [{op, clear_table, vsn_cs2list(Cs)}].</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  add_table_copy(Tab, Node, Storage) -&gt;
+     8..|      schema_transaction(fun() -&gt; do_add_table_copy(Tab, Node, Storage) end).
+        |  
+        |  do_add_table_copy(Tab, Node, Storage) when is_atom(Tab), is_atom(Node) -&gt;
+     8..|      TidTs = get_tid_ts_and_lock(schema, write),
+     8..|      insert_schema_ops(TidTs, make_add_table_copy(Tab, Node, Storage));
+        |  do_add_table_copy(Tab,Node,_) -&gt;
+<font color=red>     0..|      mnesia2:abort({badarg, Tab, Node}).</font>
+        |  
+        |  make_add_table_copy(Tab, Node, Storage) -&gt;
+     8..|      ensure_writable(schema),
+     8..|      Cs = incr_version(val({Tab, cstruct})),
+     8..|      Ns = mnesia2_lib:cs_to_nodes(Cs),
+     8..|      verify(false, lists:member(Node, Ns), {already_exists, Tab, Node}),
+     8..|      Cs2 = new_cs(Cs, Node, Storage, add),
+     8..|      verify_cstruct(Cs2),
+        |  
+        |      %% Check storage and if node is running
+     8..|      IsRunning = lists:member(Node, val({current, db_nodes})),
+     8..|      if
+        |  	Tab == schema -&gt;
+     6..|  	    if
+        |  		Storage /= ram_copies -&gt;
+<font color=red>     0..|  		    mnesia2:abort({badarg, Tab, Storage});</font>
+        |  		IsRunning == true -&gt;
+<font color=red>     0..|  		    mnesia2:abort({already_exists, Tab, Node});</font>
+        |  		true -&gt;
+     6..|  		    ignore
+        |  	    end;
+        |  	Storage == ram_copies -&gt;
+     1..|  	    ignore;
+        |  	IsRunning == true -&gt;
+     1..|  	    ignore;
+        |  	IsRunning == false -&gt;
+<font color=red>     0..|  	    mnesia2:abort({not_active, schema, Node})</font>
+        |      end,
+     8..|      [{op, add_table_copy, Storage, Node, vsn_cs2list(Cs2)}].
+        |  
+        |  del_table_copy(Tab, Node) -&gt;
+     3..|      schema_transaction(fun() -&gt; do_del_table_copy(Tab, Node) end).
+        |  
+        |  do_del_table_copy(Tab, Node) when is_atom(Node)  -&gt;
+     4..|      TidTs = get_tid_ts_and_lock(schema, write),
+        |  %%    get_tid_ts_and_lock(Tab, write),
+     3..|      insert_schema_ops(TidTs, make_del_table_copy(Tab, Node));
+        |  do_del_table_copy(Tab, Node) -&gt;
+<font color=red>     0..|      mnesia2:abort({badarg, Tab, Node}).</font>
+        |  
+        |  make_del_table_copy(Tab, Node) -&gt;
+     3..|      ensure_writable(schema),
+     3..|      Cs = incr_version(val({Tab, cstruct})),
+     3..|      Storage = mnesia2_lib:schema_cs_to_storage_type(Node, Cs),
+     3..|      Cs2 = new_cs(Cs, Node, Storage, del),
+     3..|      case mnesia2_lib:cs_to_nodes(Cs2) of
+        |          [] when Tab == schema -&gt;
+<font color=red>     0..|              mnesia2:abort({combine_error, Tab, "Last replica"});</font>
+        |          [] -&gt;
+<font color=red>     0..|  	    ensure_active(Cs),</font>
+<font color=red>     0..|              dbg_out("Last replica deleted in table ~p~n",  [Tab]),</font>
+<font color=red>     0..|              make_delete_table(Tab,  whole_table);</font>
+        |          _ when Tab == schema -&gt;
+        |  	    %% ensure_active(Cs2),
+     1..|  	    ensure_not_active(Tab, Node),
+     1..|              verify_cstruct(Cs2),
+     1..|  	    Ops = remove_node_from_tabs(val({schema, tables}), Node),
+     1..|  	    [{op, del_table_copy, ram_copies, Node, vsn_cs2list(Cs2)} | Ops];
+        |          _ -&gt;
+     2..|  	    ensure_active(Cs),
+     2..|              verify_cstruct(Cs2),
+     2..|          get_tid_ts_and_lock(Tab, write),
+     2..|              [{op, del_table_copy, Storage, Node, vsn_cs2list(Cs2)}]
+        |      end.
+        |  
+        |  remove_node_from_tabs([], _Node) -&gt;
+     1..|      [];
+        |  remove_node_from_tabs([schema|Rest], Node) -&gt;
+     1..|      remove_node_from_tabs(Rest, Node);
+        |  remove_node_from_tabs([Tab|Rest], Node) -&gt;
+     2..|      {Cs, IsFragModified} =
+        |  	mnesia2_frag:remove_node(Node, incr_version(val({Tab, cstruct}))),
+     2..|      case mnesia2_lib:schema_cs_to_storage_type(Node, Cs)  of
+        |  	unknown -&gt;
+<font color=red>     0..|  	    case IsFragModified of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    [{op, change_table_frag, {del_node, Node}, vsn_cs2list(Cs)} |</font>
+        |  		     remove_node_from_tabs(Rest, Node)];
+        |  		false -&gt;
+<font color=red>     0..|  		    remove_node_from_tabs(Rest, Node)</font>
+        |  	    end;
+        |  	Storage -&gt;
+     2..|  	    Cs2 = new_cs(Cs, Node, Storage, del),
+     2..|  	    case mnesia2_lib:cs_to_nodes(Cs2) of
+        |  		[] -&gt;
+<font color=red>     0..|  		    [{op, delete_table, vsn_cs2list(Cs)} |</font>
+        |  		     remove_node_from_tabs(Rest, Node)];
+        |  		_Ns -&gt;
+     2..|  		    verify_cstruct(Cs2),
+     2..|              get_tid_ts_and_lock(Tab, write),
+     2..|  		    [{op, del_table_copy, ram_copies, Node, vsn_cs2list(Cs2)}|
+        |  		     remove_node_from_tabs(Rest, Node)]
+        |  	    end
+        |      end.
+        |  
+        |  new_cs(Cs, Node, ram_copies, add) -&gt;
+    11..|      Cs#cstruct{ram_copies = opt_add(Node, Cs#cstruct.ram_copies)};
+        |  new_cs(Cs, Node, disc_copies, add) -&gt;
+<font color=red>     0..|      Cs#cstruct{disc_copies = opt_add(Node, Cs#cstruct.disc_copies)};</font>
+        |  new_cs(Cs, Node, disc_only_copies, add) -&gt;
+     3..|      Cs#cstruct{disc_only_copies = opt_add(Node, Cs#cstruct.disc_only_copies)};
+        |  new_cs(Cs, Node, ram_copies, del) -&gt;
+     4..|      Cs#cstruct{ram_copies = lists:delete(Node , Cs#cstruct.ram_copies)};
+        |  new_cs(Cs, Node, disc_copies, del) -&gt;
+     4..|      Cs#cstruct{disc_copies = lists:delete(Node , Cs#cstruct.disc_copies)};
+        |  new_cs(Cs, Node, disc_only_copies, del) -&gt;
+     3..|      Cs#cstruct{disc_only_copies =
+        |                 lists:delete(Node , Cs#cstruct.disc_only_copies)};
+        |  new_cs(Cs, _Node, Storage, _Op) -&gt;
+<font color=red>     0..|      mnesia2:abort({badarg, Cs#cstruct.name, Storage}).</font>
+        |  
+        |  
+    14..|  opt_add(N, L) -&gt; [N | lists:delete(N, L)].
+        |  
+        |  move_table(Tab, FromNode, ToNode) -&gt;
+     2..|      schema_transaction(fun() -&gt; do_move_table(Tab, FromNode, ToNode) end).
+        |  
+        |  do_move_table(schema, _FromNode, _ToNode) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  do_move_table(Tab, FromNode, ToNode) when is_atom(FromNode), is_atom(ToNode) -&gt;
+     2..|      TidTs = get_tid_ts_and_lock(schema, write),
+        |      %% get_tid_ts_and_lock(Tab, write), write locked by load_table in mnesia2_loader
+     2..|      insert_schema_ops(TidTs, make_move_table(Tab, FromNode, ToNode));
+        |  do_move_table(Tab, FromNode, ToNode) -&gt;
+<font color=red>     0..|      mnesia2:abort({badarg, Tab, FromNode, ToNode}).</font>
+        |  
+        |  make_move_table(Tab, FromNode, ToNode) -&gt;
+     2..|      ensure_writable(schema),
+     2..|      Cs = incr_version(val({Tab, cstruct})),
+     2..|      Ns = mnesia2_lib:cs_to_nodes(Cs),
+     2..|      verify(false, lists:member(ToNode, Ns), {already_exists, Tab, ToNode}),
+     2..|      verify(true, lists:member(FromNode, val({Tab, where_to_write})),
+        |             {not_active, Tab, FromNode}),
+     2..|      verify(false, val({Tab,local_content}),
+        |             {"Cannot move table with local content", Tab}),
+     2..|      ensure_active(Cs),
+     2..|      Running = val({current, db_nodes}),
+     2..|      Storage = mnesia2_lib:schema_cs_to_storage_type(FromNode, Cs),
+     2..|      verify(true, lists:member(ToNode, Running), {not_active, schema, ToNode}),
+        |  
+     2..|      Cs2 = new_cs(Cs, ToNode, Storage, add),
+     2..|      Cs3 = new_cs(Cs2, FromNode, Storage, del),
+     2..|      verify_cstruct(Cs3),
+     2..|      [{op, add_table_copy, Storage, ToNode, vsn_cs2list(Cs2)},
+        |       {op, sync_trans},
+        |       {op, del_table_copy, Storage, FromNode, vsn_cs2list(Cs3)}].
+        |  
+        |  %% end of functions to add and delete nodes to tables
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %%
+        |  
+        |  change_table_copy_type(Tab, Node, ToS) -&gt;
+     4..|      schema_transaction(fun() -&gt; do_change_table_copy_type(Tab, Node, ToS) end).
+        |  
+        |  do_change_table_copy_type(Tab, Node, ToS) when is_atom(Node) -&gt;
+     4..|      TidTs = get_tid_ts_and_lock(schema, write),
+     4..|      get_tid_ts_and_lock(Tab, write), % ensure global sync
+        |      %% get_tid_ts_and_lock(Tab, read),
+     4..|      insert_schema_ops(TidTs, make_change_table_copy_type(Tab, Node, ToS));
+        |  do_change_table_copy_type(Tab, Node, _ToS) -&gt;
+<font color=red>     0..|      mnesia2:abort({badarg, Tab, Node}).</font>
+        |  
+        |  make_change_table_copy_type(Tab, Node, unknown) -&gt;
+<font color=red>     0..|      make_del_table_copy(Tab, Node);</font>
+        |  make_change_table_copy_type(Tab, Node, ToS) -&gt;
+     4..|      ensure_writable(schema),
+     4..|      Cs = incr_version(val({Tab, cstruct})),
+     4..|      FromS = mnesia2_lib:storage_type_at_node(Node, Tab),
+        |  
+     4..|      case compare_storage_type(false, FromS, ToS) of
+        |  	{same, _} -&gt;
+<font color=red>     0..|  	    mnesia2:abort({already_exists, Tab, Node, ToS});</font>
+        |  	{diff, _} -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	incompatible -&gt;
+     4..|  	    ensure_active(Cs)
+        |      end,
+        |  
+     4..|      Cs2 = new_cs(Cs, Node, FromS, del),
+     4..|      Cs3 = new_cs(Cs2, Node, ToS, add),
+     4..|      verify_cstruct(Cs3),
+        |  
+     4..|      [{op, change_table_copy_type, Node, FromS, ToS, vsn_cs2list(Cs3)}].
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% change index functions ....
+        |  %% Pos is allready added by 1 in both of these functions
+        |  
+        |  add_table_index(Tab, Pos) -&gt;
+     1..|      schema_transaction(fun() -&gt; do_add_table_index(Tab, Pos) end).
+        |  
+        |  do_add_table_index(schema, _Attr) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  do_add_table_index(Tab, Attr) -&gt;
+     1..|      TidTs = get_tid_ts_and_lock(schema, write),
+     1..|      get_tid_ts_and_lock(Tab, read),
+     1..|      Pos = attr_tab_to_pos(Tab, Attr),
+     1..|      insert_schema_ops(TidTs, make_add_table_index(Tab, Pos)).
+        |  
+        |  make_add_table_index(Tab, Pos) -&gt;
+     1..|      ensure_writable(schema),
+     1..|      Cs = incr_version(val({Tab, cstruct})),
+     1..|      ensure_active(Cs),
+     1..|      Ix = Cs#cstruct.index,
+     1..|      verify(false, lists:member(Pos, Ix), {already_exists, Tab, Pos}),
+     1..|      Ix2 = lists:sort([Pos | Ix]),
+     1..|      Cs2 = Cs#cstruct{index = Ix2},
+     1..|      verify_cstruct(Cs2),
+     1..|      [{op, add_index, Pos, vsn_cs2list(Cs2)}].
+        |  
+        |  del_table_index(Tab, Pos) -&gt;
+     1..|      schema_transaction(fun() -&gt; do_del_table_index(Tab, Pos) end).
+        |  
+        |  do_del_table_index(schema, _Attr) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  do_del_table_index(Tab, Attr) -&gt;
+     1..|      TidTs = get_tid_ts_and_lock(schema, write),
+     1..|      get_tid_ts_and_lock(Tab, read),
+     1..|      Pos = attr_tab_to_pos(Tab, Attr),
+     1..|      insert_schema_ops(TidTs, make_del_table_index(Tab, Pos)).
+        |  
+        |  make_del_table_index(Tab, Pos) -&gt;
+     1..|      ensure_writable(schema),
+     1..|      Cs = incr_version(val({Tab, cstruct})),
+     1..|      ensure_active(Cs),
+     1..|      Ix = Cs#cstruct.index,
+     1..|      verify(true, lists:member(Pos, Ix), {no_exists, Tab, Pos}),
+     1..|      Cs2 = Cs#cstruct{index = lists:delete(Pos, Ix)},
+     1..|      verify_cstruct(Cs2),
+     1..|      [{op, del_index, Pos, vsn_cs2list(Cs2)}].
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  add_snmp(Tab, Ustruct) -&gt;
+     2..|      schema_transaction(fun() -&gt; do_add_snmp(Tab, Ustruct) end).
+        |  
+        |  do_add_snmp(schema, _Ustruct) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  do_add_snmp(Tab, Ustruct) -&gt;
+     2..|      TidTs = get_tid_ts_and_lock(schema, write),
+     2..|      get_tid_ts_and_lock(Tab, read),
+     2..|      insert_schema_ops(TidTs, make_add_snmp(Tab, Ustruct)).
+        |  
+        |  make_add_snmp(Tab, Ustruct) -&gt;
+     2..|      ensure_writable(schema),
+     2..|      Cs = incr_version(val({Tab, cstruct})),
+     2..|      ensure_active(Cs),
+     2..|      verify([], Cs#cstruct.snmp, {already_exists, Tab, snmp}),
+     2..|      Error = {badarg, Tab, snmp, Ustruct},
+     2..|      verify(true, mnesia2_snmp_hook:check_ustruct(Ustruct), Error),
+     2..|      Cs2 = Cs#cstruct{snmp = Ustruct},
+     2..|      verify_cstruct(Cs2),
+     2..|      [{op, add_snmp, Ustruct, vsn_cs2list(Cs2)}].
+        |  
+        |  del_snmp(Tab) -&gt;
+     1..|      schema_transaction(fun() -&gt; do_del_snmp(Tab) end).
+        |  
+        |  do_del_snmp(schema) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  do_del_snmp(Tab) -&gt;
+     1..|      TidTs = get_tid_ts_and_lock(schema, write),
+     1..|      get_tid_ts_and_lock(Tab, read),
+     1..|      insert_schema_ops(TidTs, make_del_snmp(Tab)).
+        |  
+        |  make_del_snmp(Tab) -&gt;
+     1..|      ensure_writable(schema),
+     1..|      Cs = incr_version(val({Tab, cstruct})),
+     1..|      ensure_active(Cs),
+     1..|      Cs2 = Cs#cstruct{snmp = []},
+     1..|      verify_cstruct(Cs2),
+     1..|      [{op, del_snmp, vsn_cs2list(Cs2)}].
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %%
+        |  
+        |  transform_table(Tab, Fun, NewAttrs, NewRecName)
+        |    when is_function(Fun), is_list(NewAttrs), is_atom(NewRecName) -&gt;
+     2..|      schema_transaction(fun() -&gt; do_transform_table(Tab, Fun, NewAttrs, NewRecName) end);
+        |  
+        |  transform_table(Tab, ignore, NewAttrs, NewRecName)
+        |    when is_list(NewAttrs), is_atom(NewRecName) -&gt;
+<font color=red>     0..|      schema_transaction(fun() -&gt; do_transform_table(Tab, ignore, NewAttrs, NewRecName) end);</font>
+        |  
+        |  transform_table(Tab, Fun, NewAttrs, NewRecName) -&gt;
+<font color=red>     0..|      {aborted,{bad_type, Tab, Fun, NewAttrs, NewRecName}}.</font>
+        |  
+        |  do_transform_table(schema, _Fun, _NewAttrs, _NewRecName) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  do_transform_table(Tab, Fun, NewAttrs, NewRecName) -&gt;
+     2..|      TidTs = get_tid_ts_and_lock(schema, write),
+     2..|      get_tid_ts_and_lock(Tab, write),
+     2..|      insert_schema_ops(TidTs, make_transform(Tab, Fun, NewAttrs, NewRecName)).
+        |  
+        |  make_transform(Tab, Fun, NewAttrs, NewRecName) -&gt;
+     2..|      ensure_writable(schema),
+     2..|      Cs = incr_version(val({Tab, cstruct})),
+     2..|      ensure_active(Cs),
+     2..|      ensure_writable(Tab),
+     2..|      case mnesia2_lib:val({Tab, index}) of
+        |  	[] -&gt;
+     2..|  	    Cs2 = Cs#cstruct{attributes = NewAttrs, record_name = NewRecName},
+     2..|  	    verify_cstruct(Cs2),
+     2..|  	    [{op, transform, Fun, vsn_cs2list(Cs2)}];
+        |  	PosList -&gt;
+<font color=red>     0..|  	    DelIdx = fun(Pos, Ncs) -&gt;</font>
+<font color=red>     0..|  			     Ix = Ncs#cstruct.index,</font>
+<font color=red>     0..|  			     Ncs1 = Ncs#cstruct{index = lists:delete(Pos, Ix)},</font>
+<font color=red>     0..|  			     Op = {op, del_index, Pos, vsn_cs2list(Ncs1)},</font>
+<font color=red>     0..|  			     {Op, Ncs1}</font>
+        |  		     end,
+<font color=red>     0..|  	    AddIdx = fun(Pos, Ncs) -&gt;</font>
+<font color=red>     0..|  			     Ix = Ncs#cstruct.index,</font>
+<font color=red>     0..|  			     Ix2 = lists:sort([Pos | Ix]),</font>
+<font color=red>     0..|  			     Ncs1 = Ncs#cstruct{index = Ix2},</font>
+<font color=red>     0..|  			     Op = {op, add_index, Pos, vsn_cs2list(Ncs1)},</font>
+<font color=red>     0..|  			     {Op, Ncs1}</font>
+        |  		     end,
+<font color=red>     0..|              {DelOps, Cs1} = lists:mapfoldl(DelIdx, Cs, PosList),</font>
+<font color=red>     0..|  	    Cs2 = Cs1#cstruct{attributes = NewAttrs, record_name = NewRecName},</font>
+<font color=red>     0..|              {AddOps, Cs3} = lists:mapfoldl(AddIdx, Cs2, PosList),</font>
+<font color=red>     0..|  	    verify_cstruct(Cs3),</font>
+<font color=red>     0..|  	    lists:flatten([DelOps, {op, transform, Fun, vsn_cs2list(Cs2)}, AddOps])</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %%
+        |  
+        |  change_table_access_mode(Tab, Mode) -&gt;
+<font color=red>     0..|      schema_transaction(fun() -&gt; do_change_table_access_mode(Tab, Mode) end).</font>
+        |  
+        |  do_change_table_access_mode(Tab, Mode) -&gt;
+<font color=red>     0..|      {_Mod, Tid, Ts} = get_tid_ts_and_lock(schema, write),</font>
+<font color=red>     0..|      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|      mnesia2_locker:wlock_no_exist(Tid, Store, schema, val({schema, active_replicas})),</font>
+<font color=red>     0..|      mnesia2_locker:wlock_no_exist(Tid, Store, Tab, val({Tab, active_replicas})),</font>
+<font color=red>     0..|      do_insert_schema_ops(Store, make_change_table_access_mode(Tab, Mode)).</font>
+        |  
+        |  make_change_table_access_mode(Tab, Mode) -&gt;
+<font color=red>     0..|      ensure_writable(schema),</font>
+<font color=red>     0..|      Cs = incr_version(val({Tab, cstruct})),</font>
+<font color=red>     0..|      ensure_active(Cs),</font>
+<font color=red>     0..|      OldMode = Cs#cstruct.access_mode,</font>
+<font color=red>     0..|      verify(false, OldMode ==  Mode, {already_exists, Tab, Mode}),</font>
+<font color=red>     0..|      Cs2 = Cs#cstruct{access_mode = Mode},</font>
+<font color=red>     0..|      verify_cstruct(Cs2),</font>
+<font color=red>     0..|      [{op, change_table_access_mode, vsn_cs2list(Cs2), OldMode, Mode}].</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  change_table_load_order(Tab, LoadOrder) -&gt;
+<font color=red>     0..|      schema_transaction(fun() -&gt; do_change_table_load_order(Tab, LoadOrder) end).</font>
+        |  
+        |  do_change_table_load_order(schema, _LoadOrder) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  do_change_table_load_order(Tab, LoadOrder) -&gt;
+<font color=red>     0..|      TidTs = get_tid_ts_and_lock(schema, write),</font>
+<font color=red>     0..|      get_tid_ts_and_lock(Tab, none),</font>
+<font color=red>     0..|      insert_schema_ops(TidTs, make_change_table_load_order(Tab, LoadOrder)).</font>
+        |  
+        |  make_change_table_load_order(Tab, LoadOrder) -&gt;
+<font color=red>     0..|      ensure_writable(schema),</font>
+<font color=red>     0..|      Cs = incr_version(val({Tab, cstruct})),</font>
+<font color=red>     0..|      ensure_active(Cs),</font>
+<font color=red>     0..|      OldLoadOrder = Cs#cstruct.load_order,</font>
+<font color=red>     0..|      Cs2 = Cs#cstruct{load_order = LoadOrder},</font>
+<font color=red>     0..|      verify_cstruct(Cs2),</font>
+<font color=red>     0..|      [{op, change_table_load_order, vsn_cs2list(Cs2), OldLoadOrder, LoadOrder}].</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  change_table_majority(Tab, Majority) when is_boolean(Majority) -&gt;
+<font color=red>     0..|      schema_transaction(fun() -&gt; do_change_table_majority(Tab, Majority) end).</font>
+        |  
+        |  do_change_table_majority(schema, _Majority) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  do_change_table_majority(Tab, Majority) -&gt;
+<font color=red>     0..|      TidTs = get_tid_ts_and_lock(schema, write),</font>
+<font color=red>     0..|      get_tid_ts_and_lock(Tab, none),</font>
+<font color=red>     0..|      insert_schema_ops(TidTs, make_change_table_majority(Tab, Majority)).</font>
+        |  
+        |  make_change_table_majority(Tab, Majority) -&gt;
+<font color=red>     0..|      ensure_writable(schema),</font>
+<font color=red>     0..|      Cs = incr_version(val({Tab, cstruct})),</font>
+<font color=red>     0..|      ensure_active(Cs),</font>
+<font color=red>     0..|      OldMajority = Cs#cstruct.majority,</font>
+<font color=red>     0..|      Cs2 = Cs#cstruct{majority = Majority},</font>
+<font color=red>     0..|      FragOps = case lists:keyfind(base_table, 1, Cs#cstruct.frag_properties) of</font>
+        |  		  {_, Tab} -&gt;
+<font color=red>     0..|  		      FragNames = mnesia2_frag:frag_names(Tab) -- [Tab],</font>
+<font color=red>     0..|  		      lists:map(</font>
+        |  			fun(T) -&gt;
+<font color=red>     0..|  				get_tid_ts_and_lock(Tab, none),</font>
+<font color=red>     0..|  				CsT = incr_version(val({T, cstruct})),</font>
+<font color=red>     0..|  				ensure_active(CsT),</font>
+<font color=red>     0..|  				CsT2 = CsT#cstruct{majority = Majority},</font>
+<font color=red>     0..|  				verify_cstruct(CsT2),</font>
+<font color=red>     0..|  				{op, change_table_majority, vsn_cs2list(CsT2),</font>
+        |  				 OldMajority, Majority}
+        |  			end, FragNames);
+<font color=red>     0..|  		  false    -&gt; [];</font>
+<font color=red>     0..|  		  {_, _}   -&gt; mnesia2:abort({bad_type, Tab})</font>
+        |  	      end,
+<font color=red>     0..|      verify_cstruct(Cs2),</font>
+<font color=red>     0..|      [{op, change_table_majority, vsn_cs2list(Cs2), OldMajority, Majority} | FragOps].</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  write_table_property(Tab, Prop) when is_tuple(Prop), size(Prop) &gt;= 1 -&gt;
+<font color=red>     0..|      schema_transaction(fun() -&gt; do_write_table_property(Tab, Prop) end);</font>
+        |  write_table_property(Tab, Prop) -&gt;
+<font color=red>     0..|      {aborted, {bad_type, Tab, Prop}}.</font>
+        |  do_write_table_property(Tab, Prop) -&gt;
+<font color=red>     0..|      TidTs = get_tid_ts_and_lock(schema, write),</font>
+<font color=red>     0..|      {_, _, Ts} = TidTs,</font>
+<font color=red>     0..|      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|      case change_prop_in_existing_op(Tab, Prop, write_property, Store) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    dbg_out("change_prop_in_existing_op"</font>
+        |  		    "(~p,~p,write_property,Store) -&gt; true~n",
+        |  		    [Tab,Prop]),
+        |  	    %% we have merged the table prop into the create_table op
+<font color=red>     0..|  	    ok;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    dbg_out("change_prop_in_existing_op"</font>
+        |  		    "(~p,~p,write_property,Store) -&gt; false~n",
+        |  		    [Tab,Prop]),
+        |  	    %% this must be an existing table
+<font color=red>     0..|  	    get_tid_ts_and_lock(Tab, none),</font>
+<font color=red>     0..|  	    insert_schema_ops(TidTs, make_write_table_properties(Tab, [Prop]))</font>
+        |      end.
+        |  
+        |  make_write_table_properties(Tab, Props) -&gt;
+<font color=red>     0..|      ensure_writable(schema),</font>
+<font color=red>     0..|      Cs = incr_version(val({Tab, cstruct})),</font>
+<font color=red>     0..|      ensure_active(Cs),</font>
+<font color=red>     0..|      make_write_table_properties(Tab, Props, Cs).</font>
+        |  
+        |  make_write_table_properties(Tab, [Prop | Props], Cs) -&gt;
+<font color=red>     0..|      OldProps = Cs#cstruct.user_properties,</font>
+<font color=red>     0..|      PropKey = element(1, Prop),</font>
+<font color=red>     0..|      DelProps = lists:keydelete(PropKey, 1, OldProps),</font>
+<font color=red>     0..|      MergedProps = lists:merge(DelProps, [Prop]),</font>
+<font color=red>     0..|      Cs2 = Cs#cstruct{user_properties = MergedProps},</font>
+<font color=red>     0..|      verify_cstruct(Cs2),</font>
+<font color=red>     0..|      [{op, write_property, vsn_cs2list(Cs2), Prop} |</font>
+        |       make_write_table_properties(Tab, Props, Cs2)];
+        |  make_write_table_properties(_Tab, [], _Cs) -&gt;
+<font color=red>     0..|      [].</font>
+        |  
+        |  change_prop_in_existing_op(Tab, Prop, How, Store) -&gt;
+<font color=red>     0..|      Ops = ets:match_object(Store, '_'),</font>
+<font color=red>     0..|      case update_existing_op(Ops, Tab, Prop, How, []) of</font>
+        |  	{true, Ops1} -&gt;
+<font color=red>     0..|  	    ets:match_delete(Store, '_'),</font>
+<font color=red>     0..|  	    [ets:insert(Store, Op) || Op &lt;- Ops1],</font>
+<font color=red>     0..|  	    true;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    false</font>
+        |      end.
+        |  
+        |  update_existing_op([{op, Op, L = [{name,Tab}|_], _OldProp}|Ops],
+        |  		   Tab, Prop, How, Acc) when Op == write_property;
+        |  					     Op == delete_property -&gt;
+        |      %% Apparently, mnesia2_dumper doesn't care about OldProp here -- just L,
+        |      %% so we will throw away OldProp (not that it matters...) and insert Prop.
+        |      %% as element 3.
+<font color=red>     0..|      L1 = insert_prop(Prop, L, How),</font>
+<font color=red>     0..|      NewOp = {op, How, L1, Prop},</font>
+<font color=red>     0..|      {true, lists:reverse(Acc) ++ [NewOp|Ops]};</font>
+        |  update_existing_op([Op = {op, create_table, L}|Ops], Tab, Prop, How, Acc) -&gt;
+<font color=red>     0..|      case lists:keysearch(name, 1, L) of</font>
+        |  	{value, {_, Tab}} -&gt;
+        |  	    %% Tab is being created here -- insert Prop into L
+<font color=red>     0..|  	    L1 = insert_prop(Prop, L, How),</font>
+<font color=red>     0..|  	    {true, lists:reverse(Acc) ++ [{op, create_table, L1}|Ops]};</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    update_existing_op(Ops, Tab, Prop, How, [Op|Acc])</font>
+        |      end;
+        |  update_existing_op([Op|Ops], Tab, Prop, How, Acc) -&gt;
+<font color=red>     0..|      update_existing_op(Ops, Tab, Prop, How, [Op|Acc]);</font>
+        |  update_existing_op([], _, _, _, _) -&gt;
+<font color=red>     0..|      false.</font>
+        |  
+        |  do_read_table_property(Tab, Key) -&gt;
+<font color=red>     0..|      TidTs = get_tid_ts_and_lock(schema, read),</font>
+<font color=red>     0..|      {_, _, Ts} = TidTs,</font>
+<font color=red>     0..|      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|      Props = ets:foldl(</font>
+        |  	      fun({op, create_table, [{name, T}|Opts]}, _Acc)
+        |  		 when T==Tab -&gt;
+<font color=red>     0..|  		      find_props(Opts);</font>
+        |  		 ({op, Op, [{name,T}|Opts], _Prop}, _Acc)
+        |  		 when T==Tab, Op==write_property; Op==delete_property -&gt;
+<font color=red>     0..|  		      find_props(Opts);</font>
+        |  		 ({op, delete_table, [{name,T}|_]}, _Acc)
+        |  		 when T==Tab -&gt;
+<font color=red>     0..|  		      [];</font>
+        |  		 (_Other, Acc) -&gt;
+<font color=red>     0..|  		      Acc</font>
+        |  	      end, [], Store),
+<font color=red>     0..|      case lists:keysearch(Key, 1, Props) of</font>
+        |  	{value, Property} -&gt;
+<font color=red>     0..|  	    Property;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    undefined</font>
+        |      end.
+        |  
+        |  
+        |  %% perhaps a misnomer. How could also be delete_property... never mind.
+        |  %% Returns the modified L.
+        |  insert_prop(Prop, L, How) -&gt;
+<font color=red>     0..|      Prev = find_props(L),</font>
+<font color=red>     0..|      MergedProps = merge_with_previous(How, Prop, Prev),</font>
+<font color=red>     0..|      replace_props(L, MergedProps).</font>
+        |  
+<font color=red>     0..|  find_props([{user_properties, P}|_]) -&gt; P;</font>
+<font color=red>     0..|  find_props([_H|T]) -&gt; find_props(T).</font>
+        |  %% we shouldn't reach []
+        |  
+<font color=red>     0..|  replace_props([{user_properties, _}|T], P) -&gt; [{user_properties, P}|T];</font>
+<font color=red>     0..|  replace_props([H|T], P) -&gt; [H|replace_props(T, P)].</font>
+        |  %% again, we shouldn't reach []
+        |  
+        |  merge_with_previous(write_property, Prop, Prev) -&gt;
+<font color=red>     0..|      Key = element(1, Prop),</font>
+<font color=red>     0..|      Prev1 = lists:keydelete(Key, 1, Prev),</font>
+<font color=red>     0..|      lists:sort([Prop|Prev1]);</font>
+        |  merge_with_previous(delete_property, PropKey, Prev) -&gt;
+<font color=red>     0..|      lists:keydelete(PropKey, 1, Prev).</font>
+        |  
+        |  delete_table_property(Tab, PropKey) -&gt;
+<font color=red>     0..|      schema_transaction(fun() -&gt; do_delete_table_property(Tab, PropKey) end).</font>
+        |  
+        |  do_delete_table_property(Tab, PropKey) -&gt;
+<font color=red>     0..|      TidTs = get_tid_ts_and_lock(schema, write),</font>
+<font color=red>     0..|      {_, _, Ts} = TidTs,</font>
+<font color=red>     0..|      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|      case change_prop_in_existing_op(Tab, PropKey, delete_property, Store) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    dbg_out("change_prop_in_existing_op"</font>
+        |  		    "(~p,~p,delete_property,Store) -&gt; true~n",
+        |  		    [Tab,PropKey]),
+        |  	    %% we have merged the table prop into the create_table op
+<font color=red>     0..|  	    ok;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    dbg_out("change_prop_in_existing_op"</font>
+        |  		    "(~p,~p,delete_property,Store) -&gt; false~n",
+        |  		    [Tab,PropKey]),
+        |  	    %% this must be an existing table
+<font color=red>     0..|  	    get_tid_ts_and_lock(Tab, none),</font>
+<font color=red>     0..|  	    insert_schema_ops(TidTs,</font>
+        |  			      make_delete_table_properties(Tab, [PropKey]))
+        |      end.
+        |  
+        |  make_delete_table_properties(Tab, PropKeys) -&gt;
+<font color=red>     0..|      ensure_writable(schema),</font>
+<font color=red>     0..|      Cs = incr_version(val({Tab, cstruct})),</font>
+<font color=red>     0..|      ensure_active(Cs),</font>
+<font color=red>     0..|      make_delete_table_properties(Tab, PropKeys, Cs).</font>
+        |  
+        |  make_delete_table_properties(Tab, [PropKey | PropKeys], Cs) -&gt;
+<font color=red>     0..|      OldProps = Cs#cstruct.user_properties,</font>
+<font color=red>     0..|      Props = lists:keydelete(PropKey, 1, OldProps),</font>
+<font color=red>     0..|      Cs2 = Cs#cstruct{user_properties = Props},</font>
+<font color=red>     0..|      verify_cstruct(Cs2),</font>
+<font color=red>     0..|      [{op, delete_property, vsn_cs2list(Cs2), PropKey} |</font>
+        |       make_delete_table_properties(Tab, PropKeys, Cs2)];
+        |  make_delete_table_properties(_Tab, [], _Cs) -&gt;
+<font color=red>     0..|      [].</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  %% Ensure that the transaction can be committed even
+        |  %% if the node crashes and Mnesia2 is restarted
+        |  prepare_commit(Tid, Commit, WaitFor) -&gt;
+   616..|      case Commit#commit.schema_ops of
+        |  	[] -&gt;
+   426..|  	    {false, Commit, optional};
+        |  	OrigOps -&gt;
+   190..|  	    {Modified, Ops, DumperMode} =
+        |  		prepare_ops(Tid, OrigOps, WaitFor, false, [], optional),
+   189..|  	    InitBy = schema_prepare,
+   189..|  	    GoodRes = {Modified,
+        |  		       Commit#commit{schema_ops = lists:reverse(Ops)},
+        |  		       DumperMode},
+   189..|  	    case DumperMode of
+        |  		optional -&gt;
+   182..|  		    dbg_out("Transaction log dump skipped (~p): ~w~n",
+        |  			    [DumperMode, InitBy]);
+        |  		mandatory -&gt;
+     7..|  		    case mnesia2_controller:sync_dump_log(InitBy) of
+        |  			dumped -&gt;
+     7..|  			    GoodRes;
+        |  			{error, Reason} -&gt;
+<font color=red>     0..|  			    mnesia2:abort(Reason)</font>
+        |  		    end
+        |  	    end,
+   189..|  	    case Ops of
+        |  		[] -&gt;
+    48..|  		    ignore;
+        |  		_ -&gt;
+        |  		    %% We need to grab a dumper lock here, the log may not
+        |  		    %% be dumped by others, during the schema commit phase.
+   141..|  		    mnesia2_controller:wait_for_schema_commit_lock()
+        |  	    end,
+   189..|  	    GoodRes
+        |      end.
+        |  
+        |  prepare_ops(Tid, [Op | Ops], WaitFor, Changed, Acc, DumperMode) -&gt;
+   273..|      case prepare_op(Tid, Op, WaitFor) of
+        |          {true, mandatory} -&gt;
+     6..|  	    prepare_ops(Tid, Ops, WaitFor, Changed, [Op | Acc], mandatory);
+        |          {true, optional} -&gt;
+   184..|  	    prepare_ops(Tid, Ops, WaitFor, Changed, [Op | Acc], DumperMode);
+        |          {true, Ops2, mandatory} -&gt;
+     1..|  	    prepare_ops(Tid, Ops, WaitFor, true, Ops2 ++ Acc, mandatory);
+        |          {true, Ops2, optional} -&gt;
+     7..|  	    prepare_ops(Tid, Ops, WaitFor, true, Ops2 ++ Acc, DumperMode);
+        |  	{false, optional} -&gt;
+    74..|  	    prepare_ops(Tid, Ops, WaitFor, true, Acc, DumperMode)
+        |      end;
+        |  prepare_ops(_Tid, [], _WaitFor, Changed, Acc, DumperMode) -&gt;
+   189..|      {Changed, Acc, DumperMode}.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Prepare for commit
+        |  %% returns true if Op should be included, i.e. unmodified
+        |  %%         {true, Operation} if NewRecs should be included, i.e. modified
+        |  %%         false if Op should NOT be included, i.e. modified
+        |  %%
+        |  prepare_op(_Tid, {op, rec, unknown, Rec}, _WaitFor) -&gt;
+    14..|      {{Tab, Key}, Items, _Op} = Rec,
+    14..|      case val({Tab, storage_type}) of
+        |          unknown -&gt;
+     7..|              {false, optional};
+        |          Storage -&gt;
+     7..|              mnesia2_tm:prepare_snmp(Tab, Key, Items), % May exit
+     7..|              {true, [{op, rec, Storage, Rec}], optional}
+        |      end;
+        |  
+        |  prepare_op(_Tid, {op, announce_im_running, Node, SchemaDef, Running, RemoteRunning}, _WaitFor) -&gt;
+    64..|      SchemaCs = list2cs(SchemaDef),
+    64..|      if
+        |  	Node == node() -&gt; %% Announce has already run on local node
+    11..|  	    ignore;       %% from do_merge_schema
+        |  	true -&gt;
+        |  	    %% If a node has restarted it may still linger in db_nodes,
+        |  	    %% but have been removed from recover_nodes
+    53..|  	    Current  = mnesia2_lib:intersect(val({current,db_nodes}), [node()|val(recover_nodes)]),
+    53..|  	    NewNodes = mnesia2_lib:uniq(Running++RemoteRunning) -- Current,
+    53..|  	    mnesia2_lib:set(prepare_op, {announce_im_running,NewNodes}),
+    53..|  	    announce_im_running(NewNodes, SchemaCs)
+        |      end,
+    64..|      {false, optional};
+        |  
+        |  prepare_op(_Tid, {op, sync_trans}, {part, CoordPid}) -&gt;
+<font color=red>     0..|      CoordPid ! {sync_trans, self()},</font>
+<font color=red>     0..|      receive</font>
+        |  	{sync_trans, CoordPid} -&gt;
+<font color=red>     0..|  	    {false, optional};</font>
+        |  	{mnesia2_down, _Node} = Else -&gt;
+<font color=red>     0..|  	    mnesia2_lib:verbose("sync_op terminated due to ~p~n", [Else]),</font>
+<font color=red>     0..|  	    mnesia2:abort(Else);</font>
+        |  	{'EXIT', _, _} = Else -&gt;
+<font color=red>     0..|  	    mnesia2_lib:verbose("sync_op terminated due to ~p~n", [Else]),</font>
+<font color=red>     0..|  	    mnesia2:abort(Else)</font>
+        |      end;
+        |  
+        |  prepare_op(_Tid, {op, sync_trans}, {coord, Nodes}) -&gt;
+     2..|      case receive_sync(Nodes, []) of
+        |  	{abort, Reason} -&gt;
+<font color=red>     0..|  	    mnesia2_lib:verbose("sync_op terminated due to ~p~n", [Reason]),</font>
+<font color=red>     0..|  	    mnesia2:abort(Reason);</font>
+        |  	Pids -&gt;
+     2..|  	    [Pid ! {sync_trans, self()} || Pid &lt;- Pids],
+     2..|  	    {false, optional}
+        |      end;
+        |  prepare_op(Tid, {op, create_table, TabDef}, _WaitFor) -&gt;
+   118..|      Cs = list2cs(TabDef),
+   118..|      Storage = mnesia2_lib:cs_to_storage_type(node(), Cs),
+   118..|      UseDir = mnesia2_monitor:use_dir(),
+   118..|      Tab = Cs#cstruct.name,
+   118..|      case Storage of
+        |          disc_copies when UseDir == false -&gt;
+<font color=red>     0..|  	    UseDirReason = {bad_type, Tab, Storage, node()},</font>
+<font color=red>     0..|              mnesia2:abort(UseDirReason);</font>
+        |          disc_only_copies when UseDir == false -&gt;
+<font color=red>     0..|  	    UseDirReason = {bad_type, Tab, Storage, node()},</font>
+<font color=red>     0..|              mnesia2:abort(UseDirReason);</font>
+        |  	ram_copies -&gt;
+    50..|  	    mnesia2_lib:set({Tab, create_table},true),
+    50..|  	    create_ram_table(Tab, Cs),
+    50..|  	    insert_cstruct(Tid, Cs, false),
+    50..|  	    {true, optional};
+        |  	disc_copies -&gt;
+    23..|  	    mnesia2_lib:set({Tab, create_table},true),
+    23..|  	    create_ram_table(Tab, Cs),
+    23..|  	    create_disc_table(Tab),
+    23..|  	    insert_cstruct(Tid, Cs, false),
+    23..|  	    {true, optional};
+        |  	disc_only_copies -&gt;
+     5..|  	    mnesia2_lib:set({Tab, create_table},true),
+     5..|  	    create_disc_only_table(Tab,Cs),
+     5..|  	    insert_cstruct(Tid, Cs, false),
+     5..|  	    {true, optional};
+        |          unknown -&gt; %% No replica on this node
+    40..|  	    mnesia2_lib:set({Tab, create_table},true),
+    40..|  	    insert_cstruct(Tid, Cs, false),
+    40..|              {true, optional}
+        |      end;
+        |  
+        |  prepare_op(Tid, {op, add_table_copy, Storage, Node, TabDef}, _WaitFor) -&gt;
+    10..|      Cs = list2cs(TabDef),
+    10..|      Tab = Cs#cstruct.name,
+        |  
+    10..|      if
+        |  	Tab == schema -&gt;
+     6..|  	    {true, optional};
+        |  
+        |  	Node == node() -&gt;
+     2..|  	    case mnesia2_lib:val({schema, storage_type}) of
+        |  		ram_copies when Storage /= ram_copies -&gt;
+<font color=red>     0..|  		    Error = {combine_error, Tab, "has no disc", Node},</font>
+<font color=red>     0..|  		    mnesia2:abort(Error);</font>
+        |  		_  -&gt;
+     2..|  		    ok
+        |  	    end,
+        |  	    %% Tables are created by mnesia2_loader get_network code
+     2..|  	    insert_cstruct(Tid, Cs, true),
+     2..|  	    case mnesia2_controller:get_network_copy(Tab, Cs) of
+        |  		{loaded, ok} -&gt;
+     2..|  		    {true, optional};
+        |  		{not_loaded, ErrReason} -&gt;
+<font color=red>     0..|  		    Reason = {system_limit, Tab, {Node, ErrReason}},</font>
+<font color=red>     0..|  		    mnesia2:abort(Reason)</font>
+        |  	    end;
+        |  	Node /= node() -&gt;
+        |  	    %% Verify that ram table not has been dumped to disc
+     2..|  	    if
+        |  		Storage /= ram_copies -&gt;
+     1..|  		    case mnesia2_lib:schema_cs_to_storage_type(node(), Cs) of
+        |  			ram_copies -&gt;
+     1..|  			    Dat = mnesia2_lib:tab2dcd(Tab),
+     1..|  			    case mnesia2_lib:exists(Dat) of
+        |  				true -&gt;
+<font color=red>     0..|  				    mnesia2:abort({combine_error, Tab, Storage,</font>
+        |  						  "Table dumped to disc", node()});
+        |  				false -&gt;
+     1..|  				    ok
+        |  			    end;
+        |  			_ -&gt;
+<font color=red>     0..|  			    ok</font>
+        |  		    end;
+        |  		true -&gt;
+     1..|  		    ok
+        |  	    end,
+     2..|  	    insert_cstruct(Tid, Cs, true),
+     2..|  	    {true, optional}
+        |      end;
+        |  
+        |  prepare_op(_Tid, {op, del_table_copy, _Storage, Node, TabDef}, _WaitFor) -&gt;
+     7..|      Cs = list2cs(TabDef),
+     7..|      Tab = Cs#cstruct.name,
+        |  
+     7..|      set_where_to_read(Tab, Node, Cs),
+     7..|      {true, optional};
+        |  
+        |  prepare_op(_Tid, {op, change_table_copy_type,  N, FromS, ToS, TabDef}, _WaitFor)
+        |    when N == node() -&gt;
+<font color=red>     0..|      Cs = list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+        |  
+<font color=red>     0..|      NotActive = mnesia2_lib:not_active_here(Tab),</font>
+        |  
+<font color=red>     0..|      if</font>
+        |  	NotActive == true -&gt;
+<font color=red>     0..|  	    mnesia2:abort({not_active, Tab, node()});</font>
+        |  
+        |  	Tab == schema -&gt;
+<font color=red>     0..|  	    case {FromS, ToS} of</font>
+        |  		{ram_copies, disc_copies} -&gt;
+<font color=red>     0..|  		    case mnesia2:system_info(schema_location) of</font>
+        |  			opt_disc -&gt;
+<font color=red>     0..|  			    ignore;</font>
+        |  			_ -&gt;
+<font color=red>     0..|  			    mnesia2:abort({combine_error,  Tab, node(),</font>
+        |  					  "schema_location must be opt_disc"})
+        |  		    end,
+<font color=red>     0..|  		    Dir = mnesia2_lib:dir(),</font>
+<font color=red>     0..|  		    case opt_create_dir(true, Dir) of</font>
+        |  			ok -&gt;
+<font color=red>     0..|  			    purge_dir(Dir, []),</font>
+<font color=red>     0..|  			    mnesia2_log:purge_all_logs(),</font>
+<font color=red>     0..|  			    set(use_dir, true),</font>
+<font color=red>     0..|  			    mnesia2_log:init(),</font>
+<font color=red>     0..|  			    Ns = val({current, db_nodes}), %mnesia2_lib:running_nodes(),</font>
+<font color=red>     0..|  			    F = fun(U) -&gt; mnesia2_recover:log_mnesia2_up(U) end,</font>
+<font color=red>     0..|  			    lists:foreach(F, Ns),</font>
+        |  
+<font color=red>     0..|  			    mnesia2_dumper:raw_named_dump_table(Tab, dmp),</font>
+<font color=red>     0..|  			    mnesia2_checkpoint:tm_change_table_copy_type(Tab, FromS, ToS);</font>
+        |  			{error, Reason} -&gt;
+<font color=red>     0..|  			    mnesia2:abort(Reason)</font>
+        |  		    end;
+        |  		{disc_copies, ram_copies} -&gt;
+<font color=red>     0..|  		    Ltabs = val({schema, local_tables}) -- [schema],</font>
+<font color=red>     0..|  		    Dtabs = [L || L &lt;- Ltabs,</font>
+<font color=red>     0..|  				  val({L, storage_type}) /= ram_copies],</font>
+<font color=red>     0..|  		    verify([], Dtabs, {"Disc resident tables", Dtabs, N});</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    mnesia2:abort({combine_error, Tab, ToS})</font>
+        |  	    end;
+        |  
+        |  	FromS == ram_copies -&gt;
+<font color=red>     0..|  	    case mnesia2_monitor:use_dir() of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    Dat = mnesia2_lib:tab2dcd(Tab),</font>
+<font color=red>     0..|  		    case mnesia2_lib:exists(Dat) of</font>
+        |  			true -&gt;
+<font color=red>     0..|  			    mnesia2:abort({combine_error, Tab, node(),</font>
+        |  					  "Table dump exists"});
+        |  			false -&gt;
+<font color=red>     0..|  			    case ToS of</font>
+        |  				disc_copies -&gt;
+<font color=red>     0..|  				    mnesia2_log:ets2dcd(Tab, dmp);</font>
+        |  				disc_only_copies -&gt;
+<font color=red>     0..|  				    mnesia2_dumper:raw_named_dump_table(Tab, dmp)</font>
+        |  			    end,
+<font color=red>     0..|  			    mnesia2_checkpoint:tm_change_table_copy_type(Tab, FromS, ToS)</font>
+        |  		    end;
+        |  		false -&gt;
+<font color=red>     0..|  		    mnesia2:abort({has_no_disc, node()})</font>
+        |  	    end;
+        |  
+        |  	FromS == disc_copies, ToS == disc_only_copies -&gt;
+<font color=red>     0..|  	    mnesia2_dumper:raw_named_dump_table(Tab, dmp);</font>
+        |  	FromS == disc_only_copies -&gt;
+<font color=red>     0..|  	    Type = Cs#cstruct.type,</font>
+<font color=red>     0..|  	    create_ram_table(Tab, Cs),</font>
+<font color=red>     0..|  	    Datname = mnesia2_lib:tab2dat(Tab),</font>
+<font color=red>     0..|  	    Repair = mnesia2_monitor:get_env(auto_repair),</font>
+<font color=red>     0..|  	    case mnesia2_lib:dets_to_ets(Tab, Tab, Datname, Type, Repair, no) of</font>
+<font color=red>     0..|  		loaded -&gt; ok;</font>
+        |  		Reason -&gt;
+<font color=red>     0..|  		    Err = "Failed to copy disc data to ram",</font>
+<font color=red>     0..|  		    mnesia2:abort({system_limit, Tab, {Err,Reason}})</font>
+        |  	    end;
+        |  	true -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      {true, mandatory};</font>
+        |  
+        |  prepare_op(_Tid, {op, change_table_copy_type,  N, _FromS, _ToS, _TabDef}, _WaitFor)
+        |    when N /= node() -&gt;
+     4..|      {true, mandatory};
+        |  
+        |  prepare_op(_Tid, {op, delete_table, _TabDef}, _WaitFor) -&gt;
+     1..|      {true, mandatory};
+        |  
+        |  prepare_op(_Tid, {op, dump_table, unknown, TabDef}, _WaitFor) -&gt;
+     1..|      Cs = list2cs(TabDef),
+     1..|      Tab = Cs#cstruct.name,
+     1..|      case lists:member(node(), Cs#cstruct.ram_copies) of
+        |          true -&gt;
+<font color=red>     0..|  	    case mnesia2_monitor:use_dir() of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    mnesia2_log:ets2dcd(Tab, dmp),</font>
+<font color=red>     0..|  		    Size = mnesia2:table_info(Tab, size),</font>
+<font color=red>     0..|  		    {true, [{op, dump_table, Size, TabDef}], optional};</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    mnesia2:abort({has_no_disc, node()})</font>
+        |  	    end;
+        |          false -&gt;
+     1..|              {false, optional}
+        |      end;
+        |  
+        |  prepare_op(_Tid, {op, add_snmp, Ustruct, TabDef}, _WaitFor) -&gt;
+     2..|      Cs = list2cs(TabDef),
+     2..|      case mnesia2_lib:cs_to_storage_type(node(), Cs) of
+        |          unknown -&gt;
+<font color=red>     0..|              {true, optional};</font>
+        |          Storage -&gt;
+     2..|              Tab = Cs#cstruct.name,
+     2..|              Stab = mnesia2_snmp_hook:create_table(Ustruct, Tab, Storage),
+     1..|              mnesia2_lib:set({Tab, {index, snmp}}, Stab),
+     1..|              {true, optional}
+        |      end;
+        |  
+        |  prepare_op(_Tid, {op, transform, ignore, _TabDef}, _WaitFor) -&gt;
+<font color=red>     0..|      {true, mandatory};   %% Apply schema changes only.</font>
+        |  prepare_op(_Tid, {op, transform, Fun, TabDef}, _WaitFor) -&gt;
+     2..|      Cs = list2cs(TabDef),
+     2..|      case mnesia2_lib:cs_to_storage_type(node(), Cs) of
+        |          unknown -&gt;
+     1..|              {true, mandatory};
+        |          Storage -&gt;
+     1..|              Tab = Cs#cstruct.name,
+     1..|              RecName = Cs#cstruct.record_name,
+     1..|  	    Type = Cs#cstruct.type,
+     1..|              NewArity = length(Cs#cstruct.attributes) + 1,
+     1..|  	    mnesia2_lib:db_fixtable(Storage, Tab, true),
+     1..|              Key = mnesia2_lib:db_first(Tab),
+     1..|  	    Op = {op, transform, Fun, TabDef},
+     1..|              try transform_objs(Fun, Tab, RecName, Key,
+        |  			       NewArity, Storage, Type, [Op]) of
+        |                  Objs -&gt;
+     1..|  		    mnesia2_lib:db_fixtable(Storage, Tab, false),
+     1..|                      {true, Objs, mandatory}
+        |  	    catch _:Reason -&gt;
+<font color=red>     0..|  		    mnesia2_lib:db_fixtable(Storage, Tab, false),</font>
+<font color=red>     0..|                      exit({"Bad transform function", Tab, Fun, node(), Reason})</font>
+        |              end
+        |      end;
+        |  
+        |  prepare_op(_Tid, {op, merge_schema, TabDef}, _WaitFor) -&gt;
+    41..|      Cs = list2cs(TabDef),
+    41..|      case verify_merge(Cs) of
+        |  	ok  -&gt;
+    41..|  	    {true, optional};
+        |  	Error -&gt;
+<font color=red>     0..|  	    verbose("Merge_Schema ~p failed on ~p: ~p~n", [_Tid,node(),Error]),</font>
+<font color=red>     0..|  	    mnesia2:abort({bad_commit, Error})</font>
+        |      end;
+        |  prepare_op(_Tid, _Op, _WaitFor) -&gt;
+     7..|      {true, optional}.
+        |  
+        |  create_ram_table(Tab, #cstruct{type=Type, storage_properties=Props}) -&gt;
+    73..|      EtsOpts = proplists:get_value(ets, Props, []),
+    73..|      Args = [{keypos, 2}, public, named_table, Type | EtsOpts],
+    73..|      case mnesia2_monitor:unsafe_mktab(Tab, Args) of
+        |  	Tab -&gt;
+    73..|  	    ok;
+        |  	{error,Reason} -&gt;
+<font color=red>     0..|  	    Err = "Failed to create ets table",</font>
+<font color=red>     0..|  	    mnesia2:abort({system_limit, Tab, {Err,Reason}})</font>
+        |      end.
+        |  
+        |  create_disc_table(Tab) -&gt;
+    23..|      File = mnesia2_lib:tab2dcd(Tab),
+    23..|      file:delete(File),
+    23..|      FArg = [{file, File}, {name, {mnesia2,create}},
+        |  	    {repair, false}, {mode, read_write}],
+    23..|      case mnesia2_monitor:open_log(FArg) of
+        |  	{ok,Log} -&gt;
+    23..|  	    mnesia2_monitor:unsafe_close_log(Log),
+    23..|  	    ok;
+        |  	{error,Reason} -&gt;
+<font color=red>     0..|  	    Err = "Failed to create disc table",</font>
+<font color=red>     0..|  	    mnesia2:abort({system_limit, Tab, {Err,Reason}})</font>
+        |      end.
+        |  create_disc_only_table(Tab, #cstruct{type=Type, storage_properties=Props}) -&gt;
+     5..|      File = mnesia2_lib:tab2dat(Tab),
+     5..|      file:delete(File),
+     5..|      DetsOpts = proplists:get_value(dets, Props, []),
+     5..|      Args = [{file, mnesia2_lib:tab2dat(Tab)},
+        |  	    {type, mnesia2_lib:disk_type(Tab, Type)},
+        |  	    {keypos, 2},
+        |  	    {repair, mnesia2_monitor:get_env(auto_repair)}
+        |  	    | DetsOpts],
+     5..|      case mnesia2_monitor:unsafe_open_dets(Tab, Args) of
+        |  	{ok, _} -&gt;
+     5..|  	    ok;
+        |  	{error,Reason} -&gt;
+<font color=red>     0..|  	    Err = "Failed to create disc table",</font>
+<font color=red>     0..|  	    mnesia2:abort({system_limit, Tab, {Err,Reason}})</font>
+        |      end.
+        |  
+        |  
+        |  receive_sync([], Pids) -&gt;
+     2..|      Pids;
+        |  receive_sync(Nodes, Pids) -&gt;
+     2..|      receive
+        |  	{sync_trans, Pid} -&gt;
+     2..|  	    Node = node(Pid),
+     2..|  	    receive_sync(lists:delete(Node, Nodes), [Pid | Pids]);
+        |  	Else -&gt;
+<font color=red>     0..|  	    {abort, Else}</font>
+        |      end.
+        |  
+        |  set_where_to_read(Tab, Node, Cs) -&gt;
+     7..|      case mnesia2_lib:val({Tab, where_to_read}) of
+        |  	Node -&gt;
+     2..|  	    case Cs#cstruct.local_content of
+        |  		true -&gt;
+<font color=red>     0..|  		    ok;</font>
+        |  		false -&gt;
+     2..|  		    mnesia2_lib:set_remote_where_to_read(Tab, [Node]),
+     2..|  		    ok
+        |  	    end;
+        |  	_ -&gt;
+     5..|  	    ok
+        |      end.
+        |  
+        |  %% Build up the list in reverse order.
+        |  transform_objs(_Fun, _Tab, _RT, '$end_of_table', _NewArity, _Storage, _Type, Acc) -&gt;
+     1..|      Acc;
+        |  transform_objs(Fun, Tab, RecName, Key, A, Storage, Type, Acc) -&gt;
+    25..|      Objs = mnesia2_lib:db_get(Tab, Key),
+    25..|      NextKey = mnesia2_lib:db_next_key(Tab, Key),
+    25..|      Oid = {Tab, Key},
+    25..|      NewObjs = {Ws, Ds} = transform_obj(Tab, RecName, Key, Fun, Objs, A, Type, [], []),
+    25..|      if
+        |  	NewObjs == {[], []} -&gt;
+<font color=red>     0..|  	    transform_objs(Fun, Tab, RecName, NextKey, A, Storage, Type, Acc);</font>
+        |  	Type == bag -&gt;
+<font color=red>     0..|  	    transform_objs(Fun, Tab, RecName, NextKey, A, Storage, Type,</font>
+        |  			   [{op, rec, Storage, {Oid, Ws, write}},
+        |  			    {op, rec, Storage, {Oid, [Oid], delete}} | Acc]);
+        |  	Ds == [] -&gt;
+        |  	    %% Type is set or ordered_set, no need to delete the record first
+    25..|  	    transform_objs(Fun, Tab, RecName, NextKey, A, Storage, Type,
+        |  			   [{op, rec, Storage, {Oid, Ws, write}} | Acc]);
+        |  	Ws == [] -&gt;
+<font color=red>     0..|  	    transform_objs(Fun, Tab, RecName, NextKey, A, Storage, Type,</font>
+        |  			   [{op, rec, Storage, {Oid, Ds, write}} | Acc]);
+        |  	true -&gt;
+<font color=red>     0..|  	    transform_objs(Fun, Tab, RecName, NextKey, A, Storage, Type,</font>
+        |  			   [{op, rec, Storage, {Oid, Ws, write}},
+        |  			    {op, rec, Storage, {Oid, Ds, delete}} | Acc])
+        |      end.
+        |  
+        |  transform_obj(Tab, RecName, Key, Fun, [Obj|Rest], NewArity, Type, Ws, Ds) -&gt;
+    25..|      NewObj = Fun(Obj),
+    25..|      if
+        |          size(NewObj) /= NewArity -&gt;
+<font color=red>     0..|              exit({"Bad arity", Obj, NewObj});</font>
+        |  	NewObj == Obj -&gt;
+<font color=red>     0..|  	    transform_obj(Tab, RecName, Key, Fun, Rest, NewArity, Type, Ws, Ds);</font>
+        |          RecName == element(1, NewObj), Key == element(2, NewObj) -&gt;
+    25..|              transform_obj(Tab, RecName, Key, Fun, Rest, NewArity,
+        |  			  Type, [NewObj | Ws], Ds);
+        |  	NewObj == delete -&gt;
+<font color=red>     0..|  	    case Type of</font>
+        |  		bag -&gt; %% Just don't write that object
+<font color=red>     0..|  		   transform_obj(Tab, RecName, Key, Fun, Rest,</font>
+        |  				 NewArity, Type, Ws, Ds);
+        |  		_ -&gt;
+<font color=red>     0..|  		    transform_obj(Tab, RecName, Key, Fun, Rest, NewArity,</font>
+        |  				  Type, Ws, [NewObj | Ds])
+        |  	    end;
+        |          true -&gt;
+<font color=red>     0..|              exit({"Bad key or Record Name", Obj, NewObj})</font>
+        |      end;
+        |  transform_obj(_Tab, _RecName, _Key, _Fun, [], _NewArity, _Type, Ws, Ds) -&gt;
+    25..|      {lists:reverse(Ws), lists:reverse(Ds)}.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Undo prepare of commit
+        |  undo_prepare_commit(Tid, Commit) -&gt;
+     1..|      case Commit#commit.schema_ops of
+        |  	[] -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	Ops -&gt;
+        |  	    %% Catch to allow failure mnesia2_controller may not be started
+     1..|  	    ?SAFE(mnesia2_controller:release_schema_commit_lock()),
+     1..|  	    undo_prepare_ops(Tid, Ops)
+        |      end,
+     1..|      Commit.
+        |  
+        |  %% Undo in reverse order
+        |  undo_prepare_ops(Tid, [Op | Ops]) -&gt;
+     1..|      case element(1, Op) of
+        |  	TheOp when TheOp /= op, TheOp /= restore_op -&gt;
+<font color=red>     0..|  	    undo_prepare_ops(Tid, Ops);</font>
+        |  	_ -&gt;
+     1..|  	    undo_prepare_ops(Tid, Ops),
+     1..|  	    undo_prepare_op(Tid, Op)
+        |      end;
+        |  undo_prepare_ops(_Tid, []) -&gt;
+     1..|      [].
+        |  
+        |  undo_prepare_op(_Tid, {op, announce_im_running, _Node, _, _Running, _RemoteRunning}) -&gt;
+<font color=red>     0..|      case ?catch_val(prepare_op) of</font>
+        |  	{announce_im_running, New} -&gt;
+<font color=red>     0..|              unannounce_im_running(New);</font>
+        |  	_Else -&gt;
+<font color=red>     0..|  	    ok</font>
+        |      end;
+        |  
+        |  undo_prepare_op(_Tid, {op, sync_trans}) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  
+        |  undo_prepare_op(Tid, {op, create_table, TabDef}) -&gt;
+<font color=red>     0..|      Cs = list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      mnesia2_lib:unset({Tab, create_table}),</font>
+<font color=red>     0..|      delete_cstruct(Tid, Cs),</font>
+<font color=red>     0..|      case mnesia2_lib:cs_to_storage_type(node(), Cs) of</font>
+        |  	unknown -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	ram_copies -&gt;
+<font color=red>     0..|  	    ram_delete_table(Tab, ram_copies);</font>
+        |  	disc_copies -&gt;
+<font color=red>     0..|  	    ram_delete_table(Tab, disc_copies),</font>
+<font color=red>     0..|  	    DcdFile = mnesia2_lib:tab2dcd(Tab),</font>
+        |  	    %%	    disc_delete_table(Tab, Storage),
+<font color=red>     0..|  	    file:delete(DcdFile);</font>
+        |  	disc_only_copies -&gt;
+<font color=red>     0..|  	    mnesia2_monitor:unsafe_close_dets(Tab),</font>
+<font color=red>     0..|  	    Dat = mnesia2_lib:tab2dat(Tab),</font>
+        |  	    %%	    disc_delete_table(Tab, Storage),
+<font color=red>     0..|  	    file:delete(Dat)</font>
+        |      end;
+        |  
+        |  undo_prepare_op(Tid, {op, add_table_copy, Storage, Node, TabDef}) -&gt;
+<font color=red>     0..|      Cs = list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      if</font>
+        |  	Tab == schema -&gt;
+<font color=red>     0..|  	    true; % Nothing to prepare</font>
+        |  	Node == node() -&gt;
+<font color=red>     0..|  	    mnesia2_checkpoint:tm_del_copy(Tab, Node),</font>
+<font color=red>     0..|  	    mnesia2_controller:unannounce_add_table_copy(Tab, Node),</font>
+<font color=red>     0..|  	    if</font>
+        |  		Storage == disc_only_copies; Tab == schema -&gt;
+<font color=red>     0..|  		    mnesia2_monitor:close_dets(Tab),</font>
+<font color=red>     0..|  		    file:delete(mnesia2_lib:tab2dat(Tab));</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    file:delete(mnesia2_lib:tab2dcd(Tab))</font>
+        |  	    end,
+<font color=red>     0..|  	    ram_delete_table(Tab, Storage),</font>
+<font color=red>     0..|  	    Cs2 = new_cs(Cs, Node, Storage, del),</font>
+<font color=red>     0..|  	    insert_cstruct(Tid, Cs2, true); % Don't care about the version</font>
+        |  	Node /= node() -&gt;
+<font color=red>     0..|  	    mnesia2_controller:unannounce_add_table_copy(Tab, Node),</font>
+<font color=red>     0..|  	    Cs2 = new_cs(Cs, Node, Storage, del),</font>
+<font color=red>     0..|  	    insert_cstruct(Tid, Cs2, true) % Don't care about the version</font>
+        |      end;
+        |  
+        |  undo_prepare_op(_Tid, {op, del_table_copy, _, Node, TabDef}) -&gt;
+<font color=red>     0..|      Cs = list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      if node() =:= Node -&gt;</font>
+<font color=red>     0..|         mnesia2_lib:set({Tab, where_to_read}, Node);</font>
+        |         true -&gt;
+<font color=red>     0..|         case mnesia2_lib:val({Tab, where_to_read}) of</font>
+        |         nowhere -&gt;
+<font color=red>     0..|             mnesia2_lib:set_remote_where_to_read(Tab);</font>
+        |         true -&gt;
+<font color=red>     0..|             ignore</font>
+        |         end
+        |      end;
+        |  
+        |  undo_prepare_op(_Tid, {op, change_table_copy_type, N, FromS, ToS, TabDef})
+        |          when N == node() -&gt;
+<font color=red>     0..|      Cs = list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      mnesia2_checkpoint:tm_change_table_copy_type(Tab, ToS, FromS),</font>
+<font color=red>     0..|      Dmp = mnesia2_lib:tab2dmp(Tab),</font>
+        |  
+<font color=red>     0..|      case {FromS, ToS} of</font>
+        |          {ram_copies, disc_copies} when Tab == schema -&gt;
+<font color=red>     0..|              file:delete(Dmp),</font>
+<font color=red>     0..|              mnesia2_log:purge_some_logs(),</font>
+<font color=red>     0..|  	    set(use_dir, false);</font>
+        |  	{ram_copies, disc_copies} -&gt;
+<font color=red>     0..|  	    file:delete(Dmp);</font>
+        |  	{ram_copies, disc_only_copies} -&gt;
+<font color=red>     0..|  	    file:delete(Dmp);</font>
+        |  	{disc_only_copies, _} -&gt;
+<font color=red>     0..|  	    ram_delete_table(Tab, ram_copies);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end;
+        |  
+        |  undo_prepare_op(_Tid, {op, dump_table, _Size, TabDef}) -&gt;
+<font color=red>     0..|      Cs = list2cs(TabDef),</font>
+<font color=red>     0..|      case lists:member(node(), Cs#cstruct.ram_copies) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|  	    Dmp = mnesia2_lib:tab2dmp(Tab),</font>
+<font color=red>     0..|  	    file:delete(Dmp);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end;
+        |  
+        |  undo_prepare_op(_Tid, {op, add_snmp, _Ustruct, TabDef}) -&gt;
+     1..|      Cs = list2cs(TabDef),
+     1..|      case mnesia2_lib:cs_to_storage_type(node(), Cs) of
+        |  	unknown -&gt;
+<font color=red>     0..|  	    true;</font>
+        |  	_Storage -&gt;
+     1..|  	    Tab = Cs#cstruct.name,
+     1..|  	    case ?catch_val({Tab, {index, snmp}}) of
+        |  		{'EXIT',_} -&gt;
+     1..|  		    ignore;
+        |  		Stab -&gt;
+<font color=red>     0..|  		    mnesia2_snmp_hook:delete_table(Tab, Stab),</font>
+<font color=red>     0..|  		    mnesia2_lib:unset({Tab, {index, snmp}})</font>
+        |  	    end
+        |      end;
+        |  
+        |  undo_prepare_op(_Tid, _Op) -&gt;
+<font color=red>     0..|      ignore.</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  ram_delete_table(Tab, Storage) -&gt;
+     3..|      case Storage of
+        |  	unknown -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	disc_only_copies -&gt;
+     1..|  	    ignore;
+        |  	_Else -&gt;
+        |  	    %% delete possible index files and data .....
+        |  	    %% Got to catch this since if no info has been set in the
+        |  	    %% mnesia2_gvar it will crash
+     2..|  	    ?CATCH(mnesia2_index:del_transient(Tab, Storage)),
+     2..|  	    case ?catch_val({Tab, {index, snmp}}) of
+        |  		{'EXIT', _} -&gt;
+     2..|  		    ignore;
+        |  		Etab -&gt;
+<font color=red>     0..|  		    ?SAFE(mnesia2_snmp_hook:delete_table(Tab, Etab))</font>
+        |  	    end,
+     2..|  	    ?SAFE(?ets_delete_table(Tab))
+        |      end.
+        |  
+        |  purge_dir(Dir, KeepFiles) -&gt;
+   151..|      Suffixes = known_suffixes(),
+   151..|      purge_dir(Dir, KeepFiles, Suffixes).
+        |  
+        |  purge_dir(Dir, KeepFiles, Suffixes) -&gt;
+   211..|      case dir_exists(Dir) of
+        |  	true -&gt;
+   148..|  	    {ok, AllFiles} = file:list_dir(Dir),
+   148..|  	    purge_known_files(AllFiles, KeepFiles, Dir, Suffixes);
+        |  	false -&gt;
+    63..|  	    ok
+        |      end.
+        |  
+        |  purge_tmp_files() -&gt;
+    71..|      case mnesia2_monitor:use_dir() of
+        |  	true -&gt;
+    60..|  	    Dir = mnesia2_lib:dir(),
+    60..|  	    KeepFiles = [],
+    60..|  	    Exists = mnesia2_lib:exists(mnesia2_lib:tab2dat(schema)),
+    60..|  	    case Exists of
+        |  		true -&gt;
+    60..|  		    Suffixes = tmp_suffixes(),
+    60..|  		    purge_dir(Dir, KeepFiles, Suffixes);
+        |  		false -&gt;
+        |  		    %% Interrupted change of storage type
+        |  		    %% for schema table
+<font color=red>     0..|  		    Suffixes = known_suffixes(),</font>
+<font color=red>     0..|  		    purge_dir(Dir, KeepFiles, Suffixes),</font>
+<font color=red>     0..|  		    mnesia2_lib:set(use_dir, false)</font>
+        |  		end;
+        |  
+        |  	false -&gt;
+    11..|  	    ok
+        |      end.
+        |  
+        |  purge_known_files([File | Tail], KeepFiles, Dir, Suffixes) -&gt;
+   358..|      case lists:member(File, KeepFiles) of
+        |  	true -&gt;
+    46..|  	    ignore;
+        |  	false -&gt;
+   312..|  	    case has_known_suffix(File, Suffixes, false) of
+        |  		false -&gt;
+   163..|  		    ignore;
+        |  		true -&gt;
+   149..|  		    AbsFile = filename:join([Dir, File]),
+   149..|  		    file:delete(AbsFile)
+        |  	    end
+        |      end,
+   358..|      purge_known_files(Tail, KeepFiles, Dir, Suffixes);
+        |  purge_known_files([], _KeepFiles, _Dir, _Suffixes) -&gt;
+   148..|      ok.
+        |  
+        |  has_known_suffix(_File, _Suffixes, true) -&gt;
+   149..|      true;
+        |  has_known_suffix(File, [Suffix | Tail], false) -&gt;
+   982..|      has_known_suffix(File, Tail, lists:suffix(Suffix, File));
+        |  has_known_suffix(_File, [], Bool) -&gt;
+   163..|      Bool.
+        |  
+   151..|  known_suffixes() -&gt; real_suffixes() ++ tmp_suffixes().
+        |  
+   151..|  real_suffixes() -&gt;  [".DAT", ".LOG", ".BUP", ".DCL", ".DCD"].
+        |  
+   211..|  tmp_suffixes() -&gt; [".TMP", ".BUPTMP", ".RET", ".DMP"].
+        |  
+        |  info() -&gt;
+     1..|      Tabs = lists:sort(val({schema, tables})),
+     1..|      lists:foreach(fun(T) -&gt; info(T) end, Tabs),
+     1..|      ok.
+        |  
+        |  info(Tab) -&gt;
+     3..|      Props = get_table_properties(Tab),
+     3..|      io:format("-- Properties for ~w table --- ~n",[Tab]),
+     3..|      info2(Tab, Props).
+        |  info2(Tab, [{cstruct, _V} | Tail]) -&gt; % Ignore cstruct
+     3..|      info2(Tab, Tail);
+        |  info2(Tab, [{frag_hash, _V} | Tail]) -&gt; % Ignore frag_hash
+<font color=red>     0..|      info2(Tab, Tail);</font>
+        |  info2(Tab, [{P, V} | Tail]) -&gt;
+   110..|      io:format("~-20w -&gt; ~p~n",[P,V]),
+   110..|      info2(Tab, Tail);
+        |  info2(_, []) -&gt;
+     3..|      io:format("~n", []).
+        |  
+        |  get_table_properties(Tab) -&gt;
+     3..|      try mnesia2_lib:db_match_object(ram_copies, mnesia2_gvar, {{Tab, '_'}, '_'}) of
+        |  	RawGvar -&gt;
+     3..|  	    case [{Item, Val} || {{_Tab, Item}, Val} &lt;- RawGvar] of
+        |  		[] -&gt;
+<font color=red>     0..|  		    [];</font>
+        |  		Gvar -&gt;
+     3..|  		    Size = {size, mnesia2:table_info(Tab, size)},
+     3..|  		    Memory = {memory, mnesia2:table_info(Tab, memory)},
+     3..|  		    Master = {master_nodes, mnesia2:table_info(Tab, master_nodes)},
+     3..|  		    lists:sort([Size, Memory, Master | Gvar])
+        |  	    end
+        |      catch error:_ -&gt;
+<font color=red>     0..|  	    mnesia2:abort({no_exists, Tab, all})</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%% RESTORE %%%%%%%%%%%
+        |  
+        |  -record(r, {iter = schema,
+        |  	    module,
+        |  	    table_options = [],
+        |  	    default_op = clear_tables,
+        |  	    tables = [],
+        |  	    opaque,
+        |  	    insert_op = error_fun,
+        |  	    recs = error_recs
+        |  	   }).
+        |  
+        |  restore(Opaque) -&gt;
+<font color=red>     0..|      restore(Opaque, [], mnesia2_monitor:get_env(backup_module)).</font>
+        |  restore(Opaque, Args) when is_list(Args) -&gt;
+<font color=red>     0..|      restore(Opaque, Args, mnesia2_monitor:get_env(backup_module));</font>
+        |  restore(_Opaque, BadArg) -&gt;
+<font color=red>     0..|      {aborted, {badarg, BadArg}}.</font>
+        |  restore(Opaque, Args, Module) when is_list(Args), is_atom(Module) -&gt;
+<font color=red>     0..|      InitR = #r{opaque = Opaque, module = Module},</font>
+<font color=red>     0..|      try lists:foldl(fun check_restore_arg/2, InitR, Args) of</font>
+        |  	R when is_record(R, r) -&gt;
+<font color=red>     0..|  	    case mnesia2_bup:read_schema(R#r.module, Opaque) of</font>
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    {aborted, Reason};</font>
+        |  		BupSchema -&gt;
+<font color=red>     0..|  		    schema_transaction(fun() -&gt; do_restore(R, BupSchema) end)</font>
+        |  	    end
+        |      catch exit:Reason -&gt;
+<font color=red>     0..|  	    {aborted, Reason}</font>
+        |      end;
+        |  restore(_Opaque, Args, Module) -&gt;
+<font color=red>     0..|      {aborted, {badarg, Args, Module}}.</font>
+        |  
+        |  check_restore_arg({module, Mod}, R) when is_atom(Mod) -&gt;
+<font color=red>     0..|      R#r{module = Mod};</font>
+        |  
+        |  check_restore_arg({clear_tables, List}, R) when is_list(List) -&gt;
+<font color=red>     0..|      case lists:member(schema, List) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    TableList = [{Tab, clear_tables} || Tab &lt;- List],</font>
+<font color=red>     0..|  	    R#r{table_options = R#r.table_options ++ TableList};</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    exit({badarg, {clear_tables, schema}})</font>
+        |      end;
+        |  check_restore_arg({recreate_tables, List}, R) when is_list(List) -&gt;
+<font color=red>     0..|      case lists:member(schema, List) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    TableList = [{Tab, recreate_tables} || Tab &lt;- List],</font>
+<font color=red>     0..|  	    R#r{table_options = R#r.table_options ++ TableList};</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    exit({badarg, {recreate_tables, schema}})</font>
+        |      end;
+        |  check_restore_arg({keep_tables, List}, R) when is_list(List) -&gt;
+<font color=red>     0..|      TableList = [{Tab, keep_tables} || Tab &lt;- List],</font>
+<font color=red>     0..|      R#r{table_options = R#r.table_options ++ TableList};</font>
+        |  check_restore_arg({skip_tables, List}, R) when is_list(List) -&gt;
+<font color=red>     0..|      TableList = [{Tab, skip_tables} || Tab &lt;- List],</font>
+<font color=red>     0..|      R#r{table_options = R#r.table_options ++ TableList};</font>
+        |  check_restore_arg({default_op, Op}, R) -&gt;
+<font color=red>     0..|      case Op of</font>
+<font color=red>     0..|  	clear_tables -&gt; ok;</font>
+<font color=red>     0..|  	recreate_tables -&gt; ok;</font>
+<font color=red>     0..|  	keep_tables -&gt; ok;</font>
+<font color=red>     0..|  	skip_tables -&gt; ok;</font>
+        |  	Else -&gt;
+<font color=red>     0..|  	    exit({badarg, {bad_default_op, Else}})</font>
+        |      end,
+<font color=red>     0..|      R#r{default_op = Op};</font>
+        |  
+        |  check_restore_arg(BadArg,_) -&gt;
+<font color=red>     0..|      exit({badarg, BadArg}).</font>
+        |  
+        |  do_restore(R, BupSchema) -&gt;
+<font color=red>     0..|      TidTs = get_tid_ts_and_lock(schema, write),</font>
+<font color=red>     0..|      R2 = restore_schema(BupSchema, R),</font>
+<font color=red>     0..|      insert_schema_ops(TidTs, [{restore_op, R2}]),</font>
+<font color=red>     0..|      [element(1, TabStruct) || TabStruct &lt;- R2#r.tables].</font>
+        |  
+        |  arrange_restore(R, Fun, Recs) -&gt;
+<font color=red>     0..|      R2 = R#r{insert_op = Fun, recs = Recs},</font>
+<font color=red>     0..|      case mnesia2_bup:iterate(R#r.module, fun restore_items/4, R#r.opaque, R2) of</font>
+<font color=red>     0..|  	{ok, R3} -&gt; R3#r.recs;</font>
+<font color=red>     0..|  	{error, Reason} -&gt; mnesia2:abort(Reason)</font>
+        |      end.
+        |  
+        |  restore_items([Rec | Recs], Header, Schema, R) -&gt;
+<font color=red>     0..|      Tab = element(1, Rec),</font>
+<font color=red>     0..|      case lists:keysearch(Tab, 1, R#r.tables) of</font>
+        |  	{value, {Tab, Where0, Snmp, RecName}} -&gt;
+<font color=red>     0..|  	    Where = case Where0 of</font>
+        |  			undefined -&gt;
+<font color=red>     0..|  			    val({Tab, where_to_commit});</font>
+        |  			_ -&gt;
+<font color=red>     0..|  			    Where0</font>
+        |  		    end,
+<font color=red>     0..|  	    {Rest, NRecs} = restore_tab_items([Rec | Recs], Tab,</font>
+        |  					      RecName, Where, Snmp,
+        |  					      R#r.recs, R#r.insert_op),
+<font color=red>     0..|  	    restore_items(Rest, Header, Schema, R#r{recs = NRecs});</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    Rest = skip_tab_items(Recs, Tab),</font>
+<font color=red>     0..|  	    restore_items(Rest, Header, Schema, R)</font>
+        |      end;
+        |  
+        |  restore_items([], _Header, _Schema, R) -&gt;
+<font color=red>     0..|      R.</font>
+        |  
+        |  restore_func(Tab, R) -&gt;
+<font color=red>     0..|      case lists:keysearch(Tab, 1, R#r.table_options) of</font>
+        |  	{value, {Tab, OP}} -&gt;
+<font color=red>     0..|  	    OP;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    R#r.default_op</font>
+        |      end.
+        |  
+        |  where_to_commit(Tab, CsList) -&gt;
+<font color=red>     0..|      Ram =   [{N, ram_copies} || N &lt;- pick(Tab, ram_copies, CsList, [])],</font>
+<font color=red>     0..|      Disc =  [{N, disc_copies} || N &lt;- pick(Tab, disc_copies, CsList, [])],</font>
+<font color=red>     0..|      DiscO = [{N, disc_only_copies} || N &lt;- pick(Tab, disc_only_copies, CsList, [])],</font>
+<font color=red>     0..|      Ram ++ Disc ++ DiscO.</font>
+        |  
+        |  %% Changes of the Meta info of schema itself is not allowed
+        |  restore_schema([{schema, schema, _List} | Schema], R) -&gt;
+<font color=red>     0..|      restore_schema(Schema, R);</font>
+        |  restore_schema([{schema, Tab, List} | Schema], R) -&gt;
+<font color=red>     0..|      case restore_func(Tab, R) of</font>
+        |  	clear_tables -&gt;
+<font color=red>     0..|  	    do_clear_table(Tab),</font>
+<font color=red>     0..|  	    Snmp = val({Tab, snmp}),</font>
+<font color=red>     0..|  	    RecName = val({Tab, record_name}),</font>
+<font color=red>     0..|  	    R2 = R#r{tables = [{Tab, undefined, Snmp, RecName} | R#r.tables]},</font>
+<font color=red>     0..|  	    restore_schema(Schema, R2);</font>
+        |  	recreate_tables -&gt;
+<font color=red>     0..|  	    TidTs = case ?catch_val({Tab, cstruct}) of</font>
+        |  			{'EXIT', _} -&gt;
+<font color=red>     0..|  			    TTs = {_Mod, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|  			    RunningNodes = val({current, db_nodes}),</font>
+<font color=red>     0..|  			    Nodes = mnesia2_lib:intersect(mnesia2_lib:cs_to_nodes(list2cs(List)),</font>
+        |  							 RunningNodes),
+<font color=red>     0..|  			    mnesia2_locker:wlock_no_exist(Tid, Ts#tidstore.store, Tab, Nodes),</font>
+<font color=red>     0..|  			    TTs;</font>
+        |  			_ -&gt;
+<font color=red>     0..|  			    get_tid_ts_and_lock(Tab, write)</font>
+        |  		    end,
+<font color=red>     0..|  	    NC    = {cookie, ?unique_cookie},</font>
+<font color=red>     0..|  	    List2 = lists:keyreplace(cookie, 1, List, NC),</font>
+<font color=red>     0..|  	    Where = where_to_commit(Tab, List2),</font>
+<font color=red>     0..|  	    Snmp  = pick(Tab, snmp, List2, []),</font>
+<font color=red>     0..|  	    RecName = pick(Tab, record_name, List2, Tab),</font>
+<font color=red>     0..|  	    insert_schema_ops(TidTs, [{op, restore_recreate, List2}]),</font>
+<font color=red>     0..|  	    R2 = R#r{tables = [{Tab, Where, Snmp, RecName} | R#r.tables]},</font>
+<font color=red>     0..|  	    restore_schema(Schema, R2);</font>
+        |  	keep_tables -&gt;
+<font color=red>     0..|  	    get_tid_ts_and_lock(Tab, write),</font>
+<font color=red>     0..|  	    Snmp = val({Tab, snmp}),</font>
+<font color=red>     0..|  	    RecName = val({Tab, record_name}),</font>
+<font color=red>     0..|  	    R2 = R#r{tables = [{Tab, undefined, Snmp, RecName} | R#r.tables]},</font>
+<font color=red>     0..|  	    restore_schema(Schema, R2);</font>
+        |  	skip_tables -&gt;
+<font color=red>     0..|  	    restore_schema(Schema, R)</font>
+        |      end;
+        |  
+        |  restore_schema([{schema, Tab} | Schema], R) -&gt;
+<font color=red>     0..|      do_delete_table(Tab),</font>
+<font color=red>     0..|      Tabs = lists:delete(Tab,R#r.tables),</font>
+<font color=red>     0..|      restore_schema(Schema, R#r{tables = Tabs});</font>
+        |  restore_schema([], R) -&gt;
+<font color=red>     0..|      R.</font>
+        |  
+        |  restore_tab_items([Rec | Rest], Tab, RecName, Where, Snmp, Recs, Op)
+        |    when element(1, Rec) == Tab -&gt;
+<font color=red>     0..|      NewRecs = Op(Rec, Recs, RecName, Where, Snmp),</font>
+<font color=red>     0..|      restore_tab_items(Rest, Tab, RecName, Where, Snmp, NewRecs, Op);</font>
+        |  
+        |  restore_tab_items(Rest, _Tab, _RecName, _Where, _Snmp, Recs, _Op) -&gt;
+<font color=red>     0..|      {Rest, Recs}.</font>
+        |  
+        |  skip_tab_items([Rec| Rest], Tab)
+        |    when element(1, Rec) == Tab -&gt;
+<font color=red>     0..|      skip_tab_items(Rest, Tab);</font>
+        |  skip_tab_items(Recs, _) -&gt;
+<font color=red>     0..|      Recs.</font>
+        |  
+        |  %%%%%%%%% Dump tables %%%%%%%%%%%%%
+        |  dump_tables(Tabs) when is_list(Tabs) -&gt;
+     1..|      schema_transaction(fun() -&gt; do_dump_tables(Tabs) end);
+        |  dump_tables(Tabs) -&gt;
+<font color=red>     0..|      {aborted, {bad_type, Tabs}}.</font>
+        |  
+        |  do_dump_tables(Tabs) -&gt;
+     1..|      TidTs = get_tid_ts_and_lock(schema, write),
+     1..|      insert_schema_ops(TidTs, make_dump_tables(Tabs)).
+        |  
+        |  make_dump_tables([schema | _Tabs]) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, schema});</font>
+        |  make_dump_tables([Tab | Tabs]) -&gt;
+     1..|      get_tid_ts_and_lock(Tab, read),
+     1..|      TabDef = get_create_list(Tab),
+     1..|      DiscResident =  val({Tab, disc_copies}) ++ val({Tab, disc_only_copies}),
+     1..|      verify([], DiscResident,
+        |  	   {"Only allowed on ram_copies", Tab, DiscResident}),
+     1..|      [{op, dump_table, unknown, TabDef} | make_dump_tables(Tabs)];
+        |  make_dump_tables([]) -&gt;
+     1..|      [].
+        |  
+        |  %% Merge the local schema with the schema on other nodes
+        |  merge_schema() -&gt;
+<font color=red>     0..|      schema_transaction(fun() -&gt; do_merge_schema([]) end).</font>
+        |  
+        |  merge_schema(UserFun) -&gt;
+    95..|      schema_transaction(fun() -&gt; UserFun(fun(Arg) -&gt; do_merge_schema(Arg) end) end).
+        |  
+        |  do_merge_schema(LockTabs0) -&gt;
+    97..|      {_Mod, Tid, Ts} = get_tid_ts_and_lock(schema, write),
+    95..|      LockTabs = [{T, tab_to_nodes(T)} || T &lt;- LockTabs0],
+    95..|      [get_tid_ts_and_lock(T,write) || {T,_} &lt;- LockTabs],
+    95..|      Connected = val(recover_nodes),
+    95..|      Running = val({current, db_nodes}),
+    95..|      Store = Ts#tidstore.store,
+        |      %% Verify that all nodes are locked that might not be the
+        |      %% case, if this trans where queued when new nodes where added.
+    95..|      case Running -- ets:lookup_element(Store, nodes, 2) of
+    95..|  	[] -&gt; ok; %% All known nodes are locked
+        |  	Miss -&gt; %% Abort! We don't want the sideeffects below to be executed
+<font color=red>     0..|  	    mnesia2:abort({bad_commit, {missing_lock, Miss}})</font>
+        |      end,
+    95..|      case Connected -- Running of
+        |  	[Node | _] = OtherNodes -&gt;
+        |  	    %% Time for a schema merging party!
+    22..|  	    mnesia2_locker:wlock_no_exist(Tid, Store, schema, [Node]),
+    22..|              [mnesia2_locker:wlock_no_exist(
+        |                 Tid, Store, T, mnesia2_lib:intersect(Ns, OtherNodes))
+    22..|               || {T,Ns} &lt;- LockTabs],
+    22..|  	    case fetch_cstructs(Node) of
+        |  		{cstructs, Cstructs, RemoteRunning1} -&gt;
+    12..|  		    LockedAlready = Running ++ [Node],
+    12..|  		    {New, Old} = mnesia2_recover:connect_nodes(RemoteRunning1),
+    12..|  		    RemoteRunning = mnesia2_lib:intersect(New ++ Old, RemoteRunning1),
+    12..|  		    if
+        |  			RemoteRunning /= RemoteRunning1 -&gt;
+<font color=red>     0..|  			    mnesia2_lib:error("mnesia2 on ~p could not connect to node(s) ~p~n",</font>
+        |  					     [node(), RemoteRunning1 -- RemoteRunning]),
+<font color=red>     0..|  			    mnesia2:abort({node_not_running, RemoteRunning1 -- RemoteRunning});</font>
+    12..|  			true -&gt; ok
+        |  		    end,
+    12..|  		    NeedsLock = RemoteRunning -- LockedAlready,
+    12..|  		    mnesia2_locker:wlock_no_exist(Tid, Store, schema, NeedsLock),
+    12..|                      [mnesia2_locker:wlock_no_exist(Tid, Store, T,
+        |                                                    mnesia2_lib:intersect(Ns,NeedsLock))
+    12..|                       || {T,Ns} &lt;- LockTabs],
+        |  
+    12..|  		    NeedsConversion = need_old_cstructs(NeedsLock ++ LockedAlready),
+    12..|  		    {value, SchemaCs} = lists:keysearch(schema, #cstruct.name, Cstructs),
+    12..|  		    SchemaDef = cs2list(NeedsConversion, SchemaCs),
+        |  		    %% Announce that Node is running
+    12..|  		    A = [{op, announce_im_running, node(), SchemaDef, Running, RemoteRunning}],
+    12..|  		    do_insert_schema_ops(Store, A),
+        |  
+        |  		    %% Introduce remote tables to local node
+    12..|  		    do_insert_schema_ops(Store, make_merge_schema(Node, NeedsConversion, Cstructs)),
+        |  
+        |  		    %% Introduce local tables to remote nodes
+    11..|  		    Tabs = val({schema, tables}),
+    11..|  		    Ops = [{op, merge_schema, get_create_list(T)}
+    11..|  			   || T &lt;- Tabs,
+    27..|  			      not lists:keymember(T, #cstruct.name, Cstructs)],
+    11..|  		    do_insert_schema_ops(Store, Ops),
+        |  
+        |  		    %% Ensure that the txn will be committed on all nodes
+    11..|  		    NewNodes = RemoteRunning -- Running,
+    11..|  		    mnesia2_lib:set(prepare_op, {announce_im_running,NewNodes}),
+    11..|  		    announce_im_running(NewNodes, SchemaCs),
+    11..|  		    {merged, Running, RemoteRunning};
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    {"Cannot get cstructs", Node, Reason};</font>
+        |  		{badrpc, Reason} -&gt;
+    10..|  		    {"Cannot get cstructs", Node, {badrpc, Reason}}
+        |  	    end;
+        |  	[] -&gt;
+        |  	    %% No more nodes to merge schema with
+    73..|  	    not_merged
+        |      end.
+        |  
+        |  fetch_cstructs(Node) -&gt;
+    22..|      case need_old_cstructs([Node]) of
+        |  	false -&gt;
+    22..|  	    rpc:call(Node, mnesia2_controller, get_remote_cstructs, []);
+        |  	_Ver -&gt;
+<font color=red>     0..|  	    case rpc:call(Node, mnesia2_controller, get_cstructs, []) of</font>
+        |  		{cstructs, Cs0, RR} -&gt;
+<font color=red>     0..|  		    {cstructs, [list2cs(cs2list(Cs)) || Cs &lt;- Cs0], RR};</font>
+<font color=red>     0..|  		Err -&gt; Err</font>
+        |  	    end
+        |      end.
+        |  
+        |  need_old_cstructs() -&gt;
+   149..|      need_old_cstructs(val({schema, where_to_write})).
+        |  
+        |  need_old_cstructs(Nodes) -&gt;
+   228..|      Filter = fun(Node) -&gt; not mnesia2_monitor:needs_protocol_conversion(Node) end,
+   228..|      case lists:dropwhile(Filter, Nodes) of
+   228..|  	[] -&gt; false;
+        |  	[Node|_] -&gt;
+<font color=red>     0..|  	    case rpc:call(Node, mnesia2_lib, val, [{schema,cstruct}]) of</font>
+        |  		#cstruct{} -&gt;
+        |  		    %% mnesia2_lib:warning("Mnesia2 on ~p do not need to convert cstruct (~p)~n",
+        |  		    %% 		       [node(), Node]),
+<font color=red>     0..|  		    false;</font>
+        |  		{badrpc, _} -&gt;
+<font color=red>     0..|  		    need_old_cstructs(lists:delete(Node,Nodes));</font>
+        |  		Cs when element(1, Cs) == cstruct, tuple_size(Cs) == 17 -&gt;
+<font color=red>     0..|  		    ver4_4_18;			% Without majority</font>
+        |  		Cs when element(1, Cs) == cstruct, tuple_size(Cs) == 18 -&gt;
+<font color=red>     0..|  		    ver4_4_19;			% With majority</font>
+        |  		Cs when element(1, Cs) == cstruct, tuple_size(Cs) == 19 -&gt;
+<font color=red>     0..|  		    ver4_6			% With storage_properties</font>
+        |  	    end
+        |      end.
+        |  
+        |  tab_to_nodes(Tab) when is_atom(Tab) -&gt;
+<font color=red>     0..|      Cs = val({Tab, cstruct}),</font>
+<font color=red>     0..|      mnesia2_lib:cs_to_nodes(Cs).</font>
+        |  
+        |  make_merge_schema(Node, NeedsConv, [Cs | Cstructs]) -&gt;
+    21..|      Ops = do_make_merge_schema(Node, NeedsConv, Cs),
+    20..|      Ops ++ make_merge_schema(Node, NeedsConv, Cstructs);
+        |  make_merge_schema(_Node, _, []) -&gt;
+    11..|      [].
+        |  
+        |  %% Merge definitions of schema table
+        |  do_make_merge_schema(Node, NeedsConv, RemoteCs = #cstruct{name = schema}) -&gt;
+    11..|      Cs = val({schema, cstruct}),
+    11..|      Masters = mnesia2_recover:get_master_nodes(schema),
+    11..|      HasRemoteMaster = lists:member(Node, Masters),
+    11..|      HasLocalMaster = lists:member(node(), Masters),
+    11..|      Force = HasLocalMaster or HasRemoteMaster,
+        |      %% What is the storage types opinions?
+    11..|      StCsLocal   = mnesia2_lib:cs_to_storage_type(node(), Cs),
+    11..|      StRcsLocal  = mnesia2_lib:cs_to_storage_type(node(), RemoteCs),
+    11..|      StCsRemote  = mnesia2_lib:cs_to_storage_type(Node, Cs),
+    11..|      StRcsRemote = mnesia2_lib:cs_to_storage_type(Node, RemoteCs),
+        |  
+    11..|      if
+        |  	Cs#cstruct.cookie == RemoteCs#cstruct.cookie,
+        |  	Cs#cstruct.version == RemoteCs#cstruct.version -&gt;
+        |  	    %% Great, we have the same cookie and version
+        |  	    %% and do not need to merge cstructs
+     7..|  	    [];
+        |  
+        |  	Cs#cstruct.cookie /= RemoteCs#cstruct.cookie,
+        |  	Cs#cstruct.disc_copies /= [],
+        |  	RemoteCs#cstruct.disc_copies /= [] -&gt;
+        |  	    %% Both cstructs involves disc nodes
+        |  	    %% and we cannot merge them
+<font color=red>     0..|  	    if</font>
+        |  		HasLocalMaster == true,
+        |  		HasRemoteMaster == false -&gt;
+        |  		    %% Choose local cstruct,
+        |  		    %% since it's the master
+<font color=red>     0..|  		    [{op, merge_schema, cs2list(NeedsConv, Cs)}];</font>
+        |  
+        |  		HasRemoteMaster == true,
+        |  		HasLocalMaster == false -&gt;
+        |  		    %% Choose remote cstruct,
+        |  		    %% since it's the master
+<font color=red>     0..|  		    [{op, merge_schema, cs2list(NeedsConv, RemoteCs)}];</font>
+        |  
+        |  		true -&gt;
+<font color=red>     0..|  		    Str = io_lib:format("Incompatible schema cookies. "</font>
+        |  					"Please, restart from old backup."
+        |  					"~w = ~w, ~w = ~w~n",
+        |  					[Node, cs2list(RemoteCs), node(), cs2list(Cs)]),
+<font color=red>     0..|  		    throw(Str)</font>
+        |  	    end;
+        |  
+        |  	StCsLocal /= StRcsLocal, StRcsLocal /= unknown, StCsLocal /= ram_copies -&gt;
+<font color=red>     0..|  	    Str = io_lib:format("Incompatible schema storage types (local). "</font>
+        |  				"on ~w storage ~w, on ~w storage ~w~n",
+        |  				[node(), StCsLocal, Node, StRcsLocal]),
+<font color=red>     0..|  	    throw(Str);</font>
+        |  	StCsRemote /= StRcsRemote, StCsRemote /= unknown, StRcsRemote /= ram_copies -&gt;
+<font color=red>     0..|  	    Str = io_lib:format("Incompatible schema storage types (remote). "</font>
+        |  				"on ~w cs ~w, on ~w rcs ~w~n",
+        |  				[node(), cs2list(Cs), Node, cs2list(RemoteCs)]),
+<font color=red>     0..|  	    throw(Str);</font>
+        |  
+        |       	Cs#cstruct.disc_copies /= [] -&gt;
+        |  	    %% Choose local cstruct,
+        |  	    %% since it involves disc nodes
+     4..|  	    MergedCs = merge_cstructs(Cs, RemoteCs, Force),
+     4..|  	    [{op, merge_schema, cs2list(NeedsConv, MergedCs)}];
+        |  
+        |  	RemoteCs#cstruct.disc_copies /= [] -&gt;
+        |  	    %% Choose remote cstruct,
+        |  	    %% since it involves disc nodes
+<font color=red>     0..|  	    MergedCs = merge_cstructs(RemoteCs, Cs, Force),</font>
+<font color=red>     0..|  	    [{op, merge_schema, cs2list(NeedsConv, MergedCs)}];</font>
+        |  
+        |  	Cs &gt; RemoteCs -&gt;
+        |  	    %% Choose remote cstruct
+<font color=red>     0..|  	    MergedCs = merge_cstructs(RemoteCs, Cs, Force),</font>
+<font color=red>     0..|  	    [{op, merge_schema, cs2list(NeedsConv, MergedCs)}];</font>
+        |  
+        |  	true -&gt;
+        |  	    %% Choose local cstruct
+<font color=red>     0..|  	    MergedCs = merge_cstructs(Cs, RemoteCs, Force),</font>
+<font color=red>     0..|  	    [{op, merge_schema, cs2list(NeedsConv, MergedCs)}]</font>
+        |      end;
+        |  
+        |  %% Merge definitions of normal table
+        |  do_make_merge_schema(Node, NeedsConv, RemoteCs = #cstruct{}) -&gt;
+    10..|      Tab = RemoteCs#cstruct.name,
+    10..|      Masters = mnesia2_recover:get_master_nodes(schema),
+    10..|      HasRemoteMaster = lists:member(Node, Masters),
+    10..|      HasLocalMaster = lists:member(node(), Masters),
+    10..|      Force = HasLocalMaster or HasRemoteMaster,
+    10..|      case ?catch_val({Tab, cstruct}) of
+        |  	{'EXIT', _} -&gt;
+        |  	    %% A completely new table, created while Node was down
+     1..|  	    [{op, merge_schema, cs2list(NeedsConv, RemoteCs)}];
+        |  	Cs when Cs#cstruct.cookie == RemoteCs#cstruct.cookie -&gt;
+     8..|  	    if
+        |  		Cs#cstruct.version == RemoteCs#cstruct.version -&gt;
+        |  		    %% We have exactly the same version of the
+        |  		    %% table def
+     8..|  		    [];
+        |  
+        |  		Cs#cstruct.version &gt; RemoteCs#cstruct.version -&gt;
+        |  		    %% Oops, we have different versions
+        |  		    %% of the table def, lets merge them.
+        |  		    %% The only changes that may have occurred
+        |  		    %% is that new replicas may have been added.
+<font color=red>     0..|  		    MergedCs = merge_cstructs(Cs, RemoteCs, Force),</font>
+<font color=red>     0..|  		    [{op, merge_schema, cs2list(NeedsConv, MergedCs)}];</font>
+        |  
+        |  		Cs#cstruct.version &lt; RemoteCs#cstruct.version -&gt;
+        |  		    %% Oops, we have different versions
+        |  		    %% of the table def, lets merge them
+<font color=red>     0..|  		    MergedCs = merge_cstructs(RemoteCs, Cs, Force),</font>
+<font color=red>     0..|  		    [{op, merge_schema, cs2list(NeedsConv, MergedCs)}]</font>
+        |  	    end;
+        |  	Cs -&gt;
+        |  	    %% Different cookies, not possible to merge
+     1..|  	    if
+        |  		HasLocalMaster == true,
+        |  		HasRemoteMaster == false -&gt;
+        |  		    %% Choose local cstruct,
+        |  		    %% since it's the master
+<font color=red>     0..|  		    [{op, merge_schema, cs2list(NeedsConv, Cs)}];</font>
+        |  
+        |  		HasRemoteMaster == true,
+        |  		HasLocalMaster == false -&gt;
+        |  		    %% Choose remote cstruct,
+        |  		    %% since it's the master
+<font color=red>     0..|  		    [{op, merge_schema, cs2list(NeedsConv, RemoteCs)}];</font>
+        |  
+        |  		true -&gt;
+     1..|  		    Str = io_lib:format("Bad cookie in table definition"
+        |  					" ~w: ~w = ~w, ~w = ~w~n",
+        |  					[Tab, node(), Cs, Node, RemoteCs]),
+     1..|  		    throw(Str)
+        |  	    end
+        |      end.
+        |  
+        |  %% Change of table definitions (cstructs) requires all replicas
+        |  %% of the table to be active. New replicas, db_nodes and tables
+        |  %% may however be added even if some replica is inactive. These
+        |  %% invariants must be enforced in order to allow merge of cstructs.
+        |  %%
+        |  %% Returns a new cstruct or issues a fatal error
+        |  merge_cstructs(Cs, RemoteCs, Force) -&gt;
+     4..|      verify_cstruct(Cs),
+     4..|      try do_merge_cstructs(Cs, RemoteCs, Force) of
+        |  	MergedCs when is_record(MergedCs, cstruct) -&gt;
+     4..|  	    MergedCs
+        |      catch exit:{aborted, _Reason} when Force == true -&gt;
+<font color=red>     0..|  	    Cs;</font>
+<font color=red>     0..|  	  exit:Reason -&gt; exit(Reason);</font>
+<font color=red>     0..|  	  error:Reason -&gt; exit(Reason)</font>
+        |      end.
+        |  
+        |  do_merge_cstructs(Cs, RemoteCs, Force) -&gt;
+     4..|      verify_cstruct(RemoteCs),
+     4..|      Ns = mnesia2_lib:uniq(mnesia2_lib:cs_to_nodes(Cs) ++
+        |  			 mnesia2_lib:cs_to_nodes(RemoteCs)),
+     4..|      {AnythingNew, MergedCs} =
+        |  	merge_storage_type(Ns, false, Cs, RemoteCs, Force),
+     4..|      MergedCs2 = merge_versions(AnythingNew, MergedCs, RemoteCs, Force),
+     4..|      verify_cstruct(MergedCs2),
+     4..|      MergedCs2.
+        |  
+        |  merge_storage_type([N | Ns], AnythingNew, Cs, RemoteCs, Force) -&gt;
+    10..|      Local = mnesia2_lib:cs_to_storage_type(N, Cs),
+    10..|      Remote = mnesia2_lib:cs_to_storage_type(N, RemoteCs),
+    10..|      case compare_storage_type(true, Local, Remote) of
+        |  	{same, _Storage} -&gt;
+     3..|  	    merge_storage_type(Ns, AnythingNew, Cs, RemoteCs, Force);
+        |  	{diff, Storage} -&gt;
+     7..|  	    Cs2 = change_storage_type(N, Storage, Cs),
+     7..|  	    merge_storage_type(Ns, true, Cs2, RemoteCs, Force);
+        |  	incompatible when Force == true -&gt;
+<font color=red>     0..|  	    merge_storage_type(Ns, AnythingNew, Cs, RemoteCs, Force);</font>
+        |  	Other -&gt;
+<font color=red>     0..|  	    Str = io_lib:format("Cannot merge storage type for node ~w "</font>
+        |  				"in cstruct ~w with remote cstruct ~w (~w)~n",
+        |  				[N, Cs, RemoteCs, Other]),
+<font color=red>     0..|  	    throw(Str)</font>
+        |      end;
+        |  merge_storage_type([], AnythingNew, MergedCs, _RemoteCs, _Force) -&gt;
+     4..|      {AnythingNew, MergedCs}.
+        |  
+        |  compare_storage_type(_Retry, Any, Any) -&gt;
+     3..|      {same, Any};
+        |  compare_storage_type(_Retry, unknown, Any) -&gt;
+     5..|      {diff, Any};
+        |  compare_storage_type(_Retry, ram_copies, disc_copies) -&gt;
+     2..|      {diff, disc_copies};
+        |  compare_storage_type(_Retry, disc_copies, disc_only_copies) -&gt;
+<font color=red>     0..|      {diff, disc_only_copies};</font>
+        |  compare_storage_type(true, One, Another) -&gt;
+     7..|      compare_storage_type(false, Another, One);
+        |  compare_storage_type(false, _One, _Another) -&gt;
+     4..|      incompatible.
+        |  
+        |  change_storage_type(N, ram_copies, Cs) -&gt;
+<font color=red>     0..|      Nodes = [N | Cs#cstruct.ram_copies],</font>
+<font color=red>     0..|      Cs#cstruct{ram_copies = mnesia2_lib:uniq(Nodes)};</font>
+        |  change_storage_type(N, disc_copies, Cs) -&gt;
+     7..|      Nodes = [N | Cs#cstruct.disc_copies],
+     7..|      Cs#cstruct{disc_copies = mnesia2_lib:uniq(Nodes)};
+        |  change_storage_type(N, disc_only_copies, Cs) -&gt;
+<font color=red>     0..|      Nodes = [N | Cs#cstruct.disc_only_copies],</font>
+<font color=red>     0..|      Cs#cstruct{disc_only_copies = mnesia2_lib:uniq(Nodes)}.</font>
+        |  
+        |  %% BUGBUG: Verify match of frag info; equalit demanded for all but add_node
+        |  
+        |  merge_versions(AnythingNew, Cs, RemoteCs, Force) -&gt;
+     4..|      if
+        |  	Cs#cstruct.name == schema -&gt;
+     4..|  	    ok;
+        |  	Cs#cstruct.name /= schema,
+        |  	Cs#cstruct.cookie == RemoteCs#cstruct.cookie -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	Force == true -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Str = io_lib:format("Bad cookies. Cannot merge definitions of "</font>
+        |  				"table ~w. Local = ~w, Remote = ~w~n",
+        |  				[Cs#cstruct.name, Cs, RemoteCs]),
+<font color=red>     0..|  	    throw(Str)</font>
+        |      end,
+     4..|      if
+        |  	Cs#cstruct.name == RemoteCs#cstruct.name,
+        |  	Cs#cstruct.type == RemoteCs#cstruct.type,
+        |  	Cs#cstruct.local_content == RemoteCs#cstruct.local_content,
+        |  	Cs#cstruct.attributes == RemoteCs#cstruct.attributes,
+        |  	Cs#cstruct.index == RemoteCs#cstruct.index,
+        |  	Cs#cstruct.snmp == RemoteCs#cstruct.snmp,
+        |  	Cs#cstruct.access_mode == RemoteCs#cstruct.access_mode,
+        |  	Cs#cstruct.majority == RemoteCs#cstruct.majority,
+        |  	Cs#cstruct.load_order == RemoteCs#cstruct.load_order,
+        |  	Cs#cstruct.user_properties == RemoteCs#cstruct.user_properties -&gt;
+     4..|  	    do_merge_versions(AnythingNew, Cs, RemoteCs);
+        |  	Force == true -&gt;
+<font color=red>     0..|  	    do_merge_versions(AnythingNew, Cs, RemoteCs);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Str1 = io_lib:format("Cannot merge definitions of "</font>
+        |  				"table ~w. Local = ~w, Remote = ~w~n",
+        |  				[Cs#cstruct.name, Cs, RemoteCs]),
+<font color=red>     0..|  	    throw(Str1)</font>
+        |      end.
+        |  
+        |  do_merge_versions(AnythingNew, MergedCs, RemoteCs) -&gt;
+     4..|      {{Major1, Minor1}, _Detail1} = MergedCs#cstruct.version,
+     4..|      {{Major2, Minor2}, _Detail2} = RemoteCs#cstruct.version,
+     4..|      if
+        |  	AnythingNew == false -&gt;
+<font color=red>     0..|  	    MergedCs;</font>
+        |  	MergedCs#cstruct.version == RemoteCs#cstruct.version -&gt;
+<font color=red>     0..|  	    V = {{Major1, Minor1}, dummy},</font>
+<font color=red>     0..|  	    incr_version(MergedCs#cstruct{version = V});</font>
+        |  	Major1 == Major2 -&gt;
+<font color=red>     0..|  	    Minor = lists:max([Minor1, Minor2]),</font>
+<font color=red>     0..|  	    V = {{Major1, Minor}, dummy},</font>
+<font color=red>     0..|  	    incr_version(MergedCs#cstruct{version = V});</font>
+        |  	Major1 /= Major2 -&gt;
+     4..|  	    Major = lists:max([Major1, Major2]),
+     4..|  	    V = {{Major, 0}, dummy},
+     4..|  	    incr_version(MergedCs#cstruct{version = V})
+        |      end.
+        |  
+        |  %% Verify the basics
+        |  verify_merge(RemoteCs) -&gt;
+    41..|      Tab = RemoteCs#cstruct.name,
+    41..|      Masters = mnesia2_recover:get_master_nodes(schema),
+    41..|      HasRemoteMaster = Masters /= [],
+    41..|      case ?catch_val({Tab, cstruct}) of
+        |  	{'EXIT', _} -&gt;
+     1..|  	    ok;
+        |  	Cs -&gt;
+    40..|  	    StCsLocal   = mnesia2_lib:cs_to_storage_type(node(), Cs),
+    40..|  	    StRcsLocal  = mnesia2_lib:cs_to_storage_type(node(), RemoteCs),
+    40..|  	    if
+    40..|  		StCsLocal  == StRcsLocal -&gt;   ok;
+<font color=red>     0..|  		StCsLocal  == unknown -&gt;      ok;</font>
+        |  		(StRcsLocal == unknown), (HasRemoteMaster == false) -&gt;
+<font color=red>     0..|  		    {merge_error, Cs, RemoteCs};</font>
+        |  		%%  Trust the merger
+<font color=red>     0..|  		true  -&gt; ok</font>
+        |  	    end
+        |      end.
+        |  
+        |  announce_im_running([N | Ns], SchemaCs) -&gt;
+    69..|      {L1, L2} = mnesia2_recover:connect_nodes([N]),
+    69..|      case lists:member(N, L1) or lists:member(N, L2) of
+        |  	true -&gt;
+    69..|  	    mnesia2_lib:add({current, db_nodes}, N),
+    69..|  	    mnesia2_controller:add_active_replica(schema, N, SchemaCs);
+        |  	false -&gt;
+<font color=red>     0..|  	    mnesia2_lib:error("Mnesia2 on ~p could not connect to node ~p~n",</font>
+        |  			     [node(), N]),
+<font color=red>     0..|  	    mnesia2:abort({node_not_running, N})</font>
+        |      end,
+    69..|      announce_im_running(Ns, SchemaCs);
+        |  announce_im_running([], _) -&gt;
+    64..|      [].
+        |  
+        |  unannounce_im_running([N | Ns]) -&gt;
+<font color=red>     0..|      mnesia2_lib:del({current, db_nodes}, N),</font>
+<font color=red>     0..|      mnesia2_controller:del_active_replica(schema, N),</font>
+<font color=red>     0..|      unannounce_im_running(Ns);</font>
+        |  unannounce_im_running([]) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+</pre>
+</body>
+</html>
