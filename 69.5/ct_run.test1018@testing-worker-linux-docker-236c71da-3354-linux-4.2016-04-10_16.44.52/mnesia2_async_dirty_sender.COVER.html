@@ -1,0 +1,399 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test1018@testing-worker-linux-docker-236c71da-3354-linux-4.2016-04-10_16.44.52/mnesia2_async_dirty_sender.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_async_dirty_sender.erl by COVER 2016-04-10 at 16:48:42
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1996-2016. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_async_dirty_sender).
+        |  
+        |  -export([start_link/1,
+        |           pool_name/1]).
+        |  
+        |  -export([init_buffer_sender/4,
+        |           async_dirty_sender_loop/4,
+        |           init_async_dirty_tm_sender_loop/3]).
+        |  
+        |  -import(mnesia2_lib, [verbose/2]).
+        |  
+        |  -define(NUM_ASYNC_DIRTY_TM_SENDER, 3).
+        |  
+        |  -define(BUFFER_LOG_WRITE_SIZE, 524288).
+        |  -define(BUFFER_LOG_MAX_FILE_SIZE, 100000000).
+        |  -define(BUFFER_BACKLOG_THRESHOLD, 200000).
+        |  -define(BUFFER_LOG_MIN_RUNTIME_USEC, 10000000).
+        |  -define(BUFFER_LOG_DRAINED_CUTOFF, 5*?BUFFER_LOG_WRITE_SIZE).
+        |  
+        |  -record(buffer_log, {fn,
+        |                       fnum=0,
+        |                       fsize=0,
+        |                       wf,
+        |                       wtxns=[],
+        |                       wtxnsize=0,
+        |                       newtxns=[]}).
+        |  -record(buffer_log_send, {parent,
+        |                            node,
+        |                            num,
+        |                            logname,
+        |                            fnum,
+        |                            fn,
+        |                            rf,
+        |                            filepos,
+        |                            rtxns=[],
+        |                            ntxns=0,
+        |                            bytes=0,
+        |                            runmode,
+        |                            starttime}).
+        |  
+        |  -include("mnesia2.hrl").
+        |  
+        |  start_link([Node, Num, Parent]) -&gt;
+   210..|      Pid = spawn_link(?MODULE, init_async_dirty_tm_sender_loop,
+        |                         [Node, Num, Parent]),
+   210..|      {ok, Pid}.
+        |  
+        |  pool_name(Node) -&gt;
+ 60145..|      list_to_atom("mnesia2_tm_async_dirty_sender_pool@" ++
+        |                   atom_to_list(Node)).
+        |  
+        |  async_dirty_send(_Node, []) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  async_dirty_send(Node, [{TmName, Txn} | Tail]) -&gt;
+<font color=red>     0..|      erlang:send({TmName, Node}, Txn),</font>
+<font color=red>     0..|      async_dirty_send(Node, Tail).</font>
+        |  
+        |  init_async_dirty_tm_sender_loop(Node, Num, Parent) -&gt;
+   210..|      case check_remote_tm(Node) of
+        |          ok -&gt;
+   210..|              async_dirty_sender_loop(Node, Num, Parent, []);
+        |          _ -&gt;
+<font color=red>     0..|              timer:sleep(60*1000),</font>
+<font color=red>     0..|              init_async_dirty_tm_sender_loop(Node, Num, Parent)</font>
+        |      end.
+        |  
+        |  init_buffer_sender(Parent, Node, Num, LogName) -&gt;
+<font color=red>     0..|      open_async_dirty_buffer_log(#buffer_log_send{parent=Parent, node=Node, num=Num,</font>
+        |                                                   logname=LogName, fnum=0, runmode=running,
+        |                                                   starttime=os:timestamp()}).
+        |  
+        |  async_dirty_sender_loop(Node, Num, Parent, Mode) -&gt;
+ 24062..|      Timeout = case Mode of
+        |            [] -&gt;
+        |                % normal mode: wait for txns to forward (non-blocking sends)
+ 24062..|                infinity;
+        |            #buffer_log{wtxns=[], newtxns=[]} -&gt;
+        |                % buffered mode: wait for txns to write to buffer log
+<font color=red>     0..|                infinity;</font>
+        |            #buffer_log{} -&gt;
+        |                % buffered mode: have txns to write to buffer log
+<font color=red>     0..|                0;</font>
+        |            force -&gt;
+        |                % forced mode: wait for txns to forward (blocking sends)
+<font color=red>     0..|                infinity;</font>
+        |            _ -&gt;
+        |                % queued mode: retry sending queued txns after a brief wait
+<font color=red>     0..|                100</font>
+        |            end,
+ 24062..|      {Txns, Msg} = async_dirty_dequeue(Timeout, []),
+ 23852..|      verbose("dequeued txns: ~p, msg: ~p, mode: ~p",
+        |          [Txns, Msg, Mode]),
+ 23852..|      Mode1 = case Mode of
+        |          Buffered when is_list(Buffered) -&gt;
+ 23852..|              RemTxns = case send_buffer_log_try(Node, Buffered) of
+        |                    [] -&gt;
+        |                        % sent all the queued txns; try the ones we just dequeued
+ 23852..|                        send_buffer_log_try(Node, Txns);
+        |                    Rem -&gt;
+        |                        % add newly dequeued txns to remaining queue
+<font color=red>     0..|                        lists:append(Rem, Txns)</font>
+        |                    end,
+ 23852..|              if length(RemTxns) &lt; ?BUFFER_BACKLOG_THRESHOLD -&gt;
+        |                     % continue to buffer in-memory
+ 23852..|                     RemTxns;
+        |                 true -&gt;
+        |                     % need to start buffering on disk
+<font color=red>     0..|                     LogName = atom_to_list(node_num_to_async_dirty_tm_sender_log(Node, Num)),</font>
+<font color=red>     0..|                     LogFile = lists:flatten(io_lib:format("~s.~4.10.0b", [LogName, 0])),</font>
+<font color=red>     0..|                 case prim_file:open(mnesia2_lib:dir(LogFile),</font>
+        |                                     [raw, binary, append]) of
+        |                     {ok, WF} -&gt;
+<font color=red>     0..|                         prim_file:truncate(WF),</font>
+<font color=red>     0..|                         BufferMode = append_buffer_log(#buffer_log{fn=LogName, wf=WF}, RemTxns),</font>
+<font color=red>     0..|                         NewPid = spawn_link(?MODULE, init_buffer_sender,</font>
+        |                                             [self(), Node, Num, LogName]),
+<font color=red>     0..|                         verbose("~s: START async_dirty_sender buffer log (reader=~p)",</font>
+        |                              [LogName, NewPid]),
+<font color=red>     0..|                         verbose("~s: OPEN-WRITE async_dirty_sender buffer log (seq=~b)",</font>
+        |                              [LogName, 0]),
+<font color=red>     0..|                         BufferMode;</font>
+        |                     WError -&gt;
+<font color=red>     0..|                         verbose("Failure opening async_dirty_sender buffer log: ~s: ~1000p",</font>
+        |                              [LogFile, WError]),
+<font color=red>     0..|                         async_dirty_send(Node, RemTxns),</font>
+<font color=red>     0..|                         force</font>
+        |                 end
+        |              end;
+        |          #buffer_log{wtxns=undefined, newtxns=NewTxns} -&gt;
+        |              % sender is stopping, so we need to queue until it finishes so we don't overlap our sends
+<font color=red>     0..|              Mode#buffer_log{newtxns=lists:append(NewTxns, Txns)};</font>
+        |          #buffer_log{} -&gt;
+        |              % write new txns to buffer log
+<font color=red>     0..|              append_buffer_log(Mode, Txns);</font>
+        |          force -&gt;
+        |              % blocking send because buffering failed
+<font color=red>     0..|              async_dirty_send(Node, Txns),</font>
+<font color=red>     0..|              force</font>
+        |          end,
+ 23852..|      Mode2 = case Msg of
+        |          undefined -&gt;
+        |              % no pending message
+ 23852..|              Mode1;
+        |          {mnesia2_down, Node} -&gt;
+        |              % our peer is going down
+<font color=red>     0..|              unlink(Parent),</font>
+<font color=red>     0..|              exit(shutdown);</font>
+        |          {buffer_drained, FNum, SenderPid} when
+        |                      length(Mode1#buffer_log.wtxns) +
+        |                      length(Mode1#buffer_log.newtxns) &gt; ?BUFFER_BACKLOG_THRESHOLD -&gt;
+        |              % the sender reached the drain threshold but we still have too much queued here;
+        |              % continue spooling
+<font color=red>     0..|              verbose("~s: DEFER-STOP async_dirty_sender buffer log (seq=~b wtxns=~b newtxns=~b)",</font>
+        |                  [Mode1#buffer_log.fn, FNum, length(Mode1#buffer_log.wtxns), length(Mode1#buffer_log.newtxns)]),
+<font color=red>     0..|              SenderPid ! {buffer_continue, Mode1#buffer_log.fnum, self()},</font>
+<font color=red>     0..|              Mode1;</font>
+        |          {buffer_drained, FNum, SenderPid} when FNum =:= Mode1#buffer_log.fnum -&gt;
+        |              % the sender reached the drain threshold and is stopping
+<font color=red>     0..|              verbose("~s: DRAINED-STOP async_dirty_sender buffer log (seq=~b wtxns=~b newtxns=~b)",</font>
+        |                  [Mode1#buffer_log.fn, FNum,
+        |                   length(Mode1#buffer_log.wtxns), length(Mode1#buffer_log.newtxns)]),
+<font color=red>     0..|              SenderPid ! {buffer_drained_ack, self()},</font>
+        |              % queue up the txns that were being buffered for a log write and append the queued txns
+<font color=red>     0..|              Mode1#buffer_log{wtxns=undefined,</font>
+        |                               newtxns=lists:append(lists:reverse(Mode1#buffer_log.wtxns),
+        |                               Mode1#buffer_log.newtxns)};
+        |          {buffer_drained, FNum, SenderPid} -&gt;
+<font color=red>     0..|              verbose("~s: NEXT async_dirty_sender buffer log (read-seq=~b write-seq=~b pending=~b)",</font>
+        |                  [Mode1#buffer_log.fn, FNum, Mode1#buffer_log.fnum, Mode1#buffer_log.fnum - FNum]),
+<font color=red>     0..|              SenderPid ! {buffer_continue, Mode1#buffer_log.fnum, self()},</font>
+<font color=red>     0..|              Mode1;</font>
+        |          {buffer_drained_ack, _Pid} -&gt;
+        |              % sender has stopped so we can send our queued transactions and resume in-memory buffering
+<font color=red>     0..|              verbose("~s: STOPPED async_dirty_sender buffer log (newtxns=~b)",</font>
+        |                  [Mode1#buffer_log.fn, length(Mode#buffer_log.newtxns)]),
+<font color=red>     0..|              prim_file:close(Mode#buffer_log.wf),</font>
+<font color=red>     0..|              Mode1#buffer_log.newtxns;</font>
+        |          Other -&gt;
+<font color=red>     0..|              verbose("mnesia2_tm async_dirty sender unknown message: ~1000p~n", [Other]),</font>
+<font color=red>     0..|              Mode1</font>
+        |          end,
+ 23852..|      ?MODULE:async_dirty_sender_loop(Node, Num, Parent, Mode2).
+        |  
+        |  % dequeue all the txns in the message queue
+        |  async_dirty_dequeue(Timeout, List) -&gt;
+ 84121..|      receive
+        |          {async_dirty, TmName, Txn} -&gt;
+ 60059..|              async_dirty_dequeue(0, [{TmName, Txn} | List]);
+        |          Other -&gt;
+<font color=red>     0..|              {lists:reverse(List), Other}</font>
+        |          after Timeout -&gt;
+ 23852..|              {lists:reverse(List), undefined}
+        |      end.
+        |  
+        |  open_async_dirty_buffer_log(Log) -&gt;
+<font color=red>     0..|      LogFile = lists:flatten(io_lib:format("~s.~4.10.0b",</font>
+        |          [Log#buffer_log_send.logname, Log#buffer_log_send.fnum])),
+<font color=red>     0..|      verbose("~s: OPEN-READ async_dirty_sender buffer log (seq=~b)",</font>
+        |          [Log#buffer_log_send.logname, Log#buffer_log_send.fnum]),
+<font color=red>     0..|      case prim_file:open(mnesia2_lib:dir(LogFile), [raw, binary, read]) of</font>
+        |          {ok, RF} -&gt;
+<font color=red>     0..|              async_dirty_buffer_sender(Log#buffer_log_send{fn=LogFile, rf=RF, filepos=0});</font>
+        |          RError -&gt;
+<font color=red>     0..|              verbose("Failure opening async_dirty_sender buffer log: ~s: ~1000p",</font>
+        |                  [LogFile, RError]),
+<font color=red>     0..|              exit(fatal)</font>
+        |      end.
+        |  
+        |  async_dirty_buffer_sender(#buffer_log_send{parent=Parent, rf=RF, fnum=FNum, filepos=FilePos, rtxns=[], runmode=RunMode} = Log) -&gt;
+<font color=red>     0..|      Runtime = timer:now_diff(os:timestamp(), Log#buffer_log_send.starttime),</font>
+<font color=red>     0..|      case prim_file:read(RF, ?BUFFER_LOG_WRITE_SIZE) of</font>
+        |          {ok, &lt;&lt;BufSize:32, Buf/binary&gt;&gt; = RBytes} -&gt;
+<font color=red>     0..|              if size(Buf) &gt;= BufSize -&gt;</font>
+<font color=red>     0..|                 &lt;&lt;TxnBuf:BufSize/binary, Rest/binary&gt;&gt; = Buf,</font>
+<font color=red>     0..|                 RTxns = binary_to_term(TxnBuf),</font>
+<font color=red>     0..|                 RestSize = size(Rest),</font>
+<font color=red>     0..|                 {ok, EofPos} = prim_file:position(RF, {eof, 0}),</font>
+<font color=red>     0..|                 {ok, NewFilePos} = prim_file:position(RF, {bof, FilePos+size(RBytes)-RestSize}),</font>
+<font color=red>     0..|                 NumRTxns = length(RTxns),</font>
+<font color=red>     0..|                 NumTxns = Log#buffer_log_send.ntxns + NumRTxns,</font>
+<font color=red>     0..|                 NewRunMode =</font>
+        |                  if RunMode =:= running andalso
+        |                     EofPos - NewFilePos =&lt; ?BUFFER_LOG_DRAINED_CUTOFF andalso
+        |                     Runtime &gt;= ?BUFFER_LOG_MIN_RUNTIME_USEC -&gt;
+<font color=red>     0..|                         Parent ! {buffer_drained, FNum, self()},</font>
+<font color=red>     0..|                         verbose("~s: PRE-EOF-READ async_dirty_sender buffer log (seq=~b ntxns=~b pos=~b eof=~b remaining=~b)",</font>
+        |                             [Log#buffer_log_send.logname, FNum, NumTxns, NewFilePos, EofPos, EofPos - NewFilePos]),
+<font color=red>     0..|                         eof;</font>
+        |                 true -&gt;
+<font color=red>     0..|                     RunMode</font>
+        |                  end,
+<font color=red>     0..|                 async_dirty_buffer_sender(Log#buffer_log_send{rtxns=RTxns, ntxns=NumTxns, filepos=NewFilePos, runmode=NewRunMode});</font>
+        |             true -&gt;
+<font color=red>     0..|                 {ok, EofPos} = prim_file:position(RF, {eof, 0}),</font>
+<font color=red>     0..|                 verbose("~s: ERROR: truncated read on async_dirty_sender buffer log (bytes=~b bufsize=~b size(buf)=~b pos=~b eof=~b)",</font>
+        |                     [Log#buffer_log_send.fn, size(RBytes), BufSize, size(Buf), FilePos, EofPos]),
+<font color=red>     0..|                 exit(shutdown)</font>
+        |          end;
+        |      eof when RunMode == eof -&gt;
+<font color=red>     0..|          receive</font>
+        |          {buffer_drained_ack, _Pid} -&gt;
+<font color=red>     0..|              prim_file:close(RF),</font>
+<font color=red>     0..|              prim_file:delete(mnesia2_lib:dir(Log#buffer_log_send.fn)),</font>
+<font color=red>     0..|              verbose("~s: STOPPING async_dirty_sender buffer log (seq=~b ntxns=~b bytes=~b)",</font>
+        |                  [Log#buffer_log_send.logname, FNum, Log#buffer_log_send.ntxns, Log#buffer_log_send.bytes + FilePos]),
+<font color=red>     0..|              Parent ! {buffer_drained_ack, self()},</font>
+<font color=red>     0..|              exit(normal);</font>
+        |          {buffer_continue, FNum, _Pid} -&gt;
+<font color=red>     0..|              timer:sleep(100),</font>
+<font color=red>     0..|              async_dirty_buffer_sender(Log#buffer_log_send{runmode=running});</font>
+        |          {buffer_continue, _NewFNum, _Pid} -&gt;
+<font color=red>     0..|              prim_file:close(RF),</font>
+<font color=red>     0..|              prim_file:delete(mnesia2_lib:dir(Log#buffer_log_send.fn)),</font>
+<font color=red>     0..|              open_async_dirty_buffer_log(Log#buffer_log_send{fnum=Log#buffer_log_send.fnum+1,</font>
+        |                                                              bytes=Log#buffer_log_send.bytes+FilePos,
+        |                                                              runmode=running})
+        |          after 100 -&gt;
+<font color=red>     0..|              async_dirty_buffer_sender(Log)</font>
+        |          end;
+        |      eof when Runtime &gt;= ?BUFFER_LOG_MIN_RUNTIME_USEC -&gt;
+<font color=red>     0..|          Parent ! {buffer_drained, Log#buffer_log_send.fnum, self()},</font>
+<font color=red>     0..|          verbose("~s: EOF-READ async_dirty_sender buffer log (seq=~b ntxns=~b eof=~b)",</font>
+        |              [Log#buffer_log_send.logname,
+        |               Log#buffer_log_send.fnum,
+        |               Log#buffer_log_send.ntxns,
+        |               Log#buffer_log_send.filepos]),
+<font color=red>     0..|          async_dirty_buffer_sender(Log#buffer_log_send{runmode=eof});</font>
+        |      eof -&gt;
+<font color=red>     0..|          timer:sleep(10),</font>
+<font color=red>     0..|          async_dirty_buffer_sender(Log);</font>
+        |      RError -&gt;
+<font color=red>     0..|          verbose("~s: async_dirty_sender buffer log read error: ~1000p",</font>
+        |              [Log#buffer_log_send.fn, RError]),
+<font color=red>     0..|          exit(shutdown)</font>
+        |      end;
+        |  async_dirty_buffer_sender(#buffer_log_send{node=Node, rtxns=RTxns} = Log) -&gt;
+<font color=red>     0..|      RemTxns = send_buffer_log_try(Node, RTxns),</font>
+<font color=red>     0..|      if length(RemTxns) == 0 -&gt;</font>
+<font color=red>     0..|         ok;</font>
+        |         length(RemTxns) == length(RTxns) -&gt;
+<font color=red>     0..|         timer:sleep(100);</font>
+        |      true -&gt;
+<font color=red>     0..|          timer:sleep(10)</font>
+        |      end,
+<font color=red>     0..|      async_dirty_buffer_sender(Log#buffer_log_send{rtxns=RemTxns}).</font>
+        |  
+        |  append_buffer_log(Mode, NewTxns) -&gt;
+<font color=red>     0..|      append_buffer_log(Mode#buffer_log{newtxns=lists:append(Mode#buffer_log.newtxns, NewTxns)}).</font>
+        |  
+        |  append_buffer_log(Mode = #buffer_log{newtxns=[]}) -&gt;
+<font color=red>     0..|      Mode;</font>
+        |  append_buffer_log(Mode = #buffer_log{wtxns=WTxns, wtxnsize=WTxnSize, newtxns=[Txn | Tail]}) -&gt;
+<font color=red>     0..|      TxnSize = erlang:external_size(Txn),</font>
+<font color=red>     0..|      if WTxnSize+TxnSize+4 &gt; ?BUFFER_LOG_WRITE_SIZE -&gt;</font>
+<font color=red>     0..|         WBuf = term_to_binary(lists:reverse(WTxns)),</font>
+<font color=red>     0..|         WBufSize = size(WBuf),</font>
+        |  %%     verbose("Write ~b bytes: ~p", [WBufSize, Mode#buffer_log.fn]),
+<font color=red>     0..|         Mode1 =</font>
+        |          if Mode#buffer_log.fsize &gt;= ?BUFFER_LOG_MAX_FILE_SIZE -&gt;
+<font color=red>     0..|            prim_file:close(Mode#buffer_log.wf),</font>
+<font color=red>     0..|            FNum = Mode#buffer_log.fnum+1,</font>
+<font color=red>     0..|            LogFile = lists:flatten(io_lib:format("~s.~4.10.0b", [Mode#buffer_log.fn, FNum])),</font>
+<font color=red>     0..|            case prim_file:open(mnesia2_lib:dir(LogFile), [raw, binary, append]) of</font>
+        |              {ok, WF} -&gt;
+<font color=red>     0..|                verbose("~s: OPEN-WRITE async_dirty_sender buffer log (seq=~b)",</font>
+        |                  [Mode#buffer_log.fn, FNum]),
+<font color=red>     0..|                prim_file:truncate(WF),</font>
+<font color=red>     0..|                Mode#buffer_log{fnum=FNum, fsize=0, wf=WF};</font>
+        |                OError -&gt;
+<font color=red>     0..|                verbose("Failure opening async_dirty_sender buffer log: ~s: ~1000p",</font>
+        |                  [LogFile, OError]),
+<font color=red>     0..|                exit(fatal)</font>
+        |            end;
+        |          true -&gt;
+<font color=red>     0..|             Mode</font>
+        |          end,
+<font color=red>     0..|          case prim_file:write(Mode1#buffer_log.wf, &lt;&lt;WBufSize:32, WBuf/binary&gt;&gt;) of</font>
+        |             ok -&gt;
+<font color=red>     0..|                 Mode1#buffer_log{fsize=Mode1#buffer_log.fsize+WBufSize+4,</font>
+        |                                  wtxns=[Txn],
+        |                                  wtxnsize=TxnSize,
+        |                                  newtxns=Tail};
+        |             WError -&gt;
+<font color=red>     0..|                 verbose("Failure writing async_dirty_sender buffer log: ~s: ~1000p",</font>
+        |                      [Mode1#buffer_log.fn, WError]),
+<font color=red>     0..|                 exit(fatal)</font>
+        |          end;
+        |      true -&gt;
+<font color=red>     0..|          append_buffer_log(Mode#buffer_log{wtxns=[Txn|WTxns],</font>
+        |                                            wtxnsize=WTxnSize+TxnSize,
+        |                                            newtxns=Tail})
+        |      end.
+        |  
+        |  send_buffer_log_try(_Node, []) -&gt;
+ 47704..|      [];
+        |  send_buffer_log_try(Node, [{TmName, Txn} | Tail] = Txns) -&gt;
+ 60059..|      verbose("sending txn ~p to ~p", [Txn, {TmName, Node}]),
+ 60059..|      case erlang:send_nosuspend({TmName, Node}, Txn) of
+        |      true -&gt;
+ 60059..|          send_buffer_log_try(Node, Tail);
+        |      false -&gt;
+<font color=red>     0..|          Txns</font>
+        |      end.
+        |  
+        |  check_remote_tm(Node) -&gt;
+   210..|      TmName = mnesia2_tm:num_to_async_dirty_tm_name(1),
+   210..|      try sys:get_status({TmName, Node}, 10000) of
+        |      {status, _Pid, _Mod, _Stuff} -&gt;
+   210..|          ok;
+        |      Other -&gt;
+<font color=red>     0..|          verbose("bad remote mnesia2_tm response (node=~p): ~1000p~n", [Node, Other]),</font>
+<font color=red>     0..|          {error, invalid_response}</font>
+        |      catch
+        |      _:Err -&gt;
+<font color=red>     0..|          verbose("** ERROR ** Possible OTP version mismatch: remote ~p not responding (node=~p): ~1000p~n",</font>
+        |              [TmName, Node, Err]),
+<font color=red>     0..|          {error, Err}</font>
+        |      end.
+        |  
+        |  node_num_to_async_dirty_tm_sender_log(Node, Num) -&gt;
+<font color=red>     0..|      list_to_atom("ms" ++</font>
+        |                   integer_to_list(((Num-1) rem ?NUM_ASYNC_DIRTY_TM_SENDER)+1) ++
+        |                   "_"
+        |                   ++ atom_to_list(Node)).
+</pre>
+</body>
+</html>
