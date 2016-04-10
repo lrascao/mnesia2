@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_examples_test:meter result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_examples_test.src.html#meter-1">source code for mnesia2_examples_test:meter/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_examples_test:meter([{watchdog,<0.1369.0>},
+                             {tc_logfile,
+                                 "/home/travis/build/lrascao/mnesia2/logs/ct_run.test2907@testing-worker-linux-docker-6a120f93-3374-linux-4.2016-04-10_22.50.17/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.50.44/mnesia2_examples_test.meter.html"},
+                             {tc_group_properties,
+                                 [{suite,mnesia2_examples_test}]},
+                             {tc_group_path,
+                                 [[{name,examples}],
+                                  [{name,config}],
+                                  [{name,config}],
+                                  [{name,registry}],
+                                  [{name,registry}],
+                                  [{name,qlc}],
+                                  [{name,qlc}],
+                                  [{name,nice}],
+                                  [{name,nice}],
+                                  [{name,install}],
+                                  [{name,install}],
+                                  [{name,extra_light}]]},
+                             {data_dir,
+                                 "/home/travis/build/lrascao/mnesia2/test/mnesia2_examples_test_data/"},
+                             {priv_dir,
+                                 "/home/travis/build/lrascao/mnesia2/logs/ct_run.test2907@testing-worker-linux-docker-6a120f93-3374-linux-4.2016-04-10_22.50.17/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.50.44/log_private/"},
+                             {nodenames,
+                                 ['d678554o678542n678533@testing-worker-linux-docker-6a120f93-3374-linux-4',
+                                  'd678558o678562n678562@testing-worker-linux-docker-6a120f93-3374-linux-4']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test2907@testing-worker-linux-docker-6a120f93-3374-linux-4.2016-04-10_22.50.17"
+
+=== Started at 2016-04-10 22:51:37
+
+<br />
+A fun apply costs 0 micro seconds. Record size is 60 bytes.
+
+Run 24 meters with table config: [{ram_copies,['test2907@testing-worker-linux-docker-6a120f93-3374-linux-4']}]
+
+[2016-04-10 22:51:37] mnesia2_examples_test.erl(127): <>ERROR<>
+Not Matching Actual result was:
+ {error,
+     {badmatch,
+         {aborted,
+             {node_not_running,
+                 'test2907@testing-worker-linux-docker-6a120f93-3374-linux-4'}}}}
+  [{mnesia2_meter,start,2,[{file,"mnesia2_meter.erl"},{line,434}]},
+   {mnesia2_meter,run,3,[{file,"mnesia2_meter.erl"},{line,406}]},
+   {mnesia2_meter,go,5,[{file,"mnesia2_meter.erl"},{line,75}]},
+   {mnesia2_meter,go,2,[{file,"mnesia2_meter.erl"},{line,61}]},
+   {mnesia2_examples_test,'-meter/1-fun-1-',1,
+                          [{file,"mnesia2_examples_test.erl"},{line,127}]},
+   {test_server,ts_tc,3,[{file,"test_server.erl"},{line,1359}]},
+   {test_server,run_test_case_eval1,6,[{file,"test_server.erl"},{line,976}]},
+   {test_server,run_test_case_eval,9,[{file,"test_server.erl"},{line,925}]}]
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 22:51:37
+=== location {mnesia2_examples_test,meter}
+=== reason = {error,
+                     {badmatch,
+                         {aborted,
+                             {node_not_running,
+                                 'test2907@testing-worker-linux-docker-6a120f93-3374-linux-4'}}}}
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 22:51:37<!/date><br />
+</div>
+</center>
+</body>
+</html>

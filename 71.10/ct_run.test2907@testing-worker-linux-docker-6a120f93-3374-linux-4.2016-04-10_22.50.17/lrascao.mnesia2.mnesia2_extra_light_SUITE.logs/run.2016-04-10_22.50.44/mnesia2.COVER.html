@@ -1,0 +1,2917 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test2907@testing-worker-linux-docker-6a120f93-3374-linux-4.2016-04-10_22.50.17/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.50.44/mnesia2.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2.erl by COVER 2016-04-10 at 22:51:46
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1996-2014. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  %% This module exports the public interface of the Mnesia2 DBMS engine
+        |  
+        |  -module(mnesia2).
+        |  %-behaviour(mnesia2_access).
+        |  
+        |  -export([
+        |  	 %% Start, stop and debugging
+        |  	 start/0, start/1, stop/0,           % Not for public use
+        |  	 set_debug_level/1, lkill/0, kill/0, % Not for public use
+        |  	 ms/0,
+        |  	 change_config/2,
+        |  
+        |  	 %% Activity mgt
+        |  	 abort/1, transaction/1, transaction/2, transaction/3,
+        |  	 sync_transaction/1, sync_transaction/2, sync_transaction/3,
+        |  	 async_dirty/1, async_dirty/2, sync_dirty/1, sync_dirty/2, ets/1, ets/2,
+        |  	 activity/2, activity/3, activity/4, % Not for public use
+        |  	 is_transaction/0,
+        |  
+        |  	 %% Access within an activity - Lock acquisition
+        |  	 lock/2, lock/4,
+        |  	 lock_table/2,
+        |  	 read_lock_table/1,
+        |  	 write_lock_table/1,
+        |  
+        |  	 %% Access within an activity - Updates
+        |  	 write/1, s_write/1, write/3, write/5,
+        |  	 delete/1, s_delete/1, delete/3, delete/5,
+        |  	 delete_object/1, s_delete_object/1, delete_object/3, delete_object/5,
+        |  
+        |  	 %% Access within an activity - Reads
+        |  	 read/1, read/2, wread/1, read/3, read/5,
+        |  	 match_object/1, match_object/3, match_object/5,
+        |  	 select/1,select/2,select/3,select/4,select/5,select/6,
+        |  	 all_keys/1, all_keys/4,
+        |  	 index_match_object/2, index_match_object/4, index_match_object/6,
+        |  	 index_read/3, index_read/6,
+        |  	 first/1, next/2, last/1, prev/2,
+        |  	 first/3, next/4, last/3, prev/4,
+        |  
+        |  	 %% Iterators within an activity
+        |  	 foldl/3, foldl/4, foldr/3, foldr/4,
+        |  
+        |  	 %% Dirty access regardless of activities - Updates
+        |  	 dirty_write/1, dirty_write/2,
+        |  	 dirty_delete/1, dirty_delete/2,
+        |  	 dirty_delete_object/1, dirty_delete_object/2,
+        |  	 dirty_update_counter/2, dirty_update_counter/3,
+        |  
+        |  	 %% Dirty access regardless of activities - Read
+        |  	 dirty_read/1, dirty_read/2,
+        |  	 dirty_select/2,
+        |  	 dirty_match_object/1, dirty_match_object/2, dirty_all_keys/1,
+        |  	 dirty_index_match_object/2, dirty_index_match_object/3,
+        |  	 dirty_index_read/3, dirty_slot/2,
+        |  	 dirty_first/1, dirty_next/2, dirty_last/1, dirty_prev/2,
+        |  
+        |  	 %% Info
+        |  	 table_info/2, table_info/4, schema/0, schema/1,
+        |  	 error_description/1, info/0, system_info/1,
+        |  	 system_info/0,                      % Not for public use
+        |  
+        |  	 %% Database mgt
+        |  	 create_schema/1, delete_schema/1,
+        |  	 backup/1, backup/2, traverse_backup/4, traverse_backup/6,
+        |  	 install_fallback/1, install_fallback/2,
+        |  	 uninstall_fallback/0, uninstall_fallback/1,
+        |  	 activate_checkpoint/1, deactivate_checkpoint/1,
+        |  	 backup_checkpoint/2, backup_checkpoint/3, restore/2,
+        |  
+        |  	 %% Table mgt
+        |  	 create_table/1, create_table/2, delete_table/1,
+        |  	 add_table_copy/3, del_table_copy/2, move_table_copy/3,
+        |  	 add_table_index/2, del_table_index/2,
+        |  	 transform_table/3, transform_table/4,
+        |  	 change_table_copy_type/3, change_table_majority/2,
+        |  	 read_table_property/2, write_table_property/2, delete_table_property/2,
+        |  	 change_table_frag/2,
+        |  	 clear_table/1, clear_table/4,
+        |  
+        |  	 %% Table load
+        |  	 dump_tables/1, wait_for_tables/2, force_load_table/1,
+        |  	 change_table_access_mode/2, change_table_load_order/2,
+        |  	 set_master_nodes/1, set_master_nodes/2,
+        |  
+        |  	 %% Misc admin
+        |  	 dump_log/0, sync_log/0,
+        |  	 subscribe/1, unsubscribe/1, report_event/1,
+        |  
+        |  	 %% Snmp
+        |  	 snmp_open_table/2, snmp_close_table/1,
+        |  	 snmp_get_row/2, snmp_get_next_index/2, snmp_get_mnesia2_key/2,
+        |  
+        |  	 %% Textfile access
+        |  	 load_textfile/1, dump_to_textfile/1,
+        |  
+        |  	 %% QLC functions
+        |  	 table/1, table/2,
+        |  
+        |  	 %% Mnemosyne exclusive
+        |  	 get_activity_id/0, put_activity_id/1, % Not for public use
+        |  
+        |  	 %% Mnesia internal functions
+        |  	 dirty_rpc/4,                          % Not for public use
+        |  	 has_var/1, fun_select/7, fun_select/10, select_cont/3, dirty_sel_init/5,
+        |  	 foldl/6, foldr/6,
+        |  
+        |  	 %% Module internal callback functions
+        |  	 raw_table_info/2,                      % Not for public use
+        |  	 remote_dirty_match_object/2,           % Not for public use
+        |  	 remote_dirty_select/2                  % Not for public use
+        |  	]).
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  -include("mnesia2.hrl").
+        |  -import(mnesia2_lib, [verbose/2]).
+        |  
+        |  -define(DEFAULT_ACCESS, ?MODULE).
+        |  
+        |  %% Select
+        |  -define(PATTERN_TO_OBJECT_MATCH_SPEC(Pat), [{Pat,[],['$_']}]).
+        |  -define(PATTERN_TO_BINDINGS_MATCH_SPEC(Pat), [{Pat,[],['$$']}]).
+        |  
+        |  %% Local function in order to avoid external function call
+        |  val(Var) -&gt;
+<font color=red>     0..|      case ?catch_val(Var) of</font>
+<font color=red>     0..|  	{'EXIT', _} -&gt; mnesia2_lib:other_val(Var);</font>
+<font color=red>     0..|  	Value -&gt; Value</font>
+        |      end.
+        |  
+        |  is_dollar_digits(Var) -&gt;
+<font color=red>     0..|      case atom_to_list(Var) of</font>
+        |  	[$$ | Digs] -&gt;
+<font color=red>     0..|  	    is_digits(Digs);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    false</font>
+        |      end.
+        |  
+        |  is_digits([Dig | Tail]) -&gt;
+<font color=red>     0..|      if</font>
+        |  	$0 =&lt; Dig, Dig =&lt; $9 -&gt;
+<font color=red>     0..|  	    is_digits(Tail);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    false</font>
+        |      end;
+        |  is_digits([]) -&gt;
+<font color=red>     0..|      true.</font>
+        |  
+        |  has_var(X) when is_atom(X) -&gt;
+<font color=red>     0..|      if</font>
+        |  	X == '_' -&gt;
+<font color=red>     0..|  	    true;</font>
+        |  	is_atom(X) -&gt;
+<font color=red>     0..|  	    is_dollar_digits(X);</font>
+        |  	true  -&gt;
+<font color=red>     0..|  	    false</font>
+        |      end;
+        |  has_var(X) when is_tuple(X) -&gt;
+<font color=red>     0..|      e_has_var(X, tuple_size(X));</font>
+        |  has_var([H|T]) -&gt;
+<font color=red>     0..|      case has_var(H) of</font>
+<font color=red>     0..|  	false -&gt; has_var(T);</font>
+<font color=red>     0..|  	Other -&gt; Other</font>
+        |      end;
+<font color=red>     0..|  has_var(_) -&gt; false.</font>
+        |  
+<font color=red>     0..|  e_has_var(_, 0) -&gt; false;</font>
+        |  e_has_var(X, Pos) -&gt;
+<font color=red>     0..|      case has_var(element(Pos, X))of</font>
+<font color=red>     0..|  	false -&gt; e_has_var(X, Pos-1);</font>
+<font color=red>     0..|  	Other -&gt; Other</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Start and stop
+        |  
+        |  start() -&gt;
+    54..|      {Time , Res} =  timer:tc(application, ensure_all_started, [?APPLICATION, temporary]),
+        |  
+<font color=red>     0..|      Secs = Time div 1000000,</font>
+<font color=red>     0..|      case Res of</font>
+        |  	{ok, _} -&gt;
+<font color=red>     0..|  	    verbose("Mnesia2 started, ~p seconds~n",[ Secs]),</font>
+<font color=red>     0..|  	    ok;</font>
+        |  	{error, {already_started, mnesia2}} -&gt;
+<font color=red>     0..|  	    verbose("Mnesia2 already started, ~p seconds~n",[ Secs]),</font>
+<font color=red>     0..|  	    ok;</font>
+        |  	{error, R} -&gt;
+<font color=red>     0..|  	    verbose("Mnesia2 failed to start, ~p seconds: ~p~n",[ Secs, R]),</font>
+<font color=red>     0..|  	    {error, R}</font>
+        |      end.
+        |  
+        |  start(ExtraEnv) when is_list(ExtraEnv) -&gt;
+    23..|      case mnesia2_lib:ensure_loaded(?APPLICATION) of
+        |  	ok -&gt;
+    23..|  	    patched_start(ExtraEnv);
+        |  	Error -&gt;
+<font color=red>     0..|  	    Error</font>
+        |      end;
+        |  start(ExtraEnv) -&gt;
+<font color=red>     0..|      {error, {badarg, ExtraEnv}}.</font>
+        |  
+        |  patched_start([{Env, Val} | Tail]) when is_atom(Env) -&gt;
+    25..|      case mnesia2_monitor:patch_env(Env, Val) of
+        |  	{error, Reason} -&gt;
+     4..|  	    {error, Reason};
+        |  	_NewVal -&gt;
+    21..|  	    patched_start(Tail)
+        |      end;
+        |  patched_start([Head | _]) -&gt;
+     1..|      {error, {bad_type, Head}};
+        |  patched_start([]) -&gt;
+    18..|      start().
+        |  
+        |  stop() -&gt;
+     5..|      case application:stop(?APPLICATION) of
+<font color=red>     0..|  	ok -&gt; stopped;</font>
+     5..|  	{error, {not_started, ?APPLICATION}} -&gt; stopped;
+<font color=red>     0..|  	Other -&gt; Other</font>
+        |      end.
+        |  
+        |  change_config(extra_db_nodes, Ns) when is_list(Ns) -&gt;
+<font color=red>     0..|      mnesia2_controller:connect_nodes(Ns);</font>
+        |  change_config(dc_dump_limit, N) when is_number(N), N &gt; 0 -&gt;
+<font color=red>     0..|      case mnesia2_lib:is_running() of</font>
+        |  	yes -&gt;
+<font color=red>     0..|  	    mnesia2_lib:set(dc_dump_limit, N),</font>
+<font color=red>     0..|  	    {ok, N};</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    {error, {not_started, ?APPLICATION}}</font>
+        |      end;
+        |  change_config(BadKey, _BadVal) -&gt;
+<font color=red>     0..|      {error, {badarg, BadKey}}.</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Debugging
+        |  
+        |  set_debug_level(Level) -&gt;
+<font color=red>     0..|      mnesia2_subscr:set_debug_level(Level).</font>
+        |  
+        |  lkill() -&gt;
+    95..|      mnesia2_sup:kill().
+        |  
+        |  kill() -&gt;
+     1..|      rpc:multicall(mnesia2_sup, kill, []).
+        |  
+        |  ms() -&gt;
+    96..|      [
+        |       mnesia2,
+        |       mnesia2_backup,
+        |       mnesia2_bup,
+        |       mnesia2_checkpoint,
+        |       mnesia2_checkpoint_sup,
+        |       mnesia2_controller,
+        |       mnesia2_dumper,
+        |       mnesia2_loader,
+        |       mnesia2_frag,
+        |       mnesia2_frag_hash,
+        |       mnesia2_frag_old_hash,
+        |       mnesia2_index,
+        |       mnesia2_kernel_sup,
+        |       mnesia2_late_loader,
+        |       mnesia2_lib,
+        |       mnesia2_log,
+        |       mnesia2_registry,
+        |       mnesia2_schema,
+        |       mnesia2_snmp_hook,
+        |       mnesia2_snmp_sup,
+        |       mnesia2_subscr,
+        |       mnesia2_sup,
+        |       mnesia2_text,
+        |       mnesia2_tm,
+        |       mnesia2_recover,
+        |       mnesia2_locker,
+        |  
+        |       %% Keep these last in the list, so
+        |       %% mnesia2_sup kills these last
+        |       mnesia2_monitor,
+        |       mnesia2_event
+        |      ].
+        |  
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Activity mgt
+        |  
+        |  -spec abort(_) -&gt; no_return().
+        |  
+        |  abort(Reason = {aborted, _}) -&gt;
+<font color=red>     0..|      exit(Reason);</font>
+        |  abort(Reason) -&gt;
+     1..|      exit({aborted, Reason}).
+        |  
+        |  is_transaction() -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{_, Tid, _Ts} when element(1,Tid) == tid -&gt;
+<font color=red>     0..|  	    true;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    false</font>
+        |      end.
+        |  
+        |  transaction(Fun) -&gt;
+    18..|      transaction(get(mnesia2_activity_state), Fun, [], infinity, ?DEFAULT_ACCESS, async).
+        |  transaction(Fun, Retries) when is_integer(Retries), Retries &gt;= 0 -&gt;
+<font color=red>     0..|      transaction(get(mnesia2_activity_state), Fun, [], Retries, ?DEFAULT_ACCESS, async);</font>
+        |  transaction(Fun, Retries) when Retries == infinity -&gt;
+<font color=red>     0..|      transaction(get(mnesia2_activity_state), Fun, [], Retries, ?DEFAULT_ACCESS, async);</font>
+        |  transaction(Fun, Args) -&gt;
+<font color=red>     0..|      transaction(get(mnesia2_activity_state), Fun, Args, infinity, ?DEFAULT_ACCESS, async).</font>
+        |  transaction(Fun, Args, Retries) -&gt;
+<font color=red>     0..|      transaction(get(mnesia2_activity_state), Fun, Args, Retries, ?DEFAULT_ACCESS, async).</font>
+        |  
+        |  sync_transaction(Fun) -&gt;
+<font color=red>     0..|      transaction(get(mnesia2_activity_state), Fun, [], infinity, ?DEFAULT_ACCESS, sync).</font>
+        |  sync_transaction(Fun, Retries) when is_integer(Retries), Retries &gt;= 0 -&gt;
+<font color=red>     0..|      transaction(get(mnesia2_activity_state), Fun, [], Retries, ?DEFAULT_ACCESS, sync);</font>
+        |  sync_transaction(Fun, Retries) when Retries == infinity -&gt;
+<font color=red>     0..|      transaction(get(mnesia2_activity_state), Fun, [], Retries, ?DEFAULT_ACCESS, sync);</font>
+        |  sync_transaction(Fun, Args) -&gt;
+<font color=red>     0..|      transaction(get(mnesia2_activity_state), Fun, Args, infinity, ?DEFAULT_ACCESS, sync).</font>
+        |  sync_transaction(Fun, Args, Retries) -&gt;
+<font color=red>     0..|      transaction(get(mnesia2_activity_state), Fun, Args, Retries, ?DEFAULT_ACCESS, sync).</font>
+        |  
+        |  
+        |  transaction(State, Fun, Args, Retries, Mod, Kind)
+        |    when is_function(Fun), is_list(Args), Retries == infinity, is_atom(Mod) -&gt;
+    19..|      mnesia2_tm:transaction(State, Fun, Args, Retries, Mod, Kind);
+        |  transaction(State, Fun, Args, Retries, Mod, Kind)
+        |    when is_function(Fun), is_list(Args), is_integer(Retries), Retries &gt;= 0, is_atom(Mod) -&gt;
+<font color=red>     0..|      mnesia2_tm:transaction(State, Fun, Args, Retries, Mod, Kind);</font>
+        |  transaction(_State, Fun, Args, Retries, Mod, _Kind) -&gt;
+<font color=red>     0..|      {aborted, {badarg, Fun, Args, Retries, Mod}}.</font>
+        |  
+        |  non_transaction(State, Fun, Args, ActivityKind, Mod)
+        |    when is_function(Fun), is_list(Args), is_atom(Mod) -&gt;
+<font color=red>     0..|      mnesia2_tm:non_transaction(State, Fun, Args, ActivityKind, Mod);</font>
+        |  non_transaction(_State, Fun, Args, _ActivityKind, _Mod) -&gt;
+<font color=red>     0..|      {aborted, {badarg, Fun, Args}}.</font>
+        |  
+        |  async_dirty(Fun) -&gt;
+<font color=red>     0..|      async_dirty(Fun, []).</font>
+        |  async_dirty(Fun, Args) -&gt;
+<font color=red>     0..|      non_transaction(get(mnesia2_activity_state), Fun, Args, async_dirty, ?DEFAULT_ACCESS).</font>
+        |  
+        |  sync_dirty(Fun) -&gt;
+<font color=red>     0..|      sync_dirty(Fun, []).</font>
+        |  sync_dirty(Fun, Args) -&gt;
+<font color=red>     0..|      non_transaction(get(mnesia2_activity_state), Fun, Args, sync_dirty, ?DEFAULT_ACCESS).</font>
+        |  
+        |  ets(Fun) -&gt;
+<font color=red>     0..|      ets(Fun, []).</font>
+        |  ets(Fun, Args) -&gt;
+<font color=red>     0..|      non_transaction(get(mnesia2_activity_state), Fun, Args, ets, ?DEFAULT_ACCESS).</font>
+        |  
+        |  activity(Kind, Fun) -&gt;
+<font color=red>     0..|      activity(Kind, Fun, []).</font>
+        |  activity(Kind, Fun, Args) when is_list(Args) -&gt;
+     1..|      activity(Kind, Fun, Args, mnesia2_monitor:get_env(access_module));
+        |  activity(Kind, Fun, Mod) -&gt;
+<font color=red>     0..|      activity(Kind, Fun, [], Mod).</font>
+        |  
+        |  activity(Kind, Fun, Args, Mod) -&gt;
+     1..|      State = get(mnesia2_activity_state),
+     1..|      case Kind of
+<font color=red>     0..|  	ets -&gt;                    non_transaction(State, Fun, Args, Kind, Mod);</font>
+<font color=red>     0..|  	async_dirty -&gt;            non_transaction(State, Fun, Args, Kind, Mod);</font>
+<font color=red>     0..|  	sync_dirty -&gt;             non_transaction(State, Fun, Args, Kind, Mod);</font>
+     1..|  	transaction -&gt;            wrap_trans(State, Fun, Args, infinity, Mod, async);
+<font color=red>     0..|  	{transaction, Retries} -&gt; wrap_trans(State, Fun, Args, Retries, Mod, async);</font>
+<font color=red>     0..|  	sync_transaction -&gt;            wrap_trans(State, Fun, Args, infinity, Mod, sync);</font>
+<font color=red>     0..|  	{sync_transaction, Retries} -&gt; wrap_trans(State, Fun, Args, Retries, Mod, sync);</font>
+<font color=red>     0..|  	_ -&gt;                      {aborted, {bad_type, Kind}}</font>
+        |      end.
+        |  
+        |  wrap_trans(State, Fun, Args, Retries, Mod, Kind) -&gt;
+     1..|      case transaction(State, Fun, Args, Retries, Mod, Kind) of
+<font color=red>     0..|  	{atomic, GoodRes} -&gt; GoodRes;</font>
+     1..|  	BadRes -&gt; exit(BadRes)
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Access within an activity - lock acquisition
+        |  
+        |  %% Grab a lock on an item in the global lock table
+        |  %% Item may be any term. Lock may be write or read.
+        |  %% write lock is set on all the given nodes
+        |  %% read lock is only set on the first node
+        |  %% Nodes may either be a list of nodes or one node as an atom
+        |  %% Mnesia2 on all Nodes must be connected to each other, but
+        |  %% it is not neccessary that they are up and running.
+        |  
+        |  lock(LockItem, LockKind) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    lock(Tid, Ts, LockItem, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:lock(Tid, Ts, LockItem, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  lock_table(Tab, LockKind) -&gt;
+<font color=red>     0..|      lock({table, Tab}, LockKind).</font>
+        |  
+        |  lock(Tid, Ts, LockItem, LockKind) -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    case LockItem of</font>
+        |  		{record, Tab, Key} -&gt;
+<font color=red>     0..|  		    lock_record(Tid, Ts, Tab, Key, LockKind);</font>
+        |  		{table, Tab} -&gt;
+<font color=red>     0..|  		    lock_table(Tid, Ts, Tab, LockKind);</font>
+        |  		{global, GlobalKey, Nodes} -&gt;
+<font color=red>     0..|  		    global_lock(Tid, Ts, GlobalKey, LockKind, Nodes);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    abort({bad_type, LockItem})</font>
+        |  	    end;
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    []</font>
+        |      end.
+        |  
+        |  %% Grab a read lock on a whole table
+        |  read_lock_table(Tab) -&gt;
+<font color=red>     0..|      lock({table, Tab}, read),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %% Grab a write lock on a whole table
+        |  write_lock_table(Tab) -&gt;
+<font color=red>     0..|      lock({table, Tab}, write),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  lock_record(Tid, Ts, Tab, Key, LockKind) when is_atom(Tab) -&gt;
+<font color=red>     0..|      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|      Oid =  {Tab, Key},</font>
+<font color=red>     0..|      case LockKind of</font>
+        |  	read -&gt;
+<font color=red>     0..|  	    mnesia2_locker:rlock(Tid, Store, Oid);</font>
+        |  	write -&gt;
+<font color=red>     0..|  	    mnesia2_locker:wlock(Tid, Store, Oid);</font>
+        |  	sticky_write -&gt;
+<font color=red>     0..|  	    mnesia2_locker:sticky_wlock(Tid, Store, Oid);</font>
+        |  	none -&gt;
+<font color=red>     0..|  	    [];</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort({bad_type, Tab, LockKind})</font>
+        |      end;
+        |  lock_record(_Tid, _Ts, Tab, _Key, _LockKind) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  lock_table(Tid, Ts, Tab, LockKind) when is_atom(Tab) -&gt;
+<font color=red>     0..|      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|      case LockKind of</font>
+        |  	read -&gt;
+<font color=red>     0..|  	    mnesia2_locker:rlock_table(Tid, Store, Tab);</font>
+        |  	write -&gt;
+<font color=red>     0..|  	    mnesia2_locker:wlock_table(Tid, Store, Tab);</font>
+        |  	load -&gt;
+<font color=red>     0..|  	    mnesia2_locker:load_lock_table(Tid, Store, Tab);</font>
+        |  	sticky_write -&gt;
+<font color=red>     0..|  	    mnesia2_locker:sticky_wlock_table(Tid, Store, Tab);</font>
+        |  	none -&gt;
+<font color=red>     0..|  	    [];</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort({bad_type, Tab, LockKind})</font>
+        |      end;
+        |  lock_table(_Tid, _Ts, Tab, _LockKind) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  global_lock(Tid, Ts, Item, Kind, Nodes) when is_list(Nodes) -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    Store = Ts#tidstore.store,</font>
+<font color=red>     0..|  	    GoodNs = good_global_nodes(Nodes),</font>
+<font color=red>     0..|  	    if</font>
+        |  		Kind /= read, Kind /= write -&gt;
+<font color=red>     0..|  		    abort({bad_type, Kind});</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    mnesia2_locker:global_lock(Tid, Store, Item, Kind, GoodNs)</font>
+        |  	    end;
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    []</font>
+        |      end;
+        |  global_lock(_Tid, _Ts, _Item, _Kind, Nodes) -&gt;
+<font color=red>     0..|      abort({bad_type, Nodes}).</font>
+        |  
+        |  good_global_nodes(Nodes) -&gt;
+<font color=red>     0..|      Recover = [node() | val(recover_nodes)],</font>
+<font color=red>     0..|      mnesia2_lib:intersect(Nodes, Recover).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Access within an activity - updates
+        |  
+        |  write(Val) when is_tuple(Val), tuple_size(Val) &gt; 2 -&gt;
+<font color=red>     0..|      Tab = element(1, Val),</font>
+<font color=red>     0..|      write(Tab, Val, write);</font>
+        |  write(Val) -&gt;
+<font color=red>     0..|      abort({bad_type, Val}).</font>
+        |  
+        |  s_write(Val) when is_tuple(Val), tuple_size(Val) &gt; 2 -&gt;
+<font color=red>     0..|      Tab = element(1, Val),</font>
+<font color=red>     0..|      write(Tab, Val, sticky_write).</font>
+        |  
+        |  write(Tab, Val, LockKind) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    write(Tid, Ts, Tab, Val, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:write(Tid, Ts, Tab, Val, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  write(Tid, Ts, Tab, Val, LockKind)
+        |    when is_atom(Tab), Tab /= schema, is_tuple(Val), tuple_size(Val) &gt; 2 -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    ?ets_insert(Tab, Val),</font>
+<font color=red>     0..|  	    ok;</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    Store = Ts#tidstore.store,</font>
+<font color=red>     0..|  	    Oid = {Tab, element(2, Val)},</font>
+<font color=red>     0..|  	    case LockKind of</font>
+        |  		write -&gt;
+<font color=red>     0..|  		    mnesia2_locker:wlock(Tid, Store, Oid);</font>
+        |  		sticky_write -&gt;
+<font color=red>     0..|  		    mnesia2_locker:sticky_wlock(Tid, Store, Oid);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    abort({bad_type, Tab, LockKind})</font>
+        |  	    end,
+<font color=red>     0..|  	    write_to_store(Tab, Store, Oid, Val);</font>
+        |  	Protocol -&gt;
+<font color=red>     0..|  	    do_dirty_write(Protocol, Tab, Val)</font>
+        |      end;
+        |  write(_Tid, _Ts, Tab, Val, LockKind) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Val, LockKind}).</font>
+        |  
+        |  write_to_store(Tab, Store, Oid, Val) -&gt;
+<font color=red>     0..|      case ?catch_val({Tab, record_validation}) of</font>
+        |  	{RecName, Arity, Type}
+        |  	  when tuple_size(Val) == Arity, RecName == element(1, Val) -&gt;
+<font color=red>     0..|  	    case Type of</font>
+        |  		bag -&gt;
+<font color=red>     0..|  		    ?ets_insert(Store, {Oid, Val, write});</font>
+        |  		_  -&gt;
+<font color=red>     0..|  		    ?ets_delete(Store, Oid),</font>
+<font color=red>     0..|  		    ?ets_insert(Store, {Oid, Val, write})</font>
+        |  	    end,
+<font color=red>     0..|  	    ok;</font>
+        |  	{'EXIT', _} -&gt;
+<font color=red>     0..|  	    abort({no_exists, Tab});</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort({bad_type, Val})</font>
+        |      end.
+        |  
+        |  delete({Tab, Key}) -&gt;
+<font color=red>     0..|      delete(Tab, Key, write);</font>
+        |  delete(Oid) -&gt;
+<font color=red>     0..|      abort({bad_type, Oid}).</font>
+        |  
+        |  s_delete({Tab, Key}) -&gt;
+<font color=red>     0..|      delete(Tab, Key, sticky_write);</font>
+        |  s_delete(Oid) -&gt;
+<font color=red>     0..|      abort({bad_type, Oid}).</font>
+        |  
+        |  delete(Tab, Key, LockKind) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    delete(Tid, Ts, Tab, Key, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:delete(Tid, Ts, Tab, Key, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  delete(Tid, Ts, Tab, Key, LockKind)
+        |    when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|        case element(1, Tid) of</font>
+        |  	  ets -&gt;
+<font color=red>     0..|  	      ?ets_delete(Tab, Key),</font>
+<font color=red>     0..|  	      ok;</font>
+        |  	  tid -&gt;
+<font color=red>     0..|  	      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|  	      Oid = {Tab, Key},</font>
+<font color=red>     0..|  	      case LockKind of</font>
+        |  		  write -&gt;
+<font color=red>     0..|  		      mnesia2_locker:wlock(Tid, Store, Oid);</font>
+        |  		  sticky_write -&gt;
+<font color=red>     0..|  		      mnesia2_locker:sticky_wlock(Tid, Store, Oid);</font>
+        |  		  _ -&gt;
+<font color=red>     0..|  		      abort({bad_type, Tab, LockKind})</font>
+        |  	      end,
+<font color=red>     0..|  	      ?ets_delete(Store, Oid),</font>
+<font color=red>     0..|  	      ?ets_insert(Store, {Oid, Oid, delete}),</font>
+<font color=red>     0..|  	      ok;</font>
+        |  	Protocol -&gt;
+<font color=red>     0..|  	      do_dirty_delete(Protocol, Tab, Key)</font>
+        |      end;
+        |  delete(_Tid, _Ts, Tab, _Key, _LockKind) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  delete_object(Val) when is_tuple(Val), tuple_size(Val) &gt; 2 -&gt;
+<font color=red>     0..|      Tab = element(1, Val),</font>
+<font color=red>     0..|      delete_object(Tab, Val, write);</font>
+        |  delete_object(Val) -&gt;
+<font color=red>     0..|      abort({bad_type, Val}).</font>
+        |  
+        |  s_delete_object(Val) when is_tuple(Val), tuple_size(Val) &gt; 2 -&gt;
+<font color=red>     0..|      Tab = element(1, Val),</font>
+<font color=red>     0..|      delete_object(Tab, Val, sticky_write);</font>
+        |  s_delete_object(Val) -&gt;
+<font color=red>     0..|      abort({bad_type, Val}).</font>
+        |  
+        |  delete_object(Tab, Val, LockKind) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    delete_object(Tid, Ts, Tab, Val, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:delete_object(Tid, Ts, Tab, Val, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  delete_object(Tid, Ts, Tab, Val, LockKind)
+        |    when is_atom(Tab), Tab /= schema, is_tuple(Val), tuple_size(Val) &gt; 2 -&gt;
+<font color=red>     0..|      case has_var(Val) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    do_delete_object(Tid, Ts, Tab, Val, LockKind);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    abort({bad_type, Tab, Val})</font>
+        |      end;
+        |  delete_object(_Tid, _Ts, Tab, _Key, _LockKind) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  do_delete_object(Tid, Ts, Tab, Val, LockKind) -&gt;
+<font color=red>     0..|        case element(1, Tid) of</font>
+        |  	  ets -&gt;
+<font color=red>     0..|  	      ?ets_match_delete(Tab, Val),</font>
+<font color=red>     0..|  	      ok;</font>
+        |  	  tid -&gt;
+<font color=red>     0..|  	      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|  	      Oid = {Tab, element(2, Val)},</font>
+<font color=red>     0..|  	      case LockKind of</font>
+        |  		  write -&gt;
+<font color=red>     0..|  		      mnesia2_locker:wlock(Tid, Store, Oid);</font>
+        |  		  sticky_write -&gt;
+<font color=red>     0..|  		      mnesia2_locker:sticky_wlock(Tid, Store, Oid);</font>
+        |  		  _ -&gt;
+<font color=red>     0..|  		      abort({bad_type, Tab, LockKind})</font>
+        |  	      end,
+<font color=red>     0..|  	      case val({Tab, setorbag}) of</font>
+        |  		  bag -&gt;
+<font color=red>     0..|  		      ?ets_match_delete(Store, {Oid, Val, '_'}),</font>
+<font color=red>     0..|  		      ?ets_insert(Store, {Oid, Val, delete_object});</font>
+        |  		  _ -&gt;
+<font color=red>     0..|  		      case ?ets_match_object(Store, {Oid, '_', write}) of</font>
+        |  			  [] -&gt;
+<font color=red>     0..|  			      ?ets_match_delete(Store, {Oid, Val, '_'}),</font>
+<font color=red>     0..|  			      ?ets_insert(Store, {Oid, Val, delete_object});</font>
+        |  			  _  -&gt;
+<font color=red>     0..|  			      ?ets_delete(Store, Oid),</font>
+<font color=red>     0..|  			      ?ets_insert(Store, {Oid, Oid, delete})</font>
+        |  		      end
+        |  	      end,
+<font color=red>     0..|  	      ok;</font>
+        |  	Protocol -&gt;
+<font color=red>     0..|  	      do_dirty_delete_object(Protocol, Tab, Val)</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Access within an activity - read
+        |  
+        |  read(Tab, Key) -&gt;
+<font color=red>     0..|      read(Tab, Key, read).</font>
+        |  
+        |  read({Tab, Key}) -&gt;
+<font color=red>     0..|      read(Tab, Key, read);</font>
+        |  read(Oid) -&gt;
+<font color=red>     0..|      abort({bad_type, Oid}).</font>
+        |  
+        |  wread({Tab, Key}) -&gt;
+<font color=red>     0..|      read(Tab, Key, write);</font>
+        |  wread(Oid) -&gt;
+<font color=red>     0..|      abort({bad_type, Oid}).</font>
+        |  
+        |  read(Tab, Key, LockKind) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    read(Tid, Ts, Tab, Key, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:read(Tid, Ts, Tab, Key, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  read(Tid, Ts, Tab, Key, LockKind)
+        |    when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    ?ets_lookup(Tab, Key);</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    Store = Ts#tidstore.store,</font>
+<font color=red>     0..|  	    Oid = {Tab, Key},</font>
+<font color=red>     0..|  	    Objs =</font>
+        |  		case LockKind of
+        |  		    read -&gt;
+<font color=red>     0..|  			mnesia2_locker:rlock(Tid, Store, Oid);</font>
+        |  		    write -&gt;
+<font color=red>     0..|  			mnesia2_locker:rwlock(Tid, Store, Oid);</font>
+        |  		    sticky_write -&gt;
+<font color=red>     0..|  			mnesia2_locker:sticky_rwlock(Tid, Store, Oid);</font>
+        |  		    _ -&gt;
+<font color=red>     0..|  			abort({bad_type, Tab, LockKind})</font>
+        |  		end,
+<font color=red>     0..|  	    add_written(?ets_lookup(Store, Oid), Tab, Objs);</font>
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    dirty_read(Tab, Key)</font>
+        |      end;
+        |  read(_Tid, _Ts, Tab, _Key, _LockKind) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  first(Tab) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    first(Tid, Ts, Tab);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:first(Tid, Ts, Tab);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  first(Tid, Ts, Tab)
+        |    when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    ?ets_first(Tab);</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    lock_table(Tid, Ts, Tab, read),</font>
+<font color=red>     0..|  	    do_fixtable(Tab,Ts),</font>
+<font color=red>     0..|  	    Key = dirty_first(Tab),</font>
+<font color=red>     0..|  	    stored_keys(Tab,Key,'$end_of_table',Ts,next,</font>
+        |  			val({Tab, setorbag}));
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    dirty_first(Tab)</font>
+        |      end;
+        |  first(_Tid, _Ts,Tab) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  last(Tab) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    last(Tid, Ts, Tab);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:last(Tid, Ts, Tab);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  last(Tid, Ts, Tab)
+        |    when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    ?ets_last(Tab);</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    lock_table(Tid, Ts, Tab, read),</font>
+<font color=red>     0..|  	    do_fixtable(Tab,Ts),</font>
+<font color=red>     0..|  	    Key = dirty_last(Tab),</font>
+<font color=red>     0..|  	    stored_keys(Tab,Key,'$end_of_table',Ts,prev,</font>
+        |  			val({Tab, setorbag}));
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    dirty_last(Tab)</font>
+        |      end;
+        |  last(_Tid, _Ts,Tab) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  next(Tab,Key) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS,Tid,Ts} -&gt;
+<font color=red>     0..|  	    next(Tid,Ts,Tab,Key);</font>
+        |  	{Mod,Tid,Ts} -&gt;
+<font color=red>     0..|  	    Mod:next(Tid,Ts,Tab,Key);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  next(Tid,Ts,Tab,Key)
+        |    when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    ?ets_next(Tab,Key);</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    lock_table(Tid, Ts, Tab, read),</font>
+<font color=red>     0..|  	    do_fixtable(Tab,Ts),</font>
+<font color=red>     0..|  	    New = ?CATCH(dirty_next(Tab,Key)),</font>
+<font color=red>     0..|  	    stored_keys(Tab,New,Key,Ts,next,</font>
+        |  			val({Tab, setorbag}));
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    dirty_next(Tab,Key)</font>
+        |      end;
+        |  next(_Tid, _Ts,Tab,_) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  prev(Tab,Key) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS,Tid,Ts} -&gt;
+<font color=red>     0..|  	    prev(Tid,Ts,Tab,Key);</font>
+        |  	{Mod,Tid,Ts} -&gt;
+<font color=red>     0..|  	    Mod:prev(Tid,Ts,Tab,Key);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  prev(Tid,Ts,Tab,Key)
+        |    when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    ?ets_prev(Tab,Key);</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    lock_table(Tid, Ts, Tab, read),</font>
+<font color=red>     0..|  	    do_fixtable(Tab,Ts),</font>
+<font color=red>     0..|  	    New = ?CATCH(dirty_prev(Tab,Key)),</font>
+<font color=red>     0..|  	    stored_keys(Tab,New,Key,Ts,prev,</font>
+        |  			val({Tab, setorbag}));
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    dirty_prev(Tab,Key)</font>
+        |      end;
+        |  prev(_Tid, _Ts,Tab,_) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  %% Compensate for transaction written and/or deleted records
+        |  stored_keys(Tab,'$end_of_table',Prev,Ts,Op,Type) -&gt;
+<font color=red>     0..|      case ts_keys(Ts#tidstore.store,Tab,Op,Type,[]) of</font>
+<font color=red>     0..|  	[] -&gt; '$end_of_table';</font>
+        |  	Keys when Type == ordered_set-&gt;
+<font color=red>     0..|  	    get_ordered_tskey(Prev,Keys,Op);</font>
+        |  	Keys -&gt;
+<font color=red>     0..|  	    get_next_tskey(Prev,Keys,Tab)</font>
+        |      end;
+        |  stored_keys(Tab,{'EXIT',{aborted,R={badarg,[Tab,Key]}}},
+        |  	    Key,#tidstore{store=Store},Op,Type) -&gt;
+        |      %% Had to match on error, ouch..
+<font color=red>     0..|      case ?ets_match(Store, {{Tab, Key}, '_', '$1'}) of</font>
+<font color=red>     0..|  	[] -&gt;  abort(R);</font>
+        |  	Ops -&gt;
+<font color=red>     0..|  	    case lists:last(Ops) of</font>
+<font color=red>     0..|  		[delete] -&gt; abort(R);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    case ts_keys(Store,Tab,Op,Type,[]) of</font>
+<font color=red>     0..|  			[] -&gt; '$end_of_table';</font>
+<font color=red>     0..|  			Keys -&gt; get_next_tskey(Key,Keys,Tab)</font>
+        |  		    end
+        |  	    end
+        |      end;
+        |  stored_keys(_,{'EXIT',{aborted,R}},_,_,_,_) -&gt;
+<font color=red>     0..|      abort(R);</font>
+        |  stored_keys(Tab,Key,Prev,#tidstore{store=Store},Op,ordered_set) -&gt;
+<font color=red>     0..|      case ?ets_match(Store, {{Tab, Key}, '_', '$1'}) of</font>
+        |  	[] -&gt;
+<font color=red>     0..|  	    Keys = ts_keys(Store,Tab,Op,ordered_set,[Key]),</font>
+<font color=red>     0..|  	    get_ordered_tskey(Prev,Keys,Op);</font>
+        |   	Ops -&gt;
+<font color=red>     0..|  	    case lists:last(Ops) of</font>
+        |  		[delete] -&gt;
+<font color=red>     0..|  	 	    mnesia2:Op(Tab,Key);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    Keys = ts_keys(Store,Tab,Op,ordered_set,[Key]),</font>
+<font color=red>     0..|  		    get_ordered_tskey(Prev,Keys,Op)</font>
+        |  	    end
+        |      end;
+        |  stored_keys(Tab,Key,_,#tidstore{store=Store},Op,_) -&gt;
+<font color=red>     0..|      case ?ets_match(Store, {{Tab, Key}, '_', '$1'}) of</font>
+<font color=red>     0..|  	[] -&gt;  Key;</font>
+        |   	Ops -&gt;
+<font color=red>     0..|  	    case lists:last(Ops) of</font>
+<font color=red>     0..|  		[delete] -&gt; mnesia2:Op(Tab,Key);</font>
+<font color=red>     0..|  		_ -&gt;      Key</font>
+        |  	    end
+        |      end.
+        |  
+<font color=red>     0..|  get_ordered_tskey('$end_of_table', [First|_],_) -&gt;    First;</font>
+<font color=red>     0..|  get_ordered_tskey(Prev, [First|_], next) when Prev &lt; First -&gt; First;</font>
+<font color=red>     0..|  get_ordered_tskey(Prev, [First|_], prev) when Prev &gt; First -&gt; First;</font>
+<font color=red>     0..|  get_ordered_tskey(Prev, [_|R],Op) -&gt;  get_ordered_tskey(Prev,R,Op);</font>
+<font color=red>     0..|  get_ordered_tskey(_, [],_) -&gt;    '$end_of_table'.</font>
+        |  
+        |  get_next_tskey(Key,Keys,Tab) -&gt;
+<font color=red>     0..|      Next =</font>
+<font color=red>     0..|  	if Key == '$end_of_table' -&gt; hd(Keys);</font>
+        |  	   true -&gt;
+<font color=red>     0..|  		case lists:dropwhile(fun(A) -&gt; A /= Key end, Keys) of</font>
+<font color=red>     0..|  		    [] -&gt; hd(Keys); %% First stored key</font>
+<font color=red>     0..|  		    [Key] -&gt; '$end_of_table';</font>
+<font color=red>     0..|  		    [Key,Next2|_] -&gt; Next2</font>
+        |  		end
+        |  	end,
+<font color=red>     0..|      case Next of</font>
+<font color=red>     0..|  	'$end_of_table' -&gt; '$end_of_table';</font>
+        |  	_ -&gt; %% Really slow anybody got another solution??
+<font color=red>     0..|  	    case dirty_read(Tab, Next) of</font>
+<font color=red>     0..|  		[] -&gt; Next;</font>
+        |  		_ -&gt;
+        |  		    %% Updated value we already returned this key
+<font color=red>     0..|  		    get_next_tskey(Next,Keys,Tab)</font>
+        |  	    end
+        |      end.
+        |  
+        |  ts_keys(Store, Tab, Op, Type, Def) -&gt;
+<font color=red>     0..|      All = ?ets_match(Store, {{Tab,'$1'},'_','$2'}),</font>
+<font color=red>     0..|      Keys = ts_keys_1(All, Def),</font>
+<font color=red>     0..|      if</font>
+        |  	Type == ordered_set, Op == prev -&gt;
+<font color=red>     0..|  	    lists:reverse(lists:sort(Keys));</font>
+        |  	Type == ordered_set -&gt;
+<font color=red>     0..|  	    lists:sort(Keys);</font>
+        |  	Op == next -&gt;
+<font color=red>     0..|  	    lists:reverse(Keys);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Keys</font>
+        |      end.
+        |  
+        |  ts_keys_1([[Key, write]|R], []) -&gt;
+<font color=red>     0..|      ts_keys_1(R, [Key]);</font>
+        |  ts_keys_1([[Key, write]|R], Acc=[Key|_]) -&gt;
+<font color=red>     0..|      ts_keys_1(R, Acc);</font>
+        |  ts_keys_1([[Key, write]|R], Acc) -&gt;
+<font color=red>     0..|      ts_keys_1(R, [Key|Acc]);</font>
+        |  ts_keys_1([[Key, delete]|R], [Key|Acc]) -&gt;
+<font color=red>     0..|      ts_keys_1(R, Acc);</font>
+        |  ts_keys_1([_|R], Acc) -&gt;
+<font color=red>     0..|      ts_keys_1(R, Acc);</font>
+        |  ts_keys_1([], Acc) -&gt;
+<font color=red>     0..|      Acc.</font>
+        |  
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%
+        |  %% Iterators
+        |  
+        |  foldl(Fun, Acc, Tab) -&gt;
+<font color=red>     0..|      foldl(Fun, Acc, Tab, read).</font>
+        |  
+        |  foldl(Fun, Acc, Tab, LockKind) when is_function(Fun) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    foldl(Tid, Ts, Fun, Acc, Tab, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:foldl(Tid, Ts, Fun, Acc, Tab, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  foldl(ActivityId, Opaque, Fun, Acc, Tab, LockKind) -&gt;
+<font color=red>     0..|      {Type, Prev} = init_iteration(ActivityId, Opaque, Tab, LockKind),</font>
+<font color=red>     0..|      Res = ?CATCH(do_foldl(ActivityId, Opaque, Tab, dirty_first(Tab), Fun, Acc, Type, Prev)),</font>
+<font color=red>     0..|      close_iteration(Res, Tab).</font>
+        |  
+        |  do_foldl(A, O, Tab, '$end_of_table', Fun, RAcc, _Type, Stored) -&gt;
+<font color=red>     0..|      lists:foldl(fun(Key, Acc) -&gt;</font>
+<font color=red>     0..|  			lists:foldl(Fun, Acc, read(A, O, Tab, Key, read))</font>
+        |  		end, RAcc, Stored);
+        |  do_foldl(A, O, Tab, Key, Fun, Acc, ordered_set, [H | Stored]) when H == Key -&gt;
+<font color=red>     0..|      NewAcc = lists:foldl(Fun, Acc, read(A, O, Tab, Key, read)),</font>
+<font color=red>     0..|      {_, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      do_foldl(Tid, Ts, Tab, dirty_next(Tab, Key), Fun, NewAcc, ordered_set, Stored);</font>
+        |  do_foldl(A, O, Tab, Key, Fun, Acc, ordered_set, [H | Stored]) when H &lt; Key -&gt;
+<font color=red>     0..|      NewAcc = lists:foldl(Fun, Acc, read(A, O, Tab, H, read)),</font>
+<font color=red>     0..|      {_, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      do_foldl(Tid, Ts, Tab, Key, Fun, NewAcc, ordered_set, Stored);</font>
+        |  do_foldl(A, O, Tab, Key, Fun, Acc, ordered_set, [H | Stored]) when H &gt; Key -&gt;
+<font color=red>     0..|      NewAcc = lists:foldl(Fun, Acc, read(A, O, Tab, Key, read)),</font>
+<font color=red>     0..|      {_, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      do_foldl(Tid, Ts, Tab, dirty_next(Tab, Key), Fun, NewAcc, ordered_set, [H |Stored]);</font>
+        |  do_foldl(A, O, Tab, Key, Fun, Acc, Type, Stored) -&gt;  %% Type is set or bag
+<font color=red>     0..|      NewAcc = lists:foldl(Fun, Acc, read(A, O, Tab, Key, read)),</font>
+<font color=red>     0..|      NewStored = ordsets:del_element(Key, Stored),</font>
+<font color=red>     0..|      {_, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      do_foldl(Tid, Ts, Tab, dirty_next(Tab, Key), Fun, NewAcc, Type, NewStored).</font>
+        |  
+        |  foldr(Fun, Acc, Tab) -&gt;
+<font color=red>     0..|      foldr(Fun, Acc, Tab, read).</font>
+        |  foldr(Fun, Acc, Tab, LockKind) when is_function(Fun) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    foldr(Tid, Ts, Fun, Acc, Tab, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:foldr(Tid, Ts, Fun, Acc, Tab, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  foldr(ActivityId, Opaque, Fun, Acc, Tab, LockKind) -&gt;
+<font color=red>     0..|      {Type, TempPrev} = init_iteration(ActivityId, Opaque, Tab, LockKind),</font>
+<font color=red>     0..|      Prev =</font>
+        |  	if
+        |  	    Type == ordered_set -&gt;
+<font color=red>     0..|  		lists:reverse(TempPrev);</font>
+        |  	    true -&gt;      %% Order doesn't matter for set and bag
+<font color=red>     0..|  		TempPrev %% Keep the order so we can use ordsets:del_element</font>
+        |  	end,
+<font color=red>     0..|      Res = ?CATCH(do_foldr(ActivityId, Opaque, Tab, dirty_last(Tab), Fun, Acc, Type, Prev)),</font>
+<font color=red>     0..|      close_iteration(Res, Tab).</font>
+        |  
+        |  do_foldr(A, O, Tab, '$end_of_table', Fun, RAcc, _Type, Stored) -&gt;
+<font color=red>     0..|      lists:foldl(fun(Key, Acc) -&gt;</font>
+<font color=red>     0..|  			lists:foldl(Fun, Acc, read(A, O, Tab, Key, read))</font>
+        |  		end, RAcc, Stored);
+        |  do_foldr(A, O, Tab, Key, Fun, Acc, ordered_set, [H | Stored]) when H == Key -&gt;
+<font color=red>     0..|      NewAcc = lists:foldl(Fun, Acc, read(A, O, Tab, Key, read)),</font>
+<font color=red>     0..|      {_, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      do_foldr(Tid, Ts, Tab, dirty_prev(Tab, Key), Fun, NewAcc, ordered_set, Stored);</font>
+        |  do_foldr(A, O, Tab, Key, Fun, Acc, ordered_set, [H | Stored]) when H &gt; Key -&gt;
+<font color=red>     0..|      NewAcc = lists:foldl(Fun, Acc, read(A, O, Tab, H, read)),</font>
+<font color=red>     0..|      {_, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      do_foldr(Tid, Ts, Tab, Key, Fun, NewAcc, ordered_set, Stored);</font>
+        |  do_foldr(A, O, Tab, Key, Fun, Acc, ordered_set, [H | Stored]) when H &lt; Key -&gt;
+<font color=red>     0..|      NewAcc = lists:foldl(Fun, Acc, read(A, O, Tab, Key, read)),</font>
+<font color=red>     0..|      {_, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      do_foldr(Tid, Ts, Tab, dirty_prev(Tab, Key), Fun, NewAcc, ordered_set, [H |Stored]);</font>
+        |  do_foldr(A, O, Tab, Key, Fun, Acc, Type, Stored) -&gt;  %% Type is set or bag
+<font color=red>     0..|      NewAcc = lists:foldl(Fun, Acc, read(A, O, Tab, Key, read)),</font>
+<font color=red>     0..|      NewStored = ordsets:del_element(Key, Stored),</font>
+<font color=red>     0..|      {_, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      do_foldr(Tid, Ts, Tab, dirty_prev(Tab, Key), Fun, NewAcc, Type, NewStored).</font>
+        |  
+        |  init_iteration(ActivityId, Opaque, Tab, LockKind) -&gt;
+<font color=red>     0..|      lock(ActivityId, Opaque, {table, Tab}, LockKind),</font>
+<font color=red>     0..|      Type = val({Tab, setorbag}),</font>
+<font color=red>     0..|      Previous = add_previous(ActivityId, Opaque, Type, Tab),</font>
+<font color=red>     0..|      St = val({Tab, storage_type}),</font>
+<font color=red>     0..|      if</font>
+        |  	St == unknown -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    mnesia2_lib:db_fixtable(St, Tab, true)</font>
+        |      end,
+<font color=red>     0..|      {Type, Previous}.</font>
+        |  
+        |  close_iteration(Res, Tab) -&gt;
+<font color=red>     0..|      case val({Tab, storage_type}) of</font>
+        |  	unknown -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	St -&gt;
+<font color=red>     0..|  	    mnesia2_lib:db_fixtable(St, Tab, false)</font>
+        |      end,
+<font color=red>     0..|      case Res of</font>
+        |  	{'EXIT', {aborted, What}} -&gt;
+<font color=red>     0..|  	   abort(What);</font>
+        |  	{'EXIT', What} -&gt;
+<font color=red>     0..|  	    abort(What);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    Res</font>
+        |      end.
+        |  
+        |  add_previous(_ActivityId, non_transaction, _Type, _Tab) -&gt;
+<font color=red>     0..|      [];</font>
+        |  add_previous(_Tid, Ts, _Type, Tab) -&gt;
+<font color=red>     0..|      Previous = ?ets_match(Ts#tidstore.store, {{Tab, '$1'}, '_', write}),</font>
+<font color=red>     0..|      lists:sort(lists:concat(Previous)).</font>
+        |  
+        |  %% This routine fixes up the return value from read/1 so that
+        |  %% it is correct with respect to what this particular transaction
+        |  %% has already written, deleted .... etc
+        |  
+        |  add_written([], _Tab, Objs) -&gt;
+<font color=red>     0..|      Objs;  % standard normal fast case</font>
+        |  add_written(Written, Tab, Objs) -&gt;
+<font color=red>     0..|      case val({Tab, setorbag}) of</font>
+        |  	bag -&gt;
+<font color=red>     0..|  	    add_written_to_bag(Written, Objs, []);</font>
+        |  	_   -&gt;
+<font color=red>     0..|  	    add_written_to_set(Written)</font>
+        |      end.
+        |  
+        |  add_written_to_set(Ws) -&gt;
+<font color=red>     0..|      case lists:last(Ws) of</font>
+<font color=red>     0..|  	{_, _, delete} -&gt; [];</font>
+<font color=red>     0..|  	{_, Val, write} -&gt; [Val];</font>
+<font color=red>     0..|  	{_, _, delete_object} -&gt; []</font>
+        |      end.
+        |  
+        |  add_written_to_bag([{_, Val, write} | Tail], Objs, Ack) -&gt;
+<font color=red>     0..|      add_written_to_bag(Tail, lists:delete(Val, Objs), [Val | Ack]);</font>
+        |  add_written_to_bag([], Objs, Ack) -&gt;
+<font color=red>     0..|      Objs ++ lists:reverse(Ack); %% Oldest write first as in ets</font>
+        |  add_written_to_bag([{_, _ , delete} | Tail], _Objs, _Ack) -&gt;
+        |      %% This transaction just deleted all objects
+        |      %% with this key
+<font color=red>     0..|      add_written_to_bag(Tail, [], []);</font>
+        |  add_written_to_bag([{_, Val, delete_object} | Tail], Objs, Ack) -&gt;
+<font color=red>     0..|      add_written_to_bag(Tail, lists:delete(Val, Objs), lists:delete(Val, Ack)).</font>
+        |  
+        |  match_object(Pat) when is_tuple(Pat), tuple_size(Pat) &gt; 2 -&gt;
+<font color=red>     0..|      Tab = element(1, Pat),</font>
+<font color=red>     0..|      match_object(Tab, Pat, read);</font>
+        |  match_object(Pat) -&gt;
+<font color=red>     0..|      abort({bad_type, Pat}).</font>
+        |  
+        |  match_object(Tab, Pat, LockKind) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    match_object(Tid, Ts, Tab, Pat, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:match_object(Tid, Ts, Tab, Pat, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  match_object(Tid, Ts, Tab, Pat, LockKind)
+        |    when is_atom(Tab), Tab /= schema, is_tuple(Pat), tuple_size(Pat) &gt; 2 -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    mnesia2_lib:db_match_object(ram_copies, Tab, Pat);</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    Key = element(2, Pat),</font>
+<font color=red>     0..|  	    case has_var(Key) of</font>
+<font color=red>     0..|  		false -&gt; lock_record(Tid, Ts, Tab, Key, LockKind);</font>
+<font color=red>     0..|  		true  -&gt; lock_table(Tid, Ts, Tab, LockKind)</font>
+        |  	    end,
+<font color=red>     0..|  	    Objs = dirty_match_object(Tab, Pat),</font>
+<font color=red>     0..|  	    add_written_match(Ts#tidstore.store, Pat, Tab, Objs);</font>
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    dirty_match_object(Tab, Pat)</font>
+        |      end;
+        |  match_object(_Tid, _Ts, Tab, Pat, _LockKind) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Pat}).</font>
+        |  
+        |  add_written_match(S, Pat, Tab, Objs) -&gt;
+<font color=red>     0..|      Ops = find_ops(S, Tab, Pat),</font>
+<font color=red>     0..|      FixedRes = add_match(Ops, Objs, val({Tab, setorbag})),</font>
+<font color=red>     0..|      MS = ets:match_spec_compile([{Pat, [], ['$_']}]),</font>
+<font color=red>     0..|      ets:match_spec_run(FixedRes, MS).</font>
+        |  
+        |  find_ops(S, Tab, Pat) -&gt;
+<font color=red>     0..|      GetWritten = [{{{Tab, '_'}, '_', write}, [], ['$_']},</font>
+        |  		  {{{Tab, '_'}, '_', delete}, [], ['$_']},
+        |  		  {{{Tab, '_'}, Pat, delete_object}, [], ['$_']}],
+<font color=red>     0..|      ets:select(S, GetWritten).</font>
+        |  
+        |  add_match([], Objs, _Type) -&gt;
+<font color=red>     0..|      Objs;</font>
+        |  add_match(Written, Objs, ordered_set) -&gt;
+        |      %% Must use keysort which is stable
+<font color=red>     0..|      add_ordered_match(lists:keysort(1,Written), Objs, []);</font>
+        |  add_match([{Oid, _, delete}|R], Objs, Type) -&gt;
+<font color=red>     0..|      add_match(R, deloid(Oid, Objs), Type);</font>
+        |  add_match([{_Oid, Val, delete_object}|R], Objs, Type) -&gt;
+<font color=red>     0..|      add_match(R, lists:delete(Val, Objs), Type);</font>
+        |  add_match([{_Oid, Val, write}|R], Objs, bag) -&gt;
+<font color=red>     0..|      add_match(R, [Val | lists:delete(Val, Objs)], bag);</font>
+        |  add_match([{Oid, Val, write}|R], Objs, set) -&gt;
+<font color=red>     0..|      add_match(R, [Val | deloid(Oid,Objs)],set).</font>
+        |  
+        |  %% For ordered_set only !!
+        |  add_ordered_match(Written = [{{_, Key}, _, _}|_], [Obj|Objs], Acc)
+        |    when Key &gt; element(2, Obj) -&gt;
+<font color=red>     0..|      add_ordered_match(Written, Objs, [Obj|Acc]);</font>
+        |  add_ordered_match([{{_, Key}, Val, write}|Rest], Objs =[Obj|_], Acc)
+        |    when Key &lt; element(2, Obj) -&gt;
+<font color=red>     0..|      add_ordered_match(Rest, [Val|Objs],Acc);</font>
+        |  add_ordered_match([{{_, Key}, _, _DelOP}|Rest], Objs =[Obj|_], Acc)
+        |    when Key &lt; element(2, Obj) -&gt;
+<font color=red>     0..|      add_ordered_match(Rest,Objs,Acc);</font>
+        |  %% Greater than last object
+        |  add_ordered_match([{_, Val, write}|Rest], [], Acc) -&gt;
+<font color=red>     0..|      add_ordered_match(Rest, [Val], Acc);</font>
+        |  add_ordered_match([_|Rest], [], Acc) -&gt;
+<font color=red>     0..|      add_ordered_match(Rest, [], Acc);</font>
+        |  %% Keys are equal from here
+        |  add_ordered_match([{_, Val, write}|Rest], [_Obj|Objs], Acc) -&gt;
+<font color=red>     0..|      add_ordered_match(Rest, [Val|Objs], Acc);</font>
+        |  add_ordered_match([{_, _Val, delete}|Rest], [_Obj|Objs], Acc) -&gt;
+<font color=red>     0..|      add_ordered_match(Rest, Objs, Acc);</font>
+        |  add_ordered_match([{_, Val, delete_object}|Rest], [Val|Objs], Acc) -&gt;
+<font color=red>     0..|      add_ordered_match(Rest, Objs, Acc);</font>
+        |  add_ordered_match([{_, _, delete_object}|Rest], Objs, Acc) -&gt;
+<font color=red>     0..|      add_ordered_match(Rest, Objs, Acc);</font>
+        |  add_ordered_match([], Objs, Acc) -&gt;
+<font color=red>     0..|      lists:reverse(Acc, Objs).</font>
+        |  
+        |  %% For select chunk
+        |  add_sel_match(Sorted, Objs, ordered_set) -&gt;
+<font color=red>     0..|      add_sel_ordered_match(Sorted, Objs, []);</font>
+        |  add_sel_match(Written, Objs, Type) -&gt;
+<font color=red>     0..|      add_sel_match(Written, Objs, Type, []).</font>
+        |  
+        |  add_sel_match([], Objs, _Type, Acc) -&gt;
+<font color=red>     0..|      {Objs,lists:reverse(Acc)};</font>
+        |  add_sel_match([Op={Oid, _, delete}|R], Objs, Type, Acc) -&gt;
+<font color=red>     0..|      case deloid(Oid, Objs) of</font>
+        |  	Objs -&gt;
+<font color=red>     0..|  	    add_sel_match(R, Objs, Type, [Op|Acc]);</font>
+        |  	NewObjs when Type == set -&gt;
+<font color=red>     0..|  	    add_sel_match(R, NewObjs, Type, Acc);</font>
+        |  	NewObjs -&gt;  %% If bag we may get more in next chunk
+<font color=red>     0..|  	    add_sel_match(R, NewObjs, Type, [Op|Acc])</font>
+        |      end;
+        |  add_sel_match([Op = {_Oid, Val, delete_object}|R], Objs, Type, Acc) -&gt;
+<font color=red>     0..|      case lists:delete(Val, Objs) of</font>
+        |  	Objs -&gt;
+<font color=red>     0..|  	    add_sel_match(R, Objs, Type, [Op|Acc]);</font>
+        |  	NewObjs when Type == set -&gt;
+<font color=red>     0..|  	    add_sel_match(R, NewObjs, Type, Acc);</font>
+        |  	NewObjs -&gt;
+<font color=red>     0..|  	    add_sel_match(R, NewObjs, Type, [Op|Acc])</font>
+        |      end;
+        |  add_sel_match([Op={Oid={_,Key}, Val, write}|R], Objs, bag, Acc) -&gt;
+<font color=red>     0..|      case lists:keymember(Key, 2, Objs) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    add_sel_match(R,[Val|lists:delete(Val,Objs)],bag,</font>
+        |  			  [{Oid,Val,delete_object}|Acc]);
+        |  	false -&gt;
+<font color=red>     0..|  	    add_sel_match(R,Objs,bag,[Op|Acc])</font>
+        |      end;
+        |  add_sel_match([Op={Oid, Val, write}|R], Objs, set, Acc) -&gt;
+<font color=red>     0..|      case deloid(Oid,Objs) of</font>
+        |  	Objs -&gt;
+<font color=red>     0..|  	    add_sel_match(R, Objs,set, [Op|Acc]);</font>
+        |  	NewObjs -&gt;
+<font color=red>     0..|  	    add_sel_match(R, [Val | NewObjs],set, Acc)</font>
+        |      end.
+        |  
+        |  %% For ordered_set only !!
+        |  add_sel_ordered_match(Written = [{{_, Key}, _, _}|_], [Obj|Objs],Acc)
+        |    when Key &gt; element(2, Obj) -&gt;
+<font color=red>     0..|      add_sel_ordered_match(Written, Objs, [Obj|Acc]);</font>
+        |  add_sel_ordered_match([{{_, Key}, Val, write}|Rest], Objs =[Obj|_],Acc)
+        |    when Key &lt; element(2, Obj) -&gt;
+<font color=red>     0..|      add_sel_ordered_match(Rest,[Val|Objs],Acc);</font>
+        |  add_sel_ordered_match([{{_, Key}, _, _DelOP}|Rest], Objs =[Obj|_], Acc)
+        |    when Key &lt; element(2, Obj) -&gt;
+<font color=red>     0..|      add_sel_ordered_match(Rest,Objs,Acc);</font>
+        |  %% Greater than last object
+        |  add_sel_ordered_match(Ops1, [], Acc) -&gt;
+<font color=red>     0..|      {lists:reverse(Acc), Ops1};</font>
+        |  %% Keys are equal from here
+        |  add_sel_ordered_match([{_, Val, write}|Rest], [_Obj|Objs], Acc) -&gt;
+<font color=red>     0..|      add_sel_ordered_match(Rest, [Val|Objs], Acc);</font>
+        |  add_sel_ordered_match([{_, _Val, delete}|Rest], [_Obj|Objs], Acc) -&gt;
+<font color=red>     0..|      add_sel_ordered_match(Rest, Objs, Acc);</font>
+        |  add_sel_ordered_match([{_, Val, delete_object}|Rest], [Val|Objs], Acc) -&gt;
+<font color=red>     0..|      add_sel_ordered_match(Rest, Objs, Acc);</font>
+        |  add_sel_ordered_match([{_, _, delete_object}|Rest], Objs, Acc) -&gt;
+<font color=red>     0..|      add_sel_ordered_match(Rest, Objs, Acc);</font>
+        |  add_sel_ordered_match([], Objs, Acc) -&gt;
+<font color=red>     0..|      {lists:reverse(Acc, Objs),[]}.</font>
+        |  
+        |  
+        |  deloid(_Oid, []) -&gt;
+<font color=red>     0..|      [];</font>
+        |  deloid({Tab, Key}, [H | T]) when element(2, H) == Key -&gt;
+<font color=red>     0..|      deloid({Tab, Key}, T);</font>
+        |  deloid(Oid, [H | T]) -&gt;
+<font color=red>     0..|      [H | deloid(Oid, T)].</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%
+        |  % select
+        |  
+        |  select(Tab, Pat) -&gt;
+<font color=red>     0..|      select(Tab, Pat, read).</font>
+        |  select(Tab, Pat, LockKind)
+        |    when is_atom(Tab), Tab /= schema, is_list(Pat) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    select(Tid, Ts, Tab, Pat, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:select(Tid, Ts, Tab, Pat, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end;
+        |  select(Tab, Pat, _Lock) -&gt;
+<font color=red>     0..|      abort({badarg, Tab, Pat}).</font>
+        |  
+        |  select(Tid, Ts, Tab, Spec, LockKind) -&gt;
+<font color=red>     0..|      SelectFun = fun(FixedSpec) -&gt; dirty_select(Tab, FixedSpec) end,</font>
+<font color=red>     0..|      fun_select(Tid, Ts, Tab, Spec, LockKind, Tab, SelectFun).</font>
+        |  
+        |  fun_select(Tid, Ts, Tab, Spec, LockKind, TabPat, SelectFun) -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    mnesia2_lib:db_select(ram_copies, Tab, Spec);</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    select_lock(Tid,Ts,LockKind,Spec,Tab),</font>
+<font color=red>     0..|  	    Store = Ts#tidstore.store,</font>
+<font color=red>     0..|  	    Written = ?ets_match_object(Store, {{TabPat, '_'}, '_', '_'}),</font>
+<font color=red>     0..|  	    case Written of</font>
+        |  		[] -&gt;
+        |  		    %% Nothing changed in the table during this transaction,
+        |  		    %% Simple case get results from [d]ets
+<font color=red>     0..|  		    SelectFun(Spec);</font>
+        |  		_ -&gt;
+        |  		    %% Hard (slow case) records added or deleted earlier
+        |  		    %% in the transaction, have to cope with that.
+<font color=red>     0..|  		    Type = val({Tab, setorbag}),</font>
+<font color=red>     0..|  		    FixedSpec = get_record_pattern(Spec),</font>
+<font color=red>     0..|  		    TabRecs = SelectFun(FixedSpec),</font>
+<font color=red>     0..|  		    FixedRes = add_match(Written, TabRecs, Type),</font>
+<font color=red>     0..|  		    CMS = ets:match_spec_compile(Spec),</font>
+<font color=red>     0..|  		    ets:match_spec_run(FixedRes, CMS)</font>
+        |  	    end;
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    SelectFun(Spec)</font>
+        |      end.
+        |  
+        |  select_lock(Tid,Ts,LockKind,Spec,Tab) -&gt;
+        |      %% Avoid table lock if possible
+<font color=red>     0..|      case Spec of</font>
+        |  	[{HeadPat,_, _}] when is_tuple(HeadPat), tuple_size(HeadPat) &gt; 2 -&gt;
+<font color=red>     0..|  	    Key = element(2, HeadPat),</font>
+<font color=red>     0..|  	    case has_var(Key) of</font>
+<font color=red>     0..|  		false -&gt; lock_record(Tid, Ts, Tab, Key, LockKind);</font>
+<font color=red>     0..|  		true  -&gt; lock_table(Tid, Ts, Tab, LockKind)</font>
+        |  	    end;
+        |  	_ -&gt;
+<font color=red>     0..|  	    lock_table(Tid, Ts, Tab, LockKind)</font>
+        |      end.
+        |  
+        |  %% Breakable Select
+        |  select(Tab, Pat, NObjects, LockKind)
+        |    when is_atom(Tab), Tab /= schema, is_list(Pat), is_integer(NObjects) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    select(Tid, Ts, Tab, Pat, NObjects, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:select(Tid, Ts, Tab, Pat, NObjects, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end;
+        |  select(Tab, Pat, NObjects, _Lock) -&gt;
+<font color=red>     0..|      abort({badarg, Tab, Pat, NObjects}).</font>
+        |  
+        |  select(Tid, Ts, Tab, Spec, NObjects, LockKind) -&gt;
+<font color=red>     0..|      Where = val({Tab,where_to_read}),</font>
+<font color=red>     0..|      Type = mnesia2_lib:storage_type_at_node(Where,Tab),</font>
+<font color=red>     0..|      InitFun = fun(FixedSpec) -&gt; dirty_sel_init(Where,Tab,FixedSpec,NObjects,Type) end,</font>
+<font color=red>     0..|      fun_select(Tid,Ts,Tab,Spec,LockKind,Tab,InitFun,NObjects,Where,Type).</font>
+        |  
+        |  -record(mnesia2_select, {tab,tid,node,storage,cont,written=[],spec,type,orig}).
+        |  
+        |  fun_select(Tid, Ts, Tab, Spec, LockKind, TabPat, Init, NObjects, Node, Storage) -&gt;
+<font color=red>     0..|      Def = #mnesia2_select{tid=Tid,node=Node,storage=Storage,tab=Tab,orig=Spec},</font>
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    select_state(mnesia2_lib:db_select_init(ram_copies,Tab,Spec,NObjects),Def);</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    select_lock(Tid,Ts,LockKind,Spec,Tab),</font>
+<font color=red>     0..|  	    Store = Ts#tidstore.store,</font>
+<font color=red>     0..|  	    do_fixtable(Tab, Store),</font>
+        |  
+<font color=red>     0..|  	    Written0 = ?ets_match_object(Store, {{TabPat, '_'}, '_', '_'}),</font>
+<font color=red>     0..|  	    case Written0 of</font>
+        |  		[] -&gt;
+        |  		    %% Nothing changed in the table during this transaction,
+        |  		    %% Simple case get results from [d]ets
+<font color=red>     0..|  		    select_state(Init(Spec),Def);</font>
+        |  		_ -&gt;
+        |  		    %% Hard (slow case) records added or deleted earlier
+        |  		    %% in the transaction, have to cope with that.
+<font color=red>     0..|  		    Type = val({Tab, setorbag}),</font>
+<font color=red>     0..|  		    Written =</font>
+        |  			if Type == ordered_set -&gt; %% Sort stable
+<font color=red>     0..|  				lists:keysort(1,Written0);</font>
+        |  			   true -&gt;
+<font color=red>     0..|  				Written0</font>
+        |  			end,
+<font color=red>     0..|  		    FixedSpec = get_record_pattern(Spec),</font>
+<font color=red>     0..|  		    CMS = ets:match_spec_compile(Spec),</font>
+<font color=red>     0..|  		    trans_select(Init(FixedSpec),</font>
+        |  				 Def#mnesia2_select{written=Written,spec=CMS,type=Type, orig=FixedSpec})
+        |  	    end;
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    select_state(Init(Spec),Def)</font>
+        |      end.
+        |  
+        |  select(Cont) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    select_cont(Tid,Ts,Cont);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:select_cont(Tid,Ts,Cont);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  select_cont(_Tid,_Ts,'$end_of_table') -&gt;
+<font color=red>     0..|      '$end_of_table';</font>
+        |  select_cont(Tid,_Ts,State=#mnesia2_select{tid=Tid,cont=Cont, orig=Ms})
+        |    when element(1,Tid) == ets -&gt;
+<font color=red>     0..|      case Cont of</font>
+<font color=red>     0..|  	'$end_of_table' -&gt; '$end_of_table';</font>
+<font color=red>     0..|  	_ -&gt; select_state(mnesia2_lib:db_select_cont(ram_copies,Cont,Ms),State)</font>
+        |      end;
+        |  select_cont(Tid,_,State=#mnesia2_select{tid=Tid,written=[]}) -&gt;
+<font color=red>     0..|      select_state(dirty_sel_cont(State),State);</font>
+        |  select_cont(Tid,_Ts,State=#mnesia2_select{tid=Tid})  -&gt;
+<font color=red>     0..|      trans_select(dirty_sel_cont(State), State);</font>
+        |  select_cont(_Tid2,_,#mnesia2_select{tid=_Tid1}) -&gt;  % Missmatching tids
+<font color=red>     0..|      abort(wrong_transaction);</font>
+        |  select_cont(_,_,Cont) -&gt;
+<font color=red>     0..|      abort({badarg, Cont}).</font>
+        |  
+        |  trans_select('$end_of_table', #mnesia2_select{written=Written0,spec=CMS,type=Type}) -&gt;
+<font color=red>     0..|      Written = add_match(Written0, [], Type),</font>
+<font color=red>     0..|      {ets:match_spec_run(Written, CMS), '$end_of_table'};</font>
+        |  trans_select({TabRecs,Cont}, State = #mnesia2_select{written=Written0,spec=CMS,type=Type}) -&gt;
+<font color=red>     0..|      {FixedRes,Written} = add_sel_match(Written0, TabRecs, Type),</font>
+<font color=red>     0..|      select_state({ets:match_spec_run(FixedRes, CMS),Cont},</font>
+        |  		 State#mnesia2_select{written=Written}).
+        |  
+        |  select_state({Matches, Cont}, MS) -&gt;
+<font color=red>     0..|      {Matches, MS#mnesia2_select{cont=Cont}};</font>
+<font color=red>     0..|  select_state('$end_of_table',_) -&gt; '$end_of_table'.</font>
+        |  
+<font color=red>     0..|  get_record_pattern([]) -&gt;    [];</font>
+        |  get_record_pattern([{M,C,_B}|R]) -&gt;
+<font color=red>     0..|      [{M,C,['$_']} | get_record_pattern(R)].</font>
+        |  
+        |  all_keys(Tab) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    all_keys(Tid, Ts, Tab, read);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:all_keys(Tid, Ts, Tab, read);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  all_keys(Tid, Ts, Tab, LockKind)
+        |    when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      Pat0 = val({Tab, wild_pattern}),</font>
+<font color=red>     0..|      Pat = setelement(2, Pat0, '$1'),</font>
+<font color=red>     0..|      Keys = select(Tid, Ts, Tab, [{Pat, [], ['$1']}], LockKind),</font>
+<font color=red>     0..|      case val({Tab, setorbag}) of</font>
+        |  	bag -&gt;
+<font color=red>     0..|  	    mnesia2_lib:uniq(Keys);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    Keys</font>
+        |      end;
+        |  all_keys(_Tid, _Ts, Tab, _LockKind) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  index_match_object(Pat, Attr) when is_tuple(Pat), tuple_size(Pat) &gt; 2 -&gt;
+<font color=red>     0..|      Tab = element(1, Pat),</font>
+<font color=red>     0..|      index_match_object(Tab, Pat, Attr, read);</font>
+        |  index_match_object(Pat, _Attr) -&gt;
+<font color=red>     0..|      abort({bad_type, Pat}).</font>
+        |  
+        |  index_match_object(Tab, Pat, Attr, LockKind) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    index_match_object(Tid, Ts, Tab, Pat, Attr, LockKind);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:index_match_object(Tid, Ts, Tab, Pat, Attr, LockKind);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  index_match_object(Tid, Ts, Tab, Pat, Attr, LockKind)
+        |    when is_atom(Tab), Tab /= schema, is_tuple(Pat), tuple_size(Pat) &gt; 2 -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    dirty_index_match_object(Tab, Pat, Attr); % Should be optimized?</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    case mnesia2_schema:attr_tab_to_pos(Tab, Attr) of</font>
+        |  		Pos when Pos =&lt; tuple_size(Pat) -&gt;
+<font color=red>     0..|  		    case LockKind of</font>
+        |  			read -&gt;
+<font color=red>     0..|  			    Store = Ts#tidstore.store,</font>
+<font color=red>     0..|  			    mnesia2_locker:rlock_table(Tid, Store, Tab),</font>
+<font color=red>     0..|  			    Objs = dirty_index_match_object(Tab, Pat, Attr),</font>
+<font color=red>     0..|  			    add_written_match(Store, Pat, Tab, Objs);</font>
+        |  			_ -&gt;
+<font color=red>     0..|  			    abort({bad_type, Tab, LockKind})</font>
+        |  		    end;
+        |  		BadPos -&gt;
+<font color=red>     0..|  		    abort({bad_type, Tab, BadPos})</font>
+        |  	    end;
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    dirty_index_match_object(Tab, Pat, Attr)</font>
+        |      end;
+        |  index_match_object(_Tid, _Ts, Tab, Pat, _Attr, _LockKind) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Pat}).</font>
+        |  
+        |  index_read(Tab, Key, Attr) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts} -&gt;
+<font color=red>     0..|  	    index_read(Tid, Ts, Tab, Key, Attr, read);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:index_read(Tid, Ts, Tab, Key, Attr, read);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  index_read(Tid, Ts, Tab, Key, Attr, LockKind)
+        |    when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      case element(1, Tid) of</font>
+        |  	ets -&gt;
+<font color=red>     0..|  	    dirty_index_read(Tab, Key, Attr); % Should be optimized?</font>
+        |  	tid -&gt;
+<font color=red>     0..|  	    Pos = mnesia2_schema:attr_tab_to_pos(Tab, Attr),</font>
+<font color=red>     0..|  	    case LockKind of</font>
+        |  		read -&gt;
+<font color=red>     0..|  		    case has_var(Key) of</font>
+        |  			false -&gt;
+<font color=red>     0..|  			    Store = Ts#tidstore.store,</font>
+<font color=red>     0..|  			    Objs = mnesia2_index:read(Tid, Store, Tab, Key, Pos),</font>
+<font color=red>     0..|  			    Pat = setelement(Pos, val({Tab, wild_pattern}), Key),</font>
+<font color=red>     0..|  			    add_written_match(Store, Pat, Tab, Objs);</font>
+        |  			true -&gt;
+<font color=red>     0..|  			    abort({bad_type, Tab, Attr, Key})</font>
+        |  		    end;
+        |  		_ -&gt;
+<font color=red>     0..|  		    abort({bad_type, Tab, LockKind})</font>
+        |  	    end;
+        |  	_Protocol -&gt;
+<font color=red>     0..|  	    dirty_index_read(Tab, Key, Attr)</font>
+        |      end;
+        |  index_read(_Tid, _Ts, Tab, _Key, _Attr, _LockKind) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Dirty access regardless of activities - updates
+        |  
+        |  dirty_write(Val) when is_tuple(Val), tuple_size(Val) &gt; 2  -&gt;
+<font color=red>     0..|      Tab = element(1, Val),</font>
+<font color=red>     0..|      dirty_write(Tab, Val);</font>
+        |  dirty_write(Val) -&gt;
+<font color=red>     0..|      abort({bad_type, Val}).</font>
+        |  
+        |  dirty_write(Tab, Val) -&gt;
+<font color=red>     0..|      do_dirty_write(async_dirty, Tab, Val).</font>
+        |  
+        |  do_dirty_write(SyncMode, Tab, Val)
+        |    when is_atom(Tab), Tab /= schema, is_tuple(Val), tuple_size(Val) &gt; 2 -&gt;
+<font color=red>     0..|      case ?catch_val({Tab, record_validation}) of</font>
+        |  	{RecName, Arity, _Type}
+        |  	when tuple_size(Val) == Arity, RecName == element(1, Val) -&gt;
+<font color=red>     0..|  	    Oid = {Tab, element(2, Val)},</font>
+<font color=red>     0..|  	    mnesia2_tm:dirty(SyncMode, {Oid, Val, write});</font>
+        |  	{'EXIT', _} -&gt;
+<font color=red>     0..|  	    abort({no_exists, Tab});</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort({bad_type, Val})</font>
+        |      end;
+        |  do_dirty_write(_SyncMode, Tab, Val) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Val}).</font>
+        |  
+        |  dirty_delete({Tab, Key}) -&gt;
+<font color=red>     0..|      dirty_delete(Tab, Key);</font>
+        |  dirty_delete(Oid) -&gt;
+<font color=red>     0..|      abort({bad_type, Oid}).</font>
+        |  
+        |  dirty_delete(Tab, Key) -&gt;
+<font color=red>     0..|      do_dirty_delete(async_dirty, Tab, Key).</font>
+        |  
+        |  do_dirty_delete(SyncMode, Tab, Key) when is_atom(Tab), Tab /= schema  -&gt;
+<font color=red>     0..|      Oid = {Tab, Key},</font>
+<font color=red>     0..|      mnesia2_tm:dirty(SyncMode, {Oid, Oid, delete});</font>
+        |  do_dirty_delete(_SyncMode, Tab, _Key) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  dirty_delete_object(Val) when is_tuple(Val), tuple_size(Val) &gt; 2 -&gt;
+<font color=red>     0..|      Tab = element(1, Val),</font>
+<font color=red>     0..|      dirty_delete_object(Tab, Val);</font>
+        |  dirty_delete_object(Val) -&gt;
+<font color=red>     0..|      abort({bad_type, Val}).</font>
+        |  
+        |  dirty_delete_object(Tab, Val) -&gt;
+<font color=red>     0..|      do_dirty_delete_object(async_dirty, Tab, Val).</font>
+        |  
+        |  do_dirty_delete_object(SyncMode, Tab, Val)
+        |      when is_atom(Tab), Tab /= schema, is_tuple(Val), tuple_size(Val) &gt; 2 -&gt;
+<font color=red>     0..|      Oid = {Tab, element(2, Val)},</font>
+<font color=red>     0..|      case has_var(Val) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    mnesia2_tm:dirty(SyncMode, {Oid, Val, delete_object});</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    abort({bad_type, Tab, Val})</font>
+        |      end;
+        |  
+        |  do_dirty_delete_object(_SyncMode, Tab, Val) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Val}).</font>
+        |  
+        |  %% A Counter is an Oid being {CounterTab, CounterName}
+        |  
+        |  dirty_update_counter({Tab, Key}, Incr) -&gt;
+<font color=red>     0..|      dirty_update_counter(Tab, Key, Incr);</font>
+        |  dirty_update_counter(Counter, _Incr) -&gt;
+<font color=red>     0..|      abort({bad_type, Counter}).</font>
+        |  
+        |  dirty_update_counter(Tab, Key, Incr) -&gt;
+<font color=red>     0..|      do_dirty_update_counter(async_dirty, Tab, Key, Incr).</font>
+        |  
+        |  do_dirty_update_counter(SyncMode, Tab, Key, Incr)
+        |    when is_atom(Tab), Tab /= schema, is_integer(Incr) -&gt;
+<font color=red>     0..|      case ?catch_val({Tab, record_validation}) of</font>
+        |  	{RecName, 3, set} -&gt;
+<font color=red>     0..|  	    Oid = {Tab, Key},</font>
+<font color=red>     0..|  	    mnesia2_tm:dirty(SyncMode, {Oid, {RecName, Incr}, update_counter});</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort({combine_error, Tab, update_counter})</font>
+        |      end;
+        |  do_dirty_update_counter(_SyncMode, Tab, _Key, Incr) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Incr}).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Dirty access regardless of activities - read
+        |  
+        |  dirty_read({Tab, Key}) -&gt;
+<font color=red>     0..|      dirty_read(Tab, Key);</font>
+        |  dirty_read(Oid) -&gt;
+<font color=red>     0..|      abort({bad_type, Oid}).</font>
+        |  
+        |  dirty_read(Tab, Key)
+        |    when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      dirty_rpc(Tab, mnesia2_lib, db_get, [Tab, Key]);</font>
+        |  dirty_read(Tab, _Key) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  dirty_match_object(Pat) when is_tuple(Pat), tuple_size(Pat) &gt; 2 -&gt;
+<font color=red>     0..|      Tab = element(1, Pat),</font>
+<font color=red>     0..|      dirty_match_object(Tab, Pat);</font>
+        |  dirty_match_object(Pat) -&gt;
+<font color=red>     0..|      abort({bad_type, Pat}).</font>
+        |  
+        |  dirty_match_object(Tab, Pat)
+        |    when is_atom(Tab), Tab /= schema, is_tuple(Pat), tuple_size(Pat) &gt; 2 -&gt;
+<font color=red>     0..|      dirty_rpc(Tab, ?MODULE, remote_dirty_match_object, [Tab, Pat]);</font>
+        |  dirty_match_object(Tab, Pat) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Pat}).</font>
+        |  
+        |  remote_dirty_match_object(Tab, Pat) -&gt;
+<font color=red>     0..|      Key = element(2, Pat),</font>
+<font color=red>     0..|      case has_var(Key) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    mnesia2_lib:db_match_object(Tab, Pat);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    PosList = val({Tab, index}),</font>
+<font color=red>     0..|  	    remote_dirty_match_object(Tab, Pat, PosList)</font>
+        |      end.
+        |  
+        |  remote_dirty_match_object(Tab, Pat, [Pos | Tail]) when Pos =&lt; tuple_size(Pat) -&gt;
+<font color=red>     0..|      IxKey = element(Pos, Pat),</font>
+<font color=red>     0..|      case has_var(IxKey) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    mnesia2_index:dirty_match_object(Tab, Pat, Pos);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    remote_dirty_match_object(Tab, Pat, Tail)</font>
+        |      end;
+        |  remote_dirty_match_object(Tab, Pat, []) -&gt;
+<font color=red>     0..|      mnesia2_lib:db_match_object(Tab, Pat);</font>
+        |  remote_dirty_match_object(Tab, Pat, _PosList) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Pat}).</font>
+        |  
+        |  dirty_select(Tab, Spec) when is_atom(Tab), Tab /= schema, is_list(Spec) -&gt;
+<font color=red>     0..|      dirty_rpc(Tab, ?MODULE, remote_dirty_select, [Tab, Spec]);</font>
+        |  dirty_select(Tab, Spec) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Spec}).</font>
+        |  
+        |  remote_dirty_select(Tab, Spec) -&gt;
+<font color=red>     0..|      case Spec of</font>
+        |  	[{HeadPat, _, _}] when is_tuple(HeadPat), tuple_size(HeadPat) &gt; 2 -&gt;
+<font color=red>     0..|  	    Key = element(2, HeadPat),</font>
+<font color=red>     0..|  	    case has_var(Key) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    mnesia2_lib:db_select(Tab, Spec);</font>
+        |  		true  -&gt;
+<font color=red>     0..|  		    PosList = val({Tab, index}),</font>
+<font color=red>     0..|  		    remote_dirty_select(Tab, Spec, PosList)</font>
+        |  	    end;
+        |  	_ -&gt;
+<font color=red>     0..|  	    mnesia2_lib:db_select(Tab, Spec)</font>
+        |      end.
+        |  
+        |  remote_dirty_select(Tab, [{HeadPat,_, _}] = Spec, [Pos | Tail])
+        |    when is_tuple(HeadPat), tuple_size(HeadPat) &gt; 2, Pos =&lt; tuple_size(HeadPat) -&gt;
+<font color=red>     0..|      Key = element(Pos, HeadPat),</font>
+<font color=red>     0..|      case has_var(Key) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    Recs = mnesia2_index:dirty_select(Tab, HeadPat, Pos),</font>
+        |  	    %% Returns the records without applying the match spec
+        |  	    %% The actual filtering is handled by the caller
+<font color=red>     0..|  	    CMS = ets:match_spec_compile(Spec),</font>
+<font color=red>     0..|  	    case val({Tab, setorbag}) of</font>
+        |  		ordered_set -&gt;
+<font color=red>     0..|  		    ets:match_spec_run(lists:sort(Recs), CMS);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    ets:match_spec_run(Recs, CMS)</font>
+        |  	    end;
+        |  	true  -&gt;
+<font color=red>     0..|  	    remote_dirty_select(Tab, Spec, Tail)</font>
+        |      end;
+        |  remote_dirty_select(Tab, Spec, _) -&gt;
+<font color=red>     0..|      mnesia2_lib:db_select(Tab, Spec).</font>
+        |  
+        |  dirty_sel_init(Node,Tab,Spec,NObjects,Type) -&gt;
+<font color=red>     0..|      do_dirty_rpc(Tab,Node,mnesia2_lib,db_select_init,[Type,Tab,Spec,NObjects]).</font>
+        |  
+<font color=red>     0..|  dirty_sel_cont(#mnesia2_select{cont='$end_of_table'}) -&gt; '$end_of_table';</font>
+        |  dirty_sel_cont(#mnesia2_select{node=Node,tab=Tab,storage=Type,cont=Cont,orig=Ms}) -&gt;
+<font color=red>     0..|      do_dirty_rpc(Tab,Node,mnesia2_lib,db_select_cont,[Type,Cont,Ms]).</font>
+        |  
+        |  dirty_all_keys(Tab) when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      case ?catch_val({Tab, wild_pattern}) of</font>
+        |  	{'EXIT', _} -&gt;
+<font color=red>     0..|  	    abort({no_exists, Tab});</font>
+        |  	Pat0 -&gt;
+<font color=red>     0..|  	    Pat = setelement(2, Pat0, '$1'),</font>
+<font color=red>     0..|  	    Keys = dirty_select(Tab, [{Pat, [], ['$1']}]),</font>
+<font color=red>     0..|  	    case val({Tab, setorbag}) of</font>
+<font color=red>     0..|  		bag -&gt; mnesia2_lib:uniq(Keys);</font>
+<font color=red>     0..|  		_ -&gt; Keys</font>
+        |  	    end
+        |      end;
+        |  dirty_all_keys(Tab) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  dirty_index_match_object(Pat, Attr) when is_tuple(Pat), tuple_size(Pat) &gt; 2 -&gt;
+<font color=red>     0..|      Tab = element(1, Pat),</font>
+<font color=red>     0..|      dirty_index_match_object(Tab, Pat, Attr);</font>
+        |  dirty_index_match_object(Pat, _Attr) -&gt;
+<font color=red>     0..|      abort({bad_type, Pat}).</font>
+        |  
+        |  dirty_index_match_object(Tab, Pat, Attr)
+        |    when is_atom(Tab), Tab /= schema, is_tuple(Pat), tuple_size(Pat) &gt; 2 -&gt;
+<font color=red>     0..|      case mnesia2_schema:attr_tab_to_pos(Tab, Attr) of</font>
+        |  	Pos when Pos =&lt; tuple_size(Pat) -&gt;
+<font color=red>     0..|  	    case has_var(element(2, Pat)) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    dirty_match_object(Tab, Pat);</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    Elem = element(Pos, Pat),</font>
+<font color=red>     0..|  		    case has_var(Elem) of</font>
+        |  			false -&gt;
+<font color=red>     0..|  			    dirty_rpc(Tab, mnesia2_index, dirty_match_object,</font>
+        |  				      [Tab, Pat, Pos]);
+        |  			true -&gt;
+<font color=red>     0..|  			    abort({bad_type, Tab, Attr, Elem})</font>
+        |  		    end
+        |  	    end;
+        |  	BadPos -&gt;
+<font color=red>     0..|  	    abort({bad_type, Tab, BadPos})</font>
+        |      end;
+        |  dirty_index_match_object(Tab, Pat, _Attr) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Pat}).</font>
+        |  
+        |  dirty_index_read(Tab, Key, Attr) when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      Pos = mnesia2_schema:attr_tab_to_pos(Tab, Attr),</font>
+<font color=red>     0..|      case has_var(Key) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    mnesia2_index:dirty_read(Tab, Key, Pos);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    abort({bad_type, Tab, Attr, Key})</font>
+        |      end;
+        |  dirty_index_read(Tab, _Key, _Attr) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  dirty_slot(Tab, Slot) when is_atom(Tab), Tab /= schema, is_integer(Slot)  -&gt;
+<font color=red>     0..|      dirty_rpc(Tab, mnesia2_lib, db_slot, [Tab, Slot]);</font>
+        |  dirty_slot(Tab, Slot) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab, Slot}).</font>
+        |  
+        |  dirty_first(Tab) when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      dirty_rpc(Tab, mnesia2_lib, db_first, [Tab]);</font>
+        |  dirty_first(Tab) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  dirty_last(Tab) when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      dirty_rpc(Tab, mnesia2_lib, db_last, [Tab]);</font>
+        |  dirty_last(Tab) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  dirty_next(Tab, Key) when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      dirty_rpc(Tab, mnesia2_lib, db_next_key, [Tab, Key]);</font>
+        |  dirty_next(Tab, _Key) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  dirty_prev(Tab, Key) when is_atom(Tab), Tab /= schema -&gt;
+<font color=red>     0..|      dirty_rpc(Tab, mnesia2_lib, db_prev_key, [Tab, Key]);</font>
+        |  dirty_prev(Tab, _Key) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  
+        |  dirty_rpc(Tab, M, F, Args) -&gt;
+<font color=red>     0..|      Node = val({Tab, where_to_read}),</font>
+<font color=red>     0..|      do_dirty_rpc(Tab, Node, M, F, Args).</font>
+        |  
+        |  do_dirty_rpc(_Tab, nowhere, _, _, Args) -&gt;
+<font color=red>     0..|      mnesia2:abort({no_exists, Args});</font>
+        |  do_dirty_rpc(Tab, Node, M, F, Args) -&gt;
+<font color=red>     0..|      case rpc:call(Node, M, F, Args) of</font>
+        |  	{badrpc, Reason} -&gt;
+<font color=red>     0..|  	    timer:sleep(20), %% Do not be too eager, and can't use yield on SMP</font>
+        |  	    %% Sync with mnesia2_monitor
+<font color=red>     0..|  	    _ = try sys:get_status(mnesia2_monitor) catch _:_ -&gt; ok end,</font>
+<font color=red>     0..|  	    case mnesia2_controller:call({check_w2r, Node, Tab}) of % Sync</font>
+        |  		NewNode when NewNode =:= Node -&gt;
+<font color=red>     0..|  		    ErrorTag = mnesia2_lib:dirty_rpc_error_tag(Reason),</font>
+<font color=red>     0..|  		    mnesia2:abort({ErrorTag, Args});</font>
+        |  		NewNode -&gt;
+<font color=red>     0..|  		    case get(mnesia2_activity_state) of</font>
+        |  			{_Mod, Tid, _Ts} when is_record(Tid, tid) -&gt;
+        |  			    %% In order to perform a consistent
+        |  			    %% retry of a transaction we need
+        |  			    %% to acquire the lock on the NewNode.
+        |  			    %% In this context we do neither know
+        |  			    %% the kind or granularity of the lock.
+        |  			    %% --&gt; Abort the transaction
+<font color=red>     0..|  			    mnesia2:abort({node_not_running, Node});</font>
+        |  			{error, {node_not_running, _}} -&gt;
+        |  			    %% mnesia2 is stopping
+<font color=red>     0..|  			    mnesia2:abort({no_exists, Args});</font>
+        |  			_ -&gt;
+        |  			    %% Splendid! A dirty retry is safe
+        |  			    %% 'Node' probably went down now
+        |  			    %% Let mnesia2_controller get broken link message first
+<font color=red>     0..|  			    do_dirty_rpc(Tab, NewNode, M, F, Args)</font>
+        |  		    end
+        |  	    end;
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Info
+        |  
+        |  %% Info about one table
+        |  -spec table_info(atom(), any()) -&gt; any().
+        |  table_info(Tab, Item) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    any_table_info(Tab, Item);</font>
+        |  	{?DEFAULT_ACCESS, _Tid, _Ts} -&gt;
+<font color=red>     0..|  	    any_table_info(Tab, Item);</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:table_info(Tid, Ts, Tab, Item);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  table_info(_Tid, _Ts, Tab, Item) -&gt;
+<font color=red>     0..|      any_table_info(Tab, Item).</font>
+        |  
+        |  
+        |  any_table_info(Tab, Item) when is_atom(Tab) -&gt;
+<font color=red>     0..|      case Item of</font>
+        |  	master_nodes -&gt;
+<font color=red>     0..|  	    mnesia2_recover:get_master_nodes(Tab);</font>
+        |  %	checkpoints -&gt;
+        |  %	    case ?catch_val({Tab, commit_work}) of
+        |  %		[{checkpoints, List} | _] -&gt; List;
+        |  %		No_chk when is_list(No_chk) -&gt;  [];
+        |  %		Else -&gt; info_reply(Else, Tab, Item)
+        |  %	    end;
+        |  	size -&gt;
+<font color=red>     0..|  	    raw_table_info(Tab, Item);</font>
+        |  	memory -&gt;
+<font color=red>     0..|  	    raw_table_info(Tab, Item);</font>
+        |  	type -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, setorbag}) of</font>
+        |  		{'EXIT', _} -&gt;
+<font color=red>     0..|  		    abort({no_exists, Tab, Item});</font>
+        |  		Val -&gt;
+<font color=red>     0..|  		    Val</font>
+        |  	    end;
+        |  	all -&gt;
+<font color=red>     0..|  	    case mnesia2_schema:get_table_properties(Tab) of</font>
+        |  		[] -&gt;
+<font color=red>     0..|  		    abort({no_exists, Tab, Item});</font>
+        |  		Props -&gt;
+<font color=red>     0..|  		    lists:map(fun({setorbag, Type}) -&gt; {type, Type};</font>
+<font color=red>     0..|  				 (Prop) -&gt; Prop end,</font>
+        |  			      Props)
+        |  	    end;
+        |  	name -&gt;
+<font color=red>     0..|  	    Tab;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, Item}) of</font>
+        |  		{'EXIT', _} -&gt;
+<font color=red>     0..|  		    abort({no_exists, Tab, Item});</font>
+        |  		Val -&gt;
+<font color=red>     0..|  		    Val</font>
+        |  	    end
+        |      end;
+        |  any_table_info(Tab, _Item) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  raw_table_info(Tab, Item) -&gt;
+<font color=red>     0..|      try</font>
+<font color=red>     0..|  	case ?ets_lookup_element(mnesia2_gvar, {Tab, storage_type}, 2) of</font>
+        |  	    ram_copies -&gt;
+<font color=red>     0..|  		info_reply(?ets_info(Tab, Item), Tab, Item);</font>
+        |  	    disc_copies -&gt;
+<font color=red>     0..|  		info_reply(?ets_info(Tab, Item), Tab, Item);</font>
+        |  	    disc_only_copies -&gt;
+<font color=red>     0..|  		info_reply(dets:info(Tab, Item), Tab, Item);</font>
+        |  	    unknown -&gt;
+<font color=red>     0..|  		bad_info_reply(Tab, Item)</font>
+        |  	end
+        |      catch error:_ -&gt;
+<font color=red>     0..|  	    bad_info_reply(Tab, Item)</font>
+        |      end.
+        |  
+        |  info_reply({error, _Reason}, Tab, Item) -&gt;
+<font color=red>     0..|      bad_info_reply(Tab, Item);</font>
+        |  info_reply(Val, _Tab, _Item) -&gt;
+<font color=red>     0..|      Val.</font>
+        |  
+<font color=red>     0..|  bad_info_reply(_Tab, size) -&gt; 0;</font>
+<font color=red>     0..|  bad_info_reply(_Tab, memory) -&gt; 0;</font>
+<font color=red>     0..|  bad_info_reply(Tab, Item) -&gt; abort({no_exists, Tab, Item}).</font>
+        |  
+        |  %% Raw info about all tables
+        |  schema() -&gt;
+<font color=red>     0..|      mnesia2_schema:info().</font>
+        |  
+        |  %% Raw info about one tables
+        |  schema(Tab) -&gt;
+<font color=red>     0..|      mnesia2_schema:info(Tab).</font>
+        |  
+        |  error_description(Err) -&gt;
+<font color=red>     0..|      mnesia2_lib:error_desc(Err).</font>
+        |  
+        |  info() -&gt;
+<font color=red>     0..|      case mnesia2_lib:is_running() of</font>
+        |  	yes -&gt;
+<font color=red>     0..|  	    TmInfo = mnesia2_tm:get_info(10000),</font>
+<font color=red>     0..|  	    Held = system_info(held_locks),</font>
+<font color=red>     0..|  	    Queued = system_info(lock_queue),</font>
+        |  
+<font color=red>     0..|  	    io:format("---&gt; Processes holding locks &lt;--- ~n", []),</font>
+<font color=red>     0..|  	    lists:foreach(fun(L) -&gt; io:format("Lock: ~p~n", [L]) end,</font>
+        |  			  Held),
+        |  
+<font color=red>     0..|  	    io:format( "---&gt; Processes waiting for locks &lt;--- ~n", []),</font>
+<font color=red>     0..|  	    lists:foreach(fun({Oid, Op, _Pid, Tid, OwnerTid}) -&gt;</font>
+<font color=red>     0..|  				  io:format("Tid ~p waits for ~p lock "</font>
+        |  					    "on oid ~p owned by ~p ~n",
+        |  					    [Tid, Op, Oid, OwnerTid])
+        |  		  end, Queued),
+<font color=red>     0..|  	    mnesia2_tm:display_info(group_leader(), TmInfo),</font>
+        |  
+<font color=red>     0..|  	    Pat = {'_', unclear, '_'},</font>
+<font color=red>     0..|  	    Uncertain = ets:match_object(mnesia2_decision, Pat),</font>
+        |  
+<font color=red>     0..|  	    io:format( "---&gt; Uncertain transactions &lt;--- ~n", []),</font>
+<font color=red>     0..|  	    lists:foreach(fun({Tid, _, Nodes}) -&gt;</font>
+<font color=red>     0..|  				  io:format("Tid ~w waits for decision "</font>
+        |  					    "from ~w~n",
+        |  					    [Tid, Nodes])
+        |  		  end, Uncertain),
+        |  
+<font color=red>     0..|  	    mnesia2_controller:info(),</font>
+<font color=red>     0..|  	    display_system_info(Held, Queued, TmInfo, Uncertain);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    mini_info()</font>
+        |      end,
+<font color=red>     0..|      ok.</font>
+        |  
+        |  mini_info() -&gt;
+<font color=red>     0..|      io:format("===&gt; System info in version ~p, debug level = ~p &lt;===~n",</font>
+        |  	      [system_info(version), system_info(debug)]),
+<font color=red>     0..|      Not =</font>
+        |  	case system_info(use_dir) of
+<font color=red>     0..|  	    true -&gt; "";</font>
+<font color=red>     0..|  	    false  -&gt; "NOT "</font>
+        |  	end,
+        |  
+<font color=red>     0..|      io:format("~w. Directory ~p is ~sused.~n",</font>
+        |  	      [system_info(schema_location), system_info(directory), Not]),
+<font color=red>     0..|      io:format("use fallback at restart = ~w~n",</font>
+        |  	      [system_info(fallback_activated)]),
+<font color=red>     0..|      Running = system_info(running_db_nodes),</font>
+<font color=red>     0..|      io:format("running db nodes   = ~w~n", [Running]),</font>
+<font color=red>     0..|      All = mnesia2_lib:all_nodes(),</font>
+<font color=red>     0..|      io:format("stopped db nodes   = ~w ~n", [All -- Running]).</font>
+        |  
+        |  display_system_info(Held, Queued, TmInfo, Uncertain) -&gt;
+<font color=red>     0..|      mini_info(),</font>
+<font color=red>     0..|      display_tab_info(),</font>
+<font color=red>     0..|      S = fun(Items) -&gt; [system_info(I) || I &lt;- Items] end,</font>
+        |  
+<font color=red>     0..|      io:format("~w transactions committed, ~w aborted, "</font>
+        |  	      "~w restarted, ~w logged to disc~n",
+        |  	      S([transaction_commits, transaction_failures,
+        |  		transaction_restarts, transaction_log_writes])),
+        |  
+<font color=red>     0..|      {Active, Pending} =</font>
+        |  	case TmInfo of
+<font color=red>     0..|  	    {timeout, _} -&gt; {infinity, infinity};</font>
+<font color=red>     0..|  	    {info, P, A} -&gt; {length(A), length(P)}</font>
+        |  	end,
+<font color=red>     0..|      io:format("~w held locks, ~w in queue; "</font>
+        |  	      "~w local transactions, ~w remote~n",
+        |  	      [length(Held), length(Queued), Active, Pending]),
+        |  
+<font color=red>     0..|      Ufold = fun({_, _, Ns}, {C, Old}) -&gt;</font>
+<font color=red>     0..|  		    New = [N || N &lt;- Ns, not lists:member(N, Old)],</font>
+<font color=red>     0..|  		    {C + 1, New ++ Old}</font>
+        |  	    end,
+<font color=red>     0..|      {Ucount, Unodes} = lists:foldl(Ufold, {0, []}, Uncertain),</font>
+<font color=red>     0..|      io:format("~w transactions waits for other nodes: ~p~n",</font>
+        |  	      [Ucount, Unodes]).
+        |  
+        |  display_tab_info() -&gt;
+<font color=red>     0..|      MasterTabs = mnesia2_recover:get_master_node_tables(),</font>
+<font color=red>     0..|      io:format("master node tables = ~p~n", [lists:sort(MasterTabs)]),</font>
+        |  
+<font color=red>     0..|      Tabs = system_info(tables),</font>
+        |  
+<font color=red>     0..|      {Unknown, Ram, Disc, DiscOnly} =</font>
+        |  	lists:foldl(fun storage_count/2, {[], [], [], []}, Tabs),
+        |  
+<font color=red>     0..|      io:format("remote             = ~p~n", [lists:sort(Unknown)]),</font>
+<font color=red>     0..|      io:format("ram_copies         = ~p~n", [lists:sort(Ram)]),</font>
+<font color=red>     0..|      io:format("disc_copies        = ~p~n", [lists:sort(Disc)]),</font>
+<font color=red>     0..|      io:format("disc_only_copies   = ~p~n", [lists:sort(DiscOnly)]),</font>
+        |  
+<font color=red>     0..|      Rfoldl = fun(T, Acc) -&gt;</font>
+<font color=red>     0..|  		     Rpat =</font>
+        |  			 case val({T, access_mode}) of
+        |  			     read_only -&gt;
+<font color=red>     0..|  				 lists:sort([{A, read_only} || A &lt;- val({T, active_replicas})]);</font>
+        |  			     read_write -&gt;
+<font color=red>     0..|  				 table_info(T, where_to_commit)</font>
+        |  			 end,
+<font color=red>     0..|  		     case lists:keysearch(Rpat, 1, Acc) of</font>
+        |  			 {value, {_Rpat, Rtabs}} -&gt;
+<font color=red>     0..|  			     lists:keyreplace(Rpat, 1, Acc, {Rpat, [T | Rtabs]});</font>
+        |  			 false -&gt;
+<font color=red>     0..|  			     [{Rpat, [T]} | Acc]</font>
+        |  		     end
+        |  	     end,
+<font color=red>     0..|      Repl = lists:foldl(Rfoldl, [], Tabs),</font>
+<font color=red>     0..|      Rdisp = fun({Rpat, Rtabs}) -&gt; io:format("~p = ~p~n", [Rpat, Rtabs]) end,</font>
+<font color=red>     0..|      lists:foreach(Rdisp, lists:sort(Repl)).</font>
+        |  
+        |  storage_count(T, {U, R, D, DO}) -&gt;
+<font color=red>     0..|      case table_info(T, storage_type) of</font>
+<font color=red>     0..|  	unknown -&gt; {[T | U], R, D, DO};</font>
+<font color=red>     0..|  	ram_copies -&gt; {U, [T | R], D, DO};</font>
+<font color=red>     0..|  	disc_copies -&gt; {U, R, [T | D], DO};</font>
+<font color=red>     0..|  	disc_only_copies -&gt; {U, R, D, [T | DO]}</font>
+        |      end.
+        |  
+        |  system_info(Item) -&gt;
+   272..|      try system_info2(Item)
+<font color=red>     0..|      catch _:Error -&gt; abort(Error)</font>
+        |      end.
+        |  
+        |  system_info2(all) -&gt;
+<font color=red>     0..|      Items = system_info_items(mnesia2_lib:is_running()),</font>
+<font color=red>     0..|      [{I, system_info(I)} || I &lt;- Items];</font>
+        |  
+        |  system_info2(db_nodes) -&gt;
+<font color=red>     0..|      DiscNs = ?catch_val({schema, disc_copies}),</font>
+<font color=red>     0..|      RamNs = ?catch_val({schema, ram_copies}),</font>
+<font color=red>     0..|      if</font>
+        |  	is_list(DiscNs), is_list(RamNs) -&gt;
+<font color=red>     0..|  	    DiscNs ++ RamNs;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    case mnesia2_schema:read_nodes() of</font>
+<font color=red>     0..|  		{ok, Nodes} -&gt; Nodes;</font>
+<font color=red>     0..|  		{error,Reason} -&gt; exit(Reason)</font>
+        |  	    end
+        |      end;
+        |  system_info2(running_db_nodes) -&gt;
+<font color=red>     0..|      case ?catch_val({current, db_nodes}) of</font>
+        |  	{'EXIT',_} -&gt;
+        |  	    %% Ensure that we access the intended Mnesia2
+        |  	    %% directory. This function may not be called
+        |  	    %% during startup since it will cause the
+        |  	    %% application_controller to get into deadlock
+<font color=red>     0..|  	    load_mnesia2_or_abort(),</font>
+<font color=red>     0..|  	    mnesia2_lib:running_nodes();</font>
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end;
+        |  
+        |  system_info2(extra_db_nodes) -&gt;
+<font color=red>     0..|      case ?catch_val(extra_db_nodes) of</font>
+        |  	{'EXIT',_} -&gt;
+        |  	    %% Ensure that we access the intended Mnesia2
+        |  	    %% directory. This function may not be called
+        |  	    %% during startup since it will cause the
+        |  	    %% application_controller to get into deadlock
+<font color=red>     0..|  	    load_mnesia2_or_abort(),</font>
+<font color=red>     0..|  	    mnesia2_monitor:get_env(extra_db_nodes);</font>
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end;
+        |  
+        |  system_info2(directory) -&gt;
+     1..|      case ?catch_val(directory) of
+        |  	{'EXIT',_} -&gt;
+        |  	    %% Ensure that we access the intended Mnesia2
+        |  	    %% directory. This function may not be called
+        |  	    %% during startup since it will cause the
+        |  	    %% application_controller to get into deadlock
+     1..|  	    load_mnesia2_or_abort(),
+     1..|  	    mnesia2_monitor:get_env(dir);
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end;
+        |  
+        |  system_info2(use_dir) -&gt;
+<font color=red>     0..|      case ?catch_val(use_dir) of</font>
+        |  	{'EXIT',_} -&gt;
+        |  	    %% Ensure that we access the intended Mnesia2
+        |  	    %% directory. This function may not be called
+        |  	    %% during startup since it will cause the
+        |  	    %% application_controller to get into deadlock
+<font color=red>     0..|  	    load_mnesia2_or_abort(),</font>
+<font color=red>     0..|  	    mnesia2_monitor:use_dir();</font>
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end;
+        |  
+        |  system_info2(schema_location) -&gt;
+    42..|      case ?catch_val(schema_location) of
+        |  	{'EXIT',_} -&gt;
+        |  	    %% Ensure that we access the intended Mnesia2
+        |  	    %% directory. This function may not be called
+        |  	    %% during startup since it will cause the
+        |  	    %% application_controller to get into deadlock
+    42..|  	    load_mnesia2_or_abort(),
+    42..|  	    mnesia2_monitor:get_env(schema_location);
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end;
+        |  
+        |  system_info2(fallback_activated) -&gt;
+<font color=red>     0..|      case ?catch_val(fallback_activated) of</font>
+        |  	{'EXIT',_} -&gt;
+        |  	    %% Ensure that we access the intended Mnesia2
+        |  	    %% directory. This function may not be called
+        |  	    %% during startup since it will cause the
+        |  	    %% application_controller to get into deadlock
+<font color=red>     0..|  	    load_mnesia2_or_abort(),</font>
+<font color=red>     0..|  	    mnesia2_bup:fallback_exists();</font>
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end;
+        |  
+        |  system_info2(version) -&gt;
+   168..|      case ?catch_val(version) of
+        |  	{'EXIT', _} -&gt;
+   168..|  	    Apps = application:loaded_applications(),
+   168..|  	    case lists:keysearch(?APPLICATION, 1, Apps) of
+        |  		{value, {_Name, _Desc, Version}} -&gt;
+   168..|  		    Version;
+        |  		false -&gt;
+        |  		    %% Ensure that it does not match
+<font color=red>     0..|  		    {mnesia2_not_loaded, node(), mnesia2_time:timestamp()}</font>
+        |  	    end;
+        |  	Version -&gt;
+<font color=red>     0..|  	    Version</font>
+        |      end;
+        |  
+     1..|  system_info2(access_module) -&gt; mnesia2_monitor:get_env(access_module);
+     3..|  system_info2(auto_repair) -&gt; mnesia2_monitor:get_env(auto_repair);
+    48..|  system_info2(is_running) -&gt; mnesia2_lib:is_running();
+<font color=red>     0..|  system_info2(backup_module) -&gt; mnesia2_monitor:get_env(backup_module);</font>
+<font color=red>     0..|  system_info2(event_module) -&gt; mnesia2_monitor:get_env(event_module);</font>
+     8..|  system_info2(debug) -&gt; mnesia2_monitor:get_env(debug);
+<font color=red>     0..|  system_info2(dump_log_load_regulation) -&gt; mnesia2_monitor:get_env(dump_log_load_regulation);</font>
+<font color=red>     0..|  system_info2(dump_log_write_threshold) -&gt; mnesia2_monitor:get_env(dump_log_write_threshold);</font>
+     1..|  system_info2(dump_log_time_threshold) -&gt; mnesia2_monitor:get_env(dump_log_time_threshold);
+        |  system_info2(dump_log_update_in_place) -&gt;
+<font color=red>     0..|      mnesia2_monitor:get_env(dump_log_update_in_place);</font>
+<font color=red>     0..|  system_info2(max_wait_for_decision) -&gt; mnesia2_monitor:get_env(max_wait_for_decision);</font>
+<font color=red>     0..|  system_info2(ignore_fallback_at_startup) -&gt; mnesia2_monitor:get_env(ignore_fallback_at_startup);</font>
+<font color=red>     0..|  system_info2(fallback_error_function) -&gt;  mnesia2_monitor:get_env(fallback_error_function);</font>
+<font color=red>     0..|  system_info2(log_version) -&gt; mnesia2_log:version();</font>
+<font color=red>     0..|  system_info2(protocol_version) -&gt; mnesia2_monitor:protocol_version();</font>
+<font color=red>     0..|  system_info2(schema_version) -&gt; mnesia2_schema:version(); %backward compatibility</font>
+<font color=red>     0..|  system_info2(tables) -&gt; val({schema, tables});</font>
+<font color=red>     0..|  system_info2(local_tables) -&gt; val({schema, local_tables});</font>
+<font color=red>     0..|  system_info2(master_node_tables) -&gt; mnesia2_recover:get_master_node_tables();</font>
+<font color=red>     0..|  system_info2(subscribers) -&gt; mnesia2_subscr:subscribers();</font>
+<font color=red>     0..|  system_info2(checkpoints) -&gt; mnesia2_checkpoint:checkpoints();</font>
+<font color=red>     0..|  system_info2(held_locks) -&gt; mnesia2_locker:get_held_locks();</font>
+<font color=red>     0..|  system_info2(lock_queue) -&gt; mnesia2_locker:get_lock_queue();</font>
+<font color=red>     0..|  system_info2(transactions) -&gt; mnesia2_tm:get_transactions();</font>
+<font color=red>     0..|  system_info2(transaction_failures) -&gt; mnesia2_lib:read_counter(trans_failures);</font>
+<font color=red>     0..|  system_info2(transaction_commits) -&gt; mnesia2_lib:read_counter(trans_commits);</font>
+<font color=red>     0..|  system_info2(transaction_restarts) -&gt; mnesia2_lib:read_counter(trans_restarts);</font>
+<font color=red>     0..|  system_info2(transaction_log_writes) -&gt; mnesia2_dumper:get_log_writes();</font>
+<font color=red>     0..|  system_info2(core_dir) -&gt;  mnesia2_monitor:get_env(core_dir);</font>
+<font color=red>     0..|  system_info2(no_table_loaders) -&gt;  mnesia2_monitor:get_env(no_table_loaders);</font>
+<font color=red>     0..|  system_info2(dc_dump_limit) -&gt;  mnesia2_monitor:get_env(dc_dump_limit);</font>
+<font color=red>     0..|  system_info2(send_compressed) -&gt; mnesia2_monitor:get_env(send_compressed);</font>
+<font color=red>     0..|  system_info2(send_max_packets) -&gt; mnesia2_monitor:get_env(send_max_packets);</font>
+<font color=red>     0..|  system_info2(send_max_transfer_size) -&gt; mnesia2_monitor:get_env(send_max_transfer_size);</font>
+<font color=red>     0..|  system_info2(async_dirty_buffer_size) -&gt; mnesia2_monitor:get_env(async_dirty_buffer_size);</font>
+<font color=red>     0..|  system_info2(async_dirty_max_buffer_file_size) -&gt; mnesia2_monitor:get_env(async_dirty_max_buffer_file_size);</font>
+<font color=red>     0..|  system_info2(async_dirty_tx_backlog_threshold) -&gt; mnesia2_monitor:get_env(async_dirty_tx_backlog_threshold);</font>
+<font color=red>     0..|  system_info2(async_dirty_buffer_min_runtime) -&gt; mnesia2_monitor:get_env(async_dirty_buffer_min_runtime);</font>
+<font color=red>     0..|  system_info2(async_dirty_buffer_drained_cutoff) -&gt; mnesia2_monitor:get_env(async_dirty_buffer_drained_cutoff);</font>
+        |  
+<font color=red>     0..|  system_info2(Item) -&gt; exit({badarg, Item}).</font>
+        |  
+        |  system_info_items(yes) -&gt;
+<font color=red>     0..|      [</font>
+        |       access_module,
+        |       auto_repair,
+        |       backup_module,
+        |       checkpoints,
+        |       db_nodes,
+        |       debug,
+        |       directory,
+        |       dump_log_load_regulation,
+        |       dump_log_time_threshold,
+        |       dump_log_update_in_place,
+        |       dump_log_write_threshold,
+        |       event_module,
+        |       extra_db_nodes,
+        |       fallback_activated,
+        |       held_locks,
+        |       ignore_fallback_at_startup,
+        |       fallback_error_function,
+        |       is_running,
+        |       local_tables,
+        |       lock_queue,
+        |       log_version,
+        |       master_node_tables,
+        |       max_wait_for_decision,
+        |       protocol_version,
+        |       running_db_nodes,
+        |       schema_location,
+        |       schema_version,
+        |       subscribers,
+        |       tables,
+        |       transaction_commits,
+        |       transaction_failures,
+        |       transaction_log_writes,
+        |       transaction_restarts,
+        |       transactions,
+        |       use_dir,
+        |       core_dir,
+        |       no_table_loaders,
+        |       dc_dump_limit,
+        |       send_compressed,
+        |       send_max_packets,
+        |       send_max_transfer_size,
+        |       version
+        |      ];
+        |  system_info_items(no) -&gt;
+<font color=red>     0..|      [</font>
+        |       auto_repair,
+        |       backup_module,
+        |       db_nodes,
+        |       debug,
+        |       directory,
+        |       dump_log_load_regulation,
+        |       dump_log_time_threshold,
+        |       dump_log_update_in_place,
+        |       dump_log_write_threshold,
+        |       event_module,
+        |       extra_db_nodes,
+        |       ignore_fallback_at_startup,
+        |       fallback_error_function,
+        |       is_running,
+        |       log_version,
+        |       max_wait_for_decision,
+        |       protocol_version,
+        |       running_db_nodes,
+        |       schema_location,
+        |       schema_version,
+        |       use_dir,
+        |       core_dir,
+        |       version
+        |      ].
+        |  
+        |  system_info() -&gt;
+<font color=red>     0..|      IsRunning = mnesia2_lib:is_running(),</font>
+<font color=red>     0..|      case IsRunning of</font>
+        |  	yes -&gt;
+<font color=red>     0..|  	    TmInfo = mnesia2_tm:get_info(10000),</font>
+<font color=red>     0..|  	    Held = system_info(held_locks),</font>
+<font color=red>     0..|  	    Queued = system_info(lock_queue),</font>
+<font color=red>     0..|  	    Pat = {'_', unclear, '_'},</font>
+<font color=red>     0..|  	    Uncertain = ets:match_object(mnesia2_decision, Pat),</font>
+<font color=red>     0..|  	    display_system_info(Held, Queued, TmInfo, Uncertain);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    mini_info()</font>
+        |      end,
+<font color=red>     0..|      IsRunning.</font>
+        |  
+        |  load_mnesia2_or_abort() -&gt;
+    43..|      case mnesia2_lib:ensure_loaded(?APPLICATION) of
+        |  	ok -&gt;
+    43..|  	    ok;
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    abort(Reason)</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Database mgt
+        |  
+        |  create_schema(Ns) -&gt;
+    42..|      mnesia2_bup:create_schema(Ns).
+        |  
+        |  delete_schema(Ns) -&gt;
+   123..|      mnesia2_schema:delete_schema(Ns).
+        |  
+        |  backup(Opaque) -&gt;
+     1..|      mnesia2_log:backup(Opaque).
+        |  
+        |  backup(Opaque, Mod) -&gt;
+<font color=red>     0..|      mnesia2_log:backup(Opaque, Mod).</font>
+        |  
+        |  traverse_backup(S, T, Fun, Acc) -&gt;
+<font color=red>     0..|      mnesia2_bup:traverse_backup(S, T, Fun, Acc).</font>
+        |  
+        |  traverse_backup(S, SM, T, TM, F, A) -&gt;
+<font color=red>     0..|      mnesia2_bup:traverse_backup(S, SM, T, TM, F, A).</font>
+        |  
+        |  install_fallback(Opaque) -&gt;
+<font color=red>     0..|      mnesia2_bup:install_fallback(Opaque).</font>
+        |  
+        |  install_fallback(Opaque, Mod) -&gt;
+<font color=red>     0..|      mnesia2_bup:install_fallback(Opaque, Mod).</font>
+        |  
+        |  uninstall_fallback() -&gt;
+<font color=red>     0..|      mnesia2_bup:uninstall_fallback().</font>
+        |  
+        |  uninstall_fallback(Args) -&gt;
+<font color=red>     0..|      mnesia2_bup:uninstall_fallback(Args).</font>
+        |  
+        |  activate_checkpoint(Args) -&gt;
+<font color=red>     0..|      mnesia2_checkpoint:activate(Args).</font>
+        |  
+        |  deactivate_checkpoint(Name) -&gt;
+<font color=red>     0..|      mnesia2_checkpoint:deactivate(Name).</font>
+        |  
+        |  backup_checkpoint(Name, Opaque) -&gt;
+<font color=red>     0..|      mnesia2_log:backup_checkpoint(Name, Opaque).</font>
+        |  
+        |  backup_checkpoint(Name, Opaque, Mod) -&gt;
+<font color=red>     0..|      mnesia2_log:backup_checkpoint(Name, Opaque, Mod).</font>
+        |  
+        |  restore(Opaque, Args) -&gt;
+<font color=red>     0..|      mnesia2_schema:restore(Opaque, Args).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Table mgt
+        |  
+        |  create_table(Arg) -&gt;
+<font color=red>     0..|      mnesia2_schema:create_table(Arg).</font>
+        |  create_table(Name, Arg) when is_list(Arg) -&gt;
+    11..|      mnesia2_schema:create_table([{name, Name}| Arg]);
+        |  create_table(Name, Arg) -&gt;
+<font color=red>     0..|      {aborted, badarg, Name, Arg}.</font>
+        |  
+        |  delete_table(Tab) -&gt;
+<font color=red>     0..|      mnesia2_schema:delete_table(Tab).</font>
+        |  
+        |  add_table_copy(Tab, N, S) -&gt;
+     6..|      mnesia2_schema:add_table_copy(Tab, N, S).
+        |  del_table_copy(Tab, N) -&gt;
+<font color=red>     0..|      mnesia2_schema:del_table_copy(Tab, N).</font>
+        |  
+        |  move_table_copy(Tab, From, To) -&gt;
+<font color=red>     0..|      mnesia2_schema:move_table(Tab, From, To).</font>
+        |  
+        |  add_table_index(Tab, Ix) -&gt;
+<font color=red>     0..|      mnesia2_schema:add_table_index(Tab, Ix).</font>
+        |  del_table_index(Tab, Ix) -&gt;
+<font color=red>     0..|      mnesia2_schema:del_table_index(Tab, Ix).</font>
+        |  
+        |  transform_table(Tab, Fun, NewA) -&gt;
+<font color=red>     0..|      try val({Tab, record_name}) of</font>
+<font color=red>     0..|  	OldRN -&gt; mnesia2_schema:transform_table(Tab, Fun, NewA, OldRN)</font>
+        |      catch exit:Reason -&gt;
+<font color=red>     0..|  	    mnesia2:abort(Reason)</font>
+        |      end.
+        |  
+        |  transform_table(Tab, Fun, NewA, NewRN) -&gt;
+<font color=red>     0..|      mnesia2_schema:transform_table(Tab, Fun, NewA, NewRN).</font>
+        |  
+        |  change_table_copy_type(T, N, S) -&gt;
+<font color=red>     0..|      mnesia2_schema:change_table_copy_type(T, N, S).</font>
+        |  
+        |  clear_table(Tab) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	State = {Mod, Tid, _Ts} when element(1, Tid) =/= tid -&gt;
+<font color=red>     0..|  	    transaction(State, fun() -&gt; do_clear_table(Tab) end, [], infinity, Mod, sync);</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    transaction(undefined, fun() -&gt; do_clear_table(Tab) end, [], infinity, ?DEFAULT_ACCESS, sync);</font>
+        |  	_ -&gt; %% Not allowed for clear_table
+<font color=red>     0..|  	    mnesia2:abort({aborted, nested_transaction})</font>
+        |      end.
+        |  
+        |  do_clear_table(Tab) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{?DEFAULT_ACCESS, Tid, Ts}  -&gt;
+<font color=red>     0..|  	    clear_table(Tid, Ts, Tab, '_');</font>
+        |  	{Mod, Tid, Ts} -&gt;
+<font color=red>     0..|  	    Mod:clear_table(Tid, Ts, Tab, '_');</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    abort(no_transaction)</font>
+        |      end.
+        |  
+        |  clear_table(Tid, Ts, Tab, Obj) when element(1, Tid) =:= tid -&gt;
+<font color=red>     0..|      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|      mnesia2_locker:wlock_table(Tid, Store, Tab),</font>
+<font color=red>     0..|      Oid = {Tab, '_'},</font>
+<font color=red>     0..|      ?ets_insert(Store, {Oid, Obj, clear_table}),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Table mgt - user properties
+        |  
+        |  read_table_property(Tab, PropKey) -&gt;
+<font color=red>     0..|      val({Tab, user_property, PropKey}).</font>
+        |  
+        |  write_table_property(Tab, Prop) -&gt;
+<font color=red>     0..|      mnesia2_schema:write_table_property(Tab, Prop).</font>
+        |  
+        |  delete_table_property(Tab, PropKey) -&gt;
+<font color=red>     0..|      mnesia2_schema:delete_table_property(Tab, PropKey).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Table mgt - user properties
+        |  
+        |  change_table_frag(Tab, FragProp) -&gt;
+<font color=red>     0..|      mnesia2_schema:change_table_frag(Tab, FragProp).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Table mgt - table load
+        |  
+        |  %% Dump a ram table to disc
+        |  dump_tables(Tabs) -&gt;
+<font color=red>     0..|      mnesia2_schema:dump_tables(Tabs).</font>
+        |  
+        |  %% allow the user to wait for some tables to be loaded
+        |  wait_for_tables(Tabs, Timeout) -&gt;
+     4..|      mnesia2_controller:wait_for_tables(Tabs, Timeout).
+        |  
+        |  force_load_table(Tab) -&gt;
+<font color=red>     0..|      case mnesia2_controller:force_load_table(Tab) of</font>
+<font color=red>     0..|  	ok -&gt; yes; % Backwards compatibility</font>
+<font color=red>     0..|  	Other -&gt; Other</font>
+        |      end.
+        |  
+        |  change_table_access_mode(T, Access) -&gt;
+<font color=red>     0..|      mnesia2_schema:change_table_access_mode(T, Access).</font>
+        |  
+        |  change_table_load_order(T, O) -&gt;
+<font color=red>     0..|      mnesia2_schema:change_table_load_order(T, O).</font>
+        |  
+        |  change_table_majority(T, M) -&gt;
+<font color=red>     0..|      mnesia2_schema:change_table_majority(T, M).</font>
+        |  
+        |  set_master_nodes(Nodes) when is_list(Nodes) -&gt;
+<font color=red>     0..|      UseDir = system_info(use_dir),</font>
+<font color=red>     0..|      IsRunning = system_info(is_running),</font>
+<font color=red>     0..|      case IsRunning of</font>
+        |  	yes -&gt;
+<font color=red>     0..|  	    CsPat = {{'_', cstruct}, '_'},</font>
+<font color=red>     0..|  	    Cstructs0 = ?ets_match_object(mnesia2_gvar, CsPat),</font>
+<font color=red>     0..|  	    Cstructs = [Cs || {_, Cs} &lt;- Cstructs0],</font>
+<font color=red>     0..|  	    log_valid_master_nodes(Cstructs, Nodes, UseDir, IsRunning);</font>
+        |  	_NotRunning -&gt;
+<font color=red>     0..|  	    case UseDir of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    mnesia2_lib:lock_table(schema),</font>
+<font color=red>     0..|  		    Res =</font>
+        |  			case mnesia2_schema:read_cstructs_from_disc() of
+        |  			    {ok, Cstructs} -&gt;
+<font color=red>     0..|  				log_valid_master_nodes(Cstructs, Nodes, UseDir, IsRunning);</font>
+        |  			    {error, Reason} -&gt;
+<font color=red>     0..|  				{error, Reason}</font>
+        |  			end,
+<font color=red>     0..|  			mnesia2_lib:unlock_table(schema),</font>
+<font color=red>     0..|  		    Res;</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    ok</font>
+        |  	    end
+        |      end;
+        |  set_master_nodes(Nodes) -&gt;
+<font color=red>     0..|      {error, {bad_type, Nodes}}.</font>
+        |  
+        |  log_valid_master_nodes(Cstructs, Nodes, UseDir, IsRunning) -&gt;
+<font color=red>     0..|      Fun = fun(Cs) -&gt;</font>
+<font color=red>     0..|  		  Copies = mnesia2_lib:copy_holders(Cs),</font>
+<font color=red>     0..|  		  Valid = mnesia2_lib:intersect(Nodes, Copies),</font>
+<font color=red>     0..|  		  {Cs#cstruct.name, Valid}</font>
+        |  	  end,
+<font color=red>     0..|      Args = lists:map(Fun, Cstructs),</font>
+<font color=red>     0..|      mnesia2_recover:log_master_nodes(Args, UseDir, IsRunning).</font>
+        |  
+        |  set_master_nodes(Tab, Nodes) when is_list(Nodes) -&gt;
+<font color=red>     0..|      UseDir = system_info(use_dir),</font>
+<font color=red>     0..|      IsRunning = system_info(is_running),</font>
+<font color=red>     0..|      case IsRunning of</font>
+        |  	yes -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, cstruct}) of</font>
+        |  		{'EXIT', _} -&gt;
+<font color=red>     0..|  		    {error, {no_exists, Tab}};</font>
+        |  		Cs -&gt;
+<font color=red>     0..|  		    case Nodes -- mnesia2_lib:copy_holders(Cs) of</font>
+        |  			[] -&gt;
+<font color=red>     0..|  			    Args = [{Tab , Nodes}],</font>
+<font color=red>     0..|  			    mnesia2_recover:log_master_nodes(Args, UseDir, IsRunning);</font>
+        |  			BadNodes -&gt;
+<font color=red>     0..|  			    {error, {no_exists, Tab,  BadNodes}}</font>
+        |  		    end
+        |  	    end;
+        |  	_NotRunning -&gt;
+<font color=red>     0..|  	    case UseDir of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    mnesia2_lib:lock_table(schema),</font>
+<font color=red>     0..|  		    Res =</font>
+        |  			case mnesia2_schema:read_cstructs_from_disc() of
+        |  			    {ok, Cstructs} -&gt;
+<font color=red>     0..|  				case lists:keysearch(Tab, 2, Cstructs) of</font>
+        |  				    {value, Cs} -&gt;
+<font color=red>     0..|  					case Nodes -- mnesia2_lib:copy_holders(Cs) of</font>
+        |  					    [] -&gt;
+<font color=red>     0..|  						Args = [{Tab , Nodes}],</font>
+<font color=red>     0..|  						mnesia2_recover:log_master_nodes(Args, UseDir, IsRunning);</font>
+        |  					    BadNodes -&gt;
+<font color=red>     0..|  						{error, {no_exists, Tab,  BadNodes}}</font>
+        |  					end;
+        |  				    false -&gt;
+<font color=red>     0..|  					{error, {no_exists, Tab}}</font>
+        |  				end;
+        |  			    {error, Reason} -&gt;
+<font color=red>     0..|  				{error, Reason}</font>
+        |  			end,
+<font color=red>     0..|  		    mnesia2_lib:unlock_table(schema),</font>
+<font color=red>     0..|  		    Res;</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    ok</font>
+        |  	    end
+        |      end;
+        |  set_master_nodes(Tab, Nodes) -&gt;
+<font color=red>     0..|      {error, {bad_type, Tab, Nodes}}.</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Misc admin
+        |  
+        |  dump_log() -&gt;
+     2..|      mnesia2_controller:sync_dump_log(user).
+        |  
+        |  sync_log() -&gt;
+<font color=red>     0..|      mnesia2_monitor:sync_log(latest_log).</font>
+        |  
+        |  subscribe(What) -&gt;
+<font color=red>     0..|      mnesia2_subscr:subscribe(self(), What).</font>
+        |  
+        |  unsubscribe(What) -&gt;
+<font color=red>     0..|      mnesia2_subscr:unsubscribe(self(), What).</font>
+        |  
+        |  report_event(Event) -&gt;
+<font color=red>     0..|      mnesia2_lib:report_system_event({mnesia2_user, Event}).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Snmp
+        |  
+        |  snmp_open_table(Tab, Us) -&gt;
+<font color=red>     0..|      mnesia2_schema:add_snmp(Tab, Us).</font>
+        |  
+        |  snmp_close_table(Tab) -&gt;
+<font color=red>     0..|      mnesia2_schema:del_snmp(Tab).</font>
+        |  
+        |  snmp_get_row(Tab, RowIndex) when is_atom(Tab), Tab /= schema, is_list(RowIndex) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |   	{Mod, Tid, Ts=#tidstore{store=Store}} when element(1, Tid) =:= tid -&gt;
+<font color=red>     0..|  	    case snmp_oid_to_mnesia2_key(RowIndex, Tab) of</font>
+        |  		unknown -&gt; %% Arrg contains fix_string
+<font color=red>     0..|  		    Ops = find_ops(Store, Tab, val({Tab, wild_pattern})),</font>
+<font color=red>     0..|  		    SnmpType = val({Tab,snmp}),</font>
+<font color=red>     0..|  		    Fix = fun({{_,Key},Row,Op}, Res) -&gt;</font>
+<font color=red>     0..|  				  case mnesia2_snmp_hook:key_to_oid(Tab,Key,SnmpType) of</font>
+        |  				      RowIndex -&gt;
+<font color=red>     0..|  					  case Op of</font>
+<font color=red>     0..|  					      write -&gt; {ok, Row};</font>
+        |  					      _ -&gt;
+<font color=red>     0..|  						  undefined</font>
+        |  					  end;
+        |  				      _ -&gt;
+<font color=red>     0..|  					  Res</font>
+        |  				  end
+        |  			  end,
+<font color=red>     0..|  		    lists:foldl(Fix, undefined, Ops);</font>
+        |  		Key -&gt;
+<font color=red>     0..|  		    case Mod:read(Tid, Ts, Tab, Key, read) of</font>
+        |  			[Row] -&gt;
+<font color=red>     0..|  			    {ok, Row};</font>
+        |  			_ -&gt;
+<font color=red>     0..|  			    undefined</font>
+        |  		    end
+        |  	    end;
+        |  	_ -&gt;
+<font color=red>     0..|   	    dirty_rpc(Tab, mnesia2_snmp_hook, get_row, [Tab, RowIndex])</font>
+        |      end;
+        |  snmp_get_row(Tab, _RowIndex) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  %%%%%%%%%%%%%
+        |  
+        |  snmp_get_next_index(Tab, RowIndex) when is_atom(Tab), Tab /= schema, is_list(RowIndex) -&gt;
+<font color=red>     0..|      {Next,OrigKey} = dirty_rpc(Tab, mnesia2_snmp_hook, get_next_index, [Tab, RowIndex]),</font>
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |  	{_Mod, Tid, #tidstore{store=Store}} when element(1, Tid) =:= tid -&gt;
+<font color=red>     0..|  	    case OrigKey of</font>
+        |  		undefined -&gt;
+<font color=red>     0..|  		    snmp_order_keys(Store, Tab, RowIndex, []);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    case ?ets_match(Store, {{Tab,OrigKey}, '_', '$1'}) of</font>
+<font color=red>     0..|  			[] -&gt;  snmp_order_keys(Store,Tab,RowIndex,[OrigKey]);</font>
+        |  			Ops -&gt;
+<font color=red>     0..|  			    case lists:last(Ops) of</font>
+<font color=red>     0..|  				[delete] -&gt; snmp_get_next_index(Tab, Next);</font>
+<font color=red>     0..|  				_ -&gt; snmp_order_keys(Store,Tab,RowIndex,[OrigKey])</font>
+        |  			    end
+        |  		    end
+        |  	    end;
+        |  	_ -&gt;
+<font color=red>     0..|  	    case Next of</font>
+<font color=red>     0..|  		endOfTable -&gt; endOfTable;</font>
+<font color=red>     0..|  		_ -&gt; {ok, Next}</font>
+        |  	    end
+        |      end;
+        |  snmp_get_next_index(Tab, _RowIndex) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  snmp_order_keys(Store,Tab,RowIndex,Def) -&gt;
+<font color=red>     0..|      All = ?ets_match(Store, {{Tab,'$1'},'_','$2'}),</font>
+<font color=red>     0..|      SnmpType = val({Tab,snmp}),</font>
+<font color=red>     0..|      Keys0 = [mnesia2_snmp_hook:key_to_oid(Tab,Key,SnmpType) ||</font>
+<font color=red>     0..|  		Key &lt;- ts_keys_1(All, Def)],</font>
+<font color=red>     0..|      Keys = lists:sort(Keys0),</font>
+<font color=red>     0..|      get_ordered_snmp_key(RowIndex,Keys).</font>
+        |  
+<font color=red>     0..|  get_ordered_snmp_key(Prev, [First|_]) when Prev &lt; First -&gt; {ok, First};</font>
+        |  get_ordered_snmp_key(Prev, [_|R]) -&gt;
+<font color=red>     0..|      get_ordered_snmp_key(Prev, R);</font>
+        |  get_ordered_snmp_key(_, []) -&gt;
+<font color=red>     0..|      endOfTable.</font>
+        |  
+        |  %%%%%%%%%%
+        |  
+        |  snmp_get_mnesia2_key(Tab, RowIndex) when is_atom(Tab), Tab /= schema, is_list(RowIndex) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+        |   	{_Mod, Tid, Ts} when element(1, Tid) =:= tid -&gt;
+<font color=red>     0..|  	    Res = dirty_rpc(Tab,mnesia2_snmp_hook,get_mnesia2_key,[Tab,RowIndex]),</font>
+<font color=red>     0..|  	    snmp_filter_key(Res, RowIndex, Tab, Ts#tidstore.store);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    dirty_rpc(Tab, mnesia2_snmp_hook, get_mnesia2_key, [Tab, RowIndex])</font>
+        |      end;
+        |  snmp_get_mnesia2_key(Tab, _RowIndex) -&gt;
+<font color=red>     0..|      abort({bad_type, Tab}).</font>
+        |  
+        |  snmp_oid_to_mnesia2_key(RowIndex, Tab) -&gt;
+<font color=red>     0..|      case mnesia2_snmp_hook:oid_to_key(RowIndex, Tab) of</font>
+        |  	unknown -&gt;  %% Contains fix_string needs lookup
+<font color=red>     0..|  	    case dirty_rpc(Tab,mnesia2_snmp_hook,get_mnesia2_key,[Tab,RowIndex]) of</font>
+<font color=red>     0..|  		{ok, Mnesia2Key} -&gt; Mnesia2Key;</font>
+<font color=red>     0..|  		undefined -&gt; unknown</font>
+        |  	    end;
+        |  	Mnesia2Key -&gt;
+<font color=red>     0..|  	    Mnesia2Key</font>
+        |      end.
+        |  
+        |  snmp_filter_key(Res = {ok,Key}, _RowIndex, Tab, Store) -&gt;
+<font color=red>     0..|      case ?ets_lookup(Store, {Tab,Key}) of</font>
+<font color=red>     0..|  	[] -&gt; Res;</font>
+        |  	Ops -&gt;
+<font color=red>     0..|  	    case lists:last(Ops) of</font>
+<font color=red>     0..|  		{_, _, write} -&gt; Res;</font>
+<font color=red>     0..|  		_ -&gt; undefined</font>
+        |  	    end
+        |      end;
+        |  snmp_filter_key(undefined, RowIndex, Tab, Store) -&gt;
+<font color=red>     0..|      case mnesia2_snmp_hook:oid_to_key(RowIndex, Tab) of</font>
+        |  	unknown -&gt;  %% Arrg contains fix_string
+<font color=red>     0..|  	    Ops = find_ops(Store, Tab, val({Tab, wild_pattern})),</font>
+<font color=red>     0..|  	    SnmpType = val({Tab,snmp}),</font>
+<font color=red>     0..|  	    Fix = fun({{_,Key},_,Op}, Res) -&gt;</font>
+<font color=red>     0..|  			  case mnesia2_snmp_hook:key_to_oid(Tab,Key,SnmpType) of</font>
+        |  			      RowIndex -&gt;
+<font color=red>     0..|  				  case Op of</font>
+<font color=red>     0..|  				      write -&gt; {ok, Key};</font>
+        |  				      _ -&gt;
+<font color=red>     0..|  					  undefined</font>
+        |  				  end;
+        |  			      _ -&gt;
+<font color=red>     0..|  				  Res</font>
+        |  			  end
+        |  		  end,
+<font color=red>     0..|  	    lists:foldl(Fix, undefined, Ops);</font>
+        |  	Key -&gt;
+<font color=red>     0..|  	    case ?ets_lookup(Store, {Tab,Key}) of</font>
+        |  		[] -&gt;
+<font color=red>     0..|  		    undefined;</font>
+        |  		Ops -&gt;
+<font color=red>     0..|  		    case lists:last(Ops) of</font>
+<font color=red>     0..|  			{_, _, write} -&gt; {ok, Key};</font>
+<font color=red>     0..|  			_ -&gt; undefined</font>
+        |  		    end
+        |  	    end
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Textfile access
+        |  
+        |  load_textfile(F) -&gt;
+<font color=red>     0..|      mnesia2_text:load_textfile(F).</font>
+        |  dump_to_textfile(F) -&gt;
+<font color=red>     0..|      mnesia2_text:dump_to_textfile(F).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% QLC Handles
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  table(Tab) -&gt;
+<font color=red>     0..|      table(Tab, []).</font>
+        |  table(Tab,Opts) -&gt;
+<font color=red>     0..|      {[Trav,Lock,NObjects],QlcOptions0} =</font>
+        |  	qlc_opts(Opts,[{traverse,select},{lock,read},{n_objects,100}]),
+<font color=red>     0..|      TF = case Trav of</font>
+        |  	     {select,Ms} -&gt;
+<font color=red>     0..|  		 fun() -&gt; qlc_select(select(Tab,Ms,NObjects,Lock)) end;</font>
+        |  	     select -&gt;
+<font color=red>     0..|  		 fun(Ms) -&gt; qlc_select(select(Tab,Ms,NObjects,Lock)) end;</font>
+        |  	     _ -&gt;
+<font color=red>     0..|  		 erlang:error({badarg, {Trav,[Tab, Opts]}})</font>
+        |  	 end,
+<font color=red>     0..|      Pre  = fun(Arg) -&gt; pre_qlc(Arg, Tab) end,</font>
+<font color=red>     0..|      Post = fun()  -&gt; post_qlc(Tab) end,</font>
+<font color=red>     0..|      Info = fun(Tag) -&gt; qlc_info(Tab, Tag) end,</font>
+<font color=red>     0..|      ParentFun = fun() -&gt;</font>
+<font color=red>     0..|  			{mnesia2_activity, mnesia2:get_activity_id()}</font>
+        |  		end,
+<font color=red>     0..|      Lookup =</font>
+        |  	case Trav of
+<font color=red>     0..|  	    {select, _} -&gt; [];</font>
+        |  	    _ -&gt;
+<font color=red>     0..|  		LFun = fun(2, Keys) -&gt;</font>
+<font color=red>     0..|  			       Read = fun(Key) -&gt; read(Tab,Key,Lock) end,</font>
+<font color=red>     0..|  			       lists:flatmap(Read, Keys);</font>
+        |  			  (Index,Keys) -&gt;
+<font color=red>     0..|  			       IdxRead = fun(Key) -&gt; index_read(Tab,Key,Index) end,</font>
+<font color=red>     0..|  			       lists:flatmap(IdxRead, Keys)</font>
+        |  		       end,
+<font color=red>     0..|  		[{lookup_fun, LFun}]</font>
+        |  	end,
+<font color=red>     0..|      MFA  = fun(Type) -&gt; qlc_format(Type, Tab, NObjects, Lock, Opts) end,</font>
+<font color=red>     0..|      QlcOptions = [{pre_fun, Pre}, {post_fun, Post},</font>
+        |  		  {info_fun, Info}, {parent_fun, ParentFun},
+        |  		  {format_fun, MFA}|Lookup] ++ QlcOptions0,
+<font color=red>     0..|      qlc:table(TF, QlcOptions).</font>
+        |  
+        |  pre_qlc(Opts, Tab) -&gt;
+<font color=red>     0..|      {_,Tid,_} =</font>
+        |  	case get(mnesia2_activity_state) of
+        |  	    undefined -&gt;
+<font color=red>     0..|  		case lists:keysearch(parent_value, 1, Opts) of</font>
+        |  		    {value, {parent_value,{mnesia2_activity,undefined}}} -&gt;
+<font color=red>     0..|  			abort(no_transaction);</font>
+        |  		    {value, {parent_value,{mnesia2_activity,Aid}}} -&gt;
+<font color=red>     0..|  			{value,{stop_fun,Stop}} =</font>
+        |  			    lists:keysearch(stop_fun,1,Opts),
+<font color=red>     0..|  			put_activity_id(Aid,Stop),</font>
+<font color=red>     0..|  			Aid;</font>
+        |  		    _ -&gt;
+<font color=red>     0..|  			abort(no_transaction)</font>
+        |  		end;
+        |  	    Else -&gt;
+<font color=red>     0..|  		Else</font>
+        |  	end,
+<font color=red>     0..|      case element(1,Tid) of</font>
+<font color=red>     0..|  	tid -&gt; ok;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, setorbag}) of</font>
+<font color=red>     0..|  		ordered_set -&gt;   ok;</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    dirty_rpc(Tab, mnesia2_tm, fixtable, [Tab,true,self()]),</font>
+<font color=red>     0..|  		    ok</font>
+        |  	    end
+        |      end.
+        |  
+        |  post_qlc(Tab) -&gt;
+<font color=red>     0..|      case get(mnesia2_activity_state) of</font>
+<font color=red>     0..|  	{_,#tid{},_} -&gt; ok;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, setorbag}) of</font>
+        |  		ordered_set -&gt;
+<font color=red>     0..|  		    ok;</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    dirty_rpc(Tab, mnesia2_tm, fixtable, [Tab,false,self()]),</font>
+<font color=red>     0..|  		    ok</font>
+        |  	    end
+        |      end.
+        |  
+<font color=red>     0..|  qlc_select('$end_of_table') -&gt;     [];</font>
+<font color=red>     0..|  qlc_select({[], Cont}) -&gt; qlc_select(select(Cont));</font>
+        |  qlc_select({Objects, Cont}) -&gt;
+<font color=red>     0..|      Objects ++ fun() -&gt; qlc_select(select(Cont)) end.</font>
+        |  
+        |  qlc_opts(Opts, Keys) when is_list(Opts) -&gt;
+<font color=red>     0..|      qlc_opts(Opts, Keys, []);</font>
+        |  qlc_opts(Option, Keys) -&gt;
+<font color=red>     0..|      qlc_opts([Option], Keys, []).</font>
+        |  
+        |  qlc_opts(Opts, [{Key,Def}|Keys], Acc) -&gt;
+<font color=red>     0..|      Opt = case lists:keysearch(Key,1, Opts) of</font>
+        |  	      {value, {Key,Value}} -&gt;
+<font color=red>     0..|  		  Value;</font>
+        |  	      false -&gt;
+<font color=red>     0..|  		  Def</font>
+        |  	  end,
+<font color=red>     0..|      qlc_opts(lists:keydelete(Key,1,Opts),Keys,[Opt|Acc]);</font>
+<font color=red>     0..|  qlc_opts(Opts,[],Acc) -&gt; {lists:reverse(Acc),Opts}.</font>
+        |  
+        |  qlc_info(Tab, num_of_objects) -&gt;
+<font color=red>     0..|      dirty_rpc(Tab, ?MODULE, raw_table_info, [Tab, size]);</font>
+<font color=red>     0..|  qlc_info(_, keypos) -&gt;    2;</font>
+<font color=red>     0..|  qlc_info(_, is_unique_objects) -&gt;    true;</font>
+        |  qlc_info(Tab, is_unique_keys) -&gt;
+<font color=red>     0..|      case val({Tab, type}) of</font>
+<font color=red>     0..|  	set -&gt; true;</font>
+<font color=red>     0..|  	ordered_set -&gt; true;</font>
+<font color=red>     0..|  	_ -&gt; false</font>
+        |      end;
+        |  qlc_info(Tab, is_sorted_objects) -&gt;
+<font color=red>     0..|      case val({Tab, type}) of</font>
+        |  	ordered_set -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, frag_hash}) of</font>
+        |  		{'EXIT', _} -&gt;
+<font color=red>     0..|  		    ascending;</font>
+        |  		_ -&gt;  %% Fragmented tables are not ordered
+<font color=red>     0..|  		    no</font>
+        |  	    end;
+<font color=red>     0..|  	_ -&gt; no</font>
+        |      end;
+        |  qlc_info(Tab, indices) -&gt;
+<font color=red>     0..|      val({Tab,index});</font>
+        |  qlc_info(_Tab, _) -&gt;
+<font color=red>     0..|      undefined.</font>
+        |  
+        |  qlc_format(all, Tab, NObjects, Lock, Opts) -&gt;
+<font color=red>     0..|      {?MODULE, table, [Tab,[{n_objects, NObjects}, {lock,Lock}|Opts]]};</font>
+        |  qlc_format({match_spec, Ms}, Tab, NObjects, Lock, Opts) -&gt;
+<font color=red>     0..|      {?MODULE, table, [Tab,[{traverse,{select,Ms}},{n_objects, NObjects}, {lock,Lock}|Opts]]};</font>
+        |  qlc_format({lookup, 2, Keys}, Tab, _, Lock, _) -&gt;
+<font color=red>     0..|      io_lib:format("lists:flatmap(fun(V) -&gt; "</font>
+        |  		  "~w:read(~w, V, ~w) end, ~w)",
+        |  		  [?MODULE, Tab, Lock, Keys]);
+        |  qlc_format({lookup, Index,Keys}, Tab, _, _, _) -&gt;
+<font color=red>     0..|      io_lib:format("lists:flatmap(fun(V) -&gt; "</font>
+        |  		  "~w:index_read(~w, V, ~w) end, ~w)",
+        |  		  [?MODULE, Tab, Index, Keys]).
+        |  
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  do_fixtable(Tab, #tidstore{store=Store}) -&gt;
+<font color=red>     0..|      do_fixtable(Tab,Store);</font>
+        |  do_fixtable(Tab, Store) -&gt;
+<font color=red>     0..|      case ?catch_val({Tab, setorbag}) of</font>
+        |  	ordered_set -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    case ?ets_match_object(Store, {fixtable, {Tab, '_'}}) of</font>
+        |  		[] -&gt;
+<font color=red>     0..|  		    Node = dirty_rpc(Tab, mnesia2_tm, fixtable, [Tab,true,self()]),</font>
+<font color=red>     0..|  		    ?ets_insert(Store, {fixtable, {Tab, Node}});</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    ignore</font>
+        |  	    end,
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Mnemosyne exclusive
+        |  
+        |  get_activity_id() -&gt;
+<font color=red>     0..|      get(mnesia2_activity_state).</font>
+        |  
+        |  put_activity_id(Activity) -&gt;
+<font color=red>     0..|      mnesia2_tm:put_activity_id(Activity).</font>
+        |  put_activity_id(Activity,Fun) -&gt;
+<font color=red>     0..|      mnesia2_tm:put_activity_id(Activity,Fun).</font>
+</pre>
+</body>
+</html>
