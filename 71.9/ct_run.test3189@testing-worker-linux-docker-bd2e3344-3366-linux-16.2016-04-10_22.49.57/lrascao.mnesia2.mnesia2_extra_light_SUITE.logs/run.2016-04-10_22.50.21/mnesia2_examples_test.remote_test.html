@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_examples_test:remote_test result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_examples_test.src.html#remote_test-1">source code for mnesia2_examples_test:remote_test/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_examples_test:remote_test([{watchdog,<0.7435.0>},
+                                   {tc_logfile,
+                                       "/home/travis/build/lrascao/mnesia2/logs/ct_run.test3189@testing-worker-linux-docker-bd2e3344-3366-linux-16.2016-04-10_22.49.57/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.50.21/mnesia2_examples_test.remote_test.html"},
+                                   {tc_group_properties,[{name,tpcb}]},
+                                   {tc_group_path,
+                                       [[{suite,mnesia2_examples_test}],
+                                        [{name,examples}],
+                                        [{name,config}],
+                                        [{name,config}],
+                                        [{name,registry}],
+                                        [{name,registry}],
+                                        [{name,qlc}],
+                                        [{name,qlc}],
+                                        [{name,nice}],
+                                        [{name,nice}],
+                                        [{name,install}],
+                                        [{name,install}],
+                                        [{name,extra_light}]]},
+                                   {data_dir,
+                                       "/home/travis/build/lrascao/mnesia2/test/mnesia2_examples_test_data/"},
+                                   {priv_dir,
+                                       "/home/travis/build/lrascao/mnesia2/logs/ct_run.test3189@testing-worker-linux-docker-bd2e3344-3366-linux-16.2016-04-10_22.49.57/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.50.21/log_private/"},
+                                   {nodenames,
+                                       ['d1143875o1143865n1143867@testing-worker-linux-docker-bd2e3344-3366-linux-16',
+                                        'd1143869o1143863n1143905@testing-worker-linux-docker-bd2e3344-3366-linux-16']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test3189@testing-worker-linux-docker-bd2e3344-3366-linux-16.2016-04-10_22.49.57"
+
+=== Started at 2016-04-10 22:53:28
+
+<br />
+TPC-B: Table config: [{db_nodes,['test3189@testing-worker-linux-docker-bd2e3344-3366-linux-16',
+                                 'd1143875o1143865n1143867@testing-worker-linux-docker-bd2e3344-3366-linux-16',
+                                 'd1143869o1143863n1143905@testing-worker-linux-docker-bd2e3344-3366-linux-16']},
+                      {n_replicas,2},
+                      {replica_nodes,['d1143875o1143865n1143867@testing-worker-linux-docker-bd2e3344-3366-linux-16',
+                                      'd1143869o1143863n1143905@testing-worker-linux-docker-bd2e3344-3366-linux-16']},
+                      {replica_type,ram_copies},
+                      {use_running_mnesia2,false},
+                      {n_fragments,0},
+                      {n_branches,1},
+                      {n_tellers_per_branch,10},
+                      {n_accounts_per_branch,100},
+                      {branch_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890}},
+                      {account_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234}},
+                      {teller_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      1234567890123456789012345678901234567890123456789012345678}}] 
+
+TPC-B: Generating 1 branches a 102 bytes
+
+TPC-B: Generating 1 * 10 tellers a 103 bytes
+
+TPC-B: Generating 1 * 100 accounts a 103 bytes
+
+TPC-B: Generating 0 history records a 42 bytes
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+TPC-B: Run config: [{driver_nodes,['test3189@testing-worker-linux-docker-bd2e3344-3366-linux-16']},
+                    {n_drivers_per_node,1},
+                    {use_running_mnesia2,false},
+                    {seed,undefined},
+                    {stop_after,6000},
+                    {report_interval,1000},
+                    {send_bench_report,false},
+                    {use_sticky_locks,false},
+                    {spawn_near_branch,false},
+                    {activity_type,transaction},
+                    {reuse_history_id,true}] 
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+TPC-B: Orphan branches: [0]
+
+TPC-B: Driver 1 started as <0.12374.0> on node 'test3189@testing-worker-linux-docker-bd2e3344-3366-linux-16' with 1 local branches
+
+TPC-B: 1 iter 0 diff 123 (0) tps 8073 avg micros 27258 max micros 1.0 unfairness
+
+TPC-B: 2 iter +23 diff 146 (0) tps 6837 avg micros 38696 max micros 1.0 unfairness
+
+TPC-B: 3 iter -18 diff 128 (0) tps 7797 avg micros 12981 max micros 1.0 unfairness
+
+TPC-B: 4 iter +2 diff 130 (0) tps 7645 avg micros 19062 max micros 1.0 unfairness
+
+TPC-B: 5 iter +13 diff 143 (0) tps 6956 avg micros 24465 max micros 1.0 unfairness
+
+TPC-B: Driver 1 (<0.12374.0>) on node 'test3189@testing-worker-linux-docker-bd2e3344-3366-linux-16' stopped: {time,799,678,678,5970258,38696}
+
+TPC-B: 5 iter -14 diff 129 (0) tps 7705 avg micros 13073 max micros 1.0 unfairness
+
+TPC-B: 133 (0) transactions per second, duration of longest transaction was 38 milliseconds
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 22:53:34
+=== successfully completed test case
+=== returned value = {success,{ok,{time,799,121,148,5970258,38696}}}
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 22:53:28<!/date><br />
+</div>
+</center>
+</body>
+</html>
