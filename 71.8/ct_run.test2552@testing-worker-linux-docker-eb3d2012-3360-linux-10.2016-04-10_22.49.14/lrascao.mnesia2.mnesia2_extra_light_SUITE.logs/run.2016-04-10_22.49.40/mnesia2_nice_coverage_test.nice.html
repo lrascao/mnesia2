@@ -1,0 +1,364 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_nice_coverage_test:nice result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_nice_coverage_test.src.html#nice-1">source code for mnesia2_nice_coverage_test:nice/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_nice_coverage_test:nice([{watchdog,<0.1056.0>},
+                                 {tc_logfile,
+                                     "/home/travis/build/lrascao/mnesia2/logs/ct_run.test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10.2016-04-10_22.49.14/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.49.40/mnesia2_nice_coverage_test.nice.html"},
+                                 {tc_group_properties,
+                                     [{suite,mnesia2_nice_coverage_test}]},
+                                 {tc_group_path,
+                                     [[{name,nice}],
+                                      [{name,install}],
+                                      [{name,install}],
+                                      [{name,extra_light}]]},
+                                 {data_dir,
+                                     "/home/travis/build/lrascao/mnesia2/test/mnesia2_nice_coverage_test_data/"},
+                                 {priv_dir,
+                                     "/home/travis/build/lrascao/mnesia2/logs/ct_run.test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10.2016-04-10_22.49.14/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.49.40/log_private/"},
+                                 {nodenames,
+                                     ['d574670o574678n574678@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+                                      'd574648o574636n574636@testing-worker-linux-docker-eb3d2012-3360-linux-10']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10.2016-04-10_22.49.14"
+
+=== Started at 2016-04-10 22:49:43
+
+<br />
+---> Processes holding locks <--- 
+
+---> Processes waiting for locks <--- 
+
+---> Participant transactions <--- 
+
+---> Coordinator transactions <---
+
+---> Uncertain transactions <--- 
+
+---> Active tables <--- 
+
+nice_tab       : with 0        records occupying 299      words of mem
+
+schema         : with 2        records occupying 525      words of mem
+
+===> System info in version "1.0.0", debug level = none <===
+
+opt_disc. Directory "/home/travis/build/lrascao/mnesia2/logs/ct_run.test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10.2016-04-10_22.49.14/Mnesia2.test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10" is used.
+
+use fallback at restart = false
+
+running db nodes   = ['d574670o574678n574678@testing-worker-linux-docker-eb3d2012-3360-linux-10','test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+stopped db nodes   = [] 
+
+master node tables = []
+
+remote             = []
+
+ram_copies         = [nice_tab]
+
+disc_copies        = [schema]
+
+disc_only_copies   = []
+
+[{'d574670o574678n574678@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+     disc_copies},
+ {'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10',disc_copies}] = [schema]
+
+[{'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10',ram_copies}] = [nice_tab]
+
+4 transactions committed, 0 aborted, 0 restarted, 5 logged to disc
+
+0 held locks, 0 in queue; 0 local transactions, 0 remote
+
+0 transactions waits for other nodes: []
+
+-- Properties for nice_tab table --- 
+
+access_mode          -> read_write
+
+active_replicas      -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+all_nodes            -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+arity                -> 3
+
+attributes           -> [key,val]
+
+checkpoints          -> []
+
+commit_work          -> []
+
+cookie               -> {{1460328583457469,1460328583457472,1},
+                         'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'}
+
+disc_copies          -> []
+
+disc_only_copies     -> []
+
+frag_properties      -> []
+
+index                -> []
+
+load_by_force        -> false
+
+load_node            -> 'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'
+
+load_order           -> 0
+
+load_reason          -> {dumper,create_table}
+
+local_content        -> false
+
+majority             -> false
+
+master_nodes         -> []
+
+memory               -> 299
+
+ram_copies           -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+record_name          -> nice_tab
+
+record_validation    -> {nice_tab,3,set}
+
+setorbag             -> set
+
+size                 -> 0
+
+snmp                 -> []
+
+storage_properties   -> []
+
+storage_type         -> ram_copies
+
+subscribers          -> []
+
+user_properties      -> []
+
+version              -> {{2,0},[]}
+
+where_to_commit      -> [{'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+                             ram_copies}]
+
+where_to_read        -> 'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'
+
+where_to_wlock       -> {['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'],
+                         false}
+
+where_to_write       -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+wild_pattern         -> {nice_tab,'_','_'}
+
+
+
+-- Properties for schema table --- 
+
+access_mode          -> read_write
+
+active_replicas      -> ['d574670o574678n574678@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+                         'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+all_nodes            -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+                         'd574670o574678n574678@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+arity                -> 3
+
+attributes           -> [table,cstruct]
+
+checkpoints          -> []
+
+commit_work          -> []
+
+cookie               -> {{1460328583389310,1460328583389314,1},
+                         'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'}
+
+disc_copies          -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+                         'd574670o574678n574678@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+disc_only_copies     -> []
+
+frag_properties      -> []
+
+index                -> []
+
+load_by_force        -> false
+
+load_node            -> 'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'
+
+load_order           -> 0
+
+load_reason          -> initial
+
+local_content        -> false
+
+local_tables         -> [nice_tab,schema]
+
+majority             -> false
+
+master_nodes         -> []
+
+memory               -> 525
+
+ram_copies           -> []
+
+record_name          -> schema
+
+record_validation    -> {schema,3,set}
+
+setorbag             -> set
+
+size                 -> 2
+
+snmp                 -> []
+
+storage_properties   -> []
+
+storage_type         -> disc_copies
+
+subscribers          -> []
+
+tables               -> [nice_tab,schema]
+
+user_properties      -> []
+
+version              -> {{2,0},[]}
+
+where_to_commit      -> [{'d574670o574678n574678@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+                             disc_copies},
+                         {'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+                             disc_copies}]
+
+where_to_read        -> 'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'
+
+where_to_wlock       -> {['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+                          'd574670o574678n574678@testing-worker-linux-docker-eb3d2012-3360-linux-10'],
+                         false}
+
+where_to_write       -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+                         'd574670o574678n574678@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+wild_pattern         -> {schema,'_','_'}
+
+
+
+-- Properties for nice_tab table --- 
+
+access_mode          -> read_write
+
+active_replicas      -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+all_nodes            -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+arity                -> 3
+
+attributes           -> [key,val]
+
+checkpoints          -> []
+
+commit_work          -> []
+
+cookie               -> {{1460328583457469,1460328583457472,1},
+                         'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'}
+
+disc_copies          -> []
+
+disc_only_copies     -> []
+
+frag_properties      -> []
+
+index                -> []
+
+load_by_force        -> false
+
+load_node            -> 'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'
+
+load_order           -> 0
+
+load_reason          -> {dumper,create_table}
+
+local_content        -> false
+
+majority             -> false
+
+master_nodes         -> []
+
+memory               -> 299
+
+ram_copies           -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+record_name          -> nice_tab
+
+record_validation    -> {nice_tab,3,set}
+
+setorbag             -> set
+
+size                 -> 0
+
+snmp                 -> []
+
+storage_properties   -> []
+
+storage_type         -> ram_copies
+
+subscribers          -> []
+
+user_properties      -> []
+
+version              -> {{2,0},[]}
+
+where_to_commit      -> [{'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10',
+                             ram_copies}]
+
+where_to_read        -> 'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'
+
+where_to_wlock       -> {['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10'],
+                         false}
+
+where_to_write       -> ['test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10']
+
+wild_pattern         -> {nice_tab,'_','_'}
+
+
+
+** Table backup_nice already exists on 'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10', just entering data
+
+** Table nice_snmp already exists on 'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10', just entering data
+
+** Table nice_tab already exists on 'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10', just entering data
+
+** Table nice_counter_tab already exists on 'test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10', just entering data
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 22:49:43
+=== successfully completed test case
+=== returned value = ok
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 22:49:43<!/date><br />
+</div>
+</center>
+</body>
+</html>

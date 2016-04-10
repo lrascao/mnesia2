@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test2552@testing-worker-linux-docker-eb3d2012-3360-linux-10.2016-04-10_22.49.14/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.49.40/mnesia2_late_loader.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_late_loader.erl by COVER 2016-04-10 at 22:53:14
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 1998-2009. All Rights Reserved.
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_late_loader).
+        |  
+        |  -export([
+        |  	 async_late_disc_load/3,
+        |  	 maybe_async_late_disc_load/3,
+        |  	 init/1,
+        |  	 start/0
+        |  	]).
+        |  
+        |  %% sys callback functions
+        |  -export([
+        |  	 system_continue/3,
+        |  	 system_terminate/4,
+        |  	 system_code_change/4
+        |  	]).
+        |  
+        |  -define(SERVER_NAME, ?MODULE).
+        |  
+        |  -include("mnesia2.hrl").
+        |  
+        |  -record(state, {supervisor}).
+        |  
+    71..|  async_late_disc_load(_, [], _) -&gt; ok;
+        |  async_late_disc_load(Node, Tabs, Reason) -&gt;
+<font color=red>     0..|      Msg = {async_late_disc_load, Tabs, Reason},</font>
+<font color=red>     0..|      ?SAFE({?SERVER_NAME, Node} ! {self(), Msg}).</font>
+        |  
+   178..|  maybe_async_late_disc_load(_, [], _) -&gt; ok;
+        |  maybe_async_late_disc_load(Node, Tabs, Reason) -&gt;
+<font color=red>     0..|      Msg = {maybe_async_late_disc_load, Tabs, Reason},</font>
+<font color=red>     0..|      ?SAFE({?SERVER_NAME, Node} ! {self(), Msg}).</font>
+        |  
+        |  start() -&gt;
+    71..|      mnesia2_monitor:start_proc(?SERVER_NAME, ?MODULE, init, [self()]).
+        |  
+        |  init(Parent) -&gt;
+        |      %% Trap exit omitted intentionally
+    71..|      register(?SERVER_NAME, self()),
+    71..|      link(whereis(mnesia2_controller)),  %% We may not hang
+    71..|      mnesia2_controller:merge_schema(),
+    70..|      unlink(whereis(mnesia2_controller)),
+    70..|      mnesia2_lib:set(mnesia2_status, running),
+    70..|      proc_lib:init_ack(Parent, {ok, self()}),
+    70..|      loop(#state{supervisor = Parent}).
+        |  
+        |  loop(State) -&gt;
+    71..|      receive
+        |  	{_From, {async_late_disc_load, Tabs, Reason}} -&gt;
+<font color=red>     0..|  	    mnesia2_controller:schedule_late_disc_load(Tabs, Reason),</font>
+<font color=red>     0..|  	    loop(State);</font>
+        |  
+        |  	{_From, {maybe_async_late_disc_load, Tabs, Reason}} -&gt;
+     1..|  	    CheckMaster =
+        |  		fun(Tab, Good) -&gt;			
+     1..|  			case mnesia2_recover:get_master_nodes(Tab) of
+     1..|  			    [] -&gt; [Tab|Good];
+        |  			    Masters -&gt; 
+<font color=red>     0..|  				case lists:member(node(),Masters) of</font>
+<font color=red>     0..|  				    true -&gt; [Tab|Good];</font>
+<font color=red>     0..|  				    false -&gt; Good</font>
+        |  				end
+        |  			end
+        |  		end,
+     1..|  	    GoodTabs = lists:foldl(CheckMaster, [], Tabs),
+     1..|  	    mnesia2_controller:schedule_late_disc_load(GoodTabs, Reason),
+     1..|  	    loop(State);
+        |  
+        |  	{system, From, Msg} -&gt;
+<font color=red>     0..|  	    mnesia2_lib:dbg_out("~p got {system, ~p, ~p}~n",</font>
+        |  			       [?SERVER_NAME, From, Msg]),
+<font color=red>     0..|  	    Parent = State#state.supervisor,</font>
+<font color=red>     0..|  	    sys:handle_system_msg(Msg, From, Parent, ?MODULE, [], State);</font>
+        |  	    
+        |  	Msg -&gt;
+<font color=red>     0..|  	    mnesia2_lib:error("~p got unexpected message: ~p~n",</font>
+        |  			     [?SERVER_NAME, Msg]),
+<font color=red>     0..|  	    loop(State)</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% System upgrade
+        |  
+        |  system_continue(_Parent, _Debug, State) -&gt;
+<font color=red>     0..|      loop(State).</font>
+        |  
+        |  system_terminate(Reason, _Parent, _Debug, _State) -&gt;
+<font color=red>     0..|      exit(Reason).</font>
+        |  
+        |  system_code_change(State, _Module, _OldVsn, _Extra) -&gt;
+<font color=red>     0..|      {ok, State}.</font>
+</pre>
+</body>
+</html>
