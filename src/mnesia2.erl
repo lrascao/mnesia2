@@ -2208,6 +2208,11 @@ system_info2(dc_dump_limit) ->  mnesia2_monitor:get_env(dc_dump_limit);
 system_info2(send_compressed) -> mnesia2_monitor:get_env(send_compressed);
 system_info2(send_max_packets) -> mnesia2_monitor:get_env(send_max_packets);
 system_info2(send_max_transfer_size) -> mnesia2_monitor:get_env(send_max_transfer_size);
+system_info2(async_dirty_buffer_size) -> mnesia2_monitor:get_env(async_dirty_buffer_size);
+system_info2(async_dirty_max_buffer_file_size) -> mnesia2_monitor:get_env(async_dirty_max_buffer_file_size);
+system_info2(async_dirty_tx_backlog_threshold) -> mnesia2_monitor:get_env(async_dirty_tx_backlog_threshold);
+system_info2(async_dirty_buffer_min_runtime) -> mnesia2_monitor:get_env(async_dirty_buffer_min_runtime);
+system_info2(async_dirty_buffer_drained_cutoff) -> mnesia2_monitor:get_env(async_dirty_buffer_drained_cutoff);
 
 system_info2(Item) -> exit({badarg, Item}).
 

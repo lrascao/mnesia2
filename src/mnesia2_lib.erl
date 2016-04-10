@@ -150,7 +150,8 @@
 	 unlock_table/1,
 	 unset/1,
 	 %% update_counter/2,
-	 val/1,
+     val/1,
+	 val/2,
 	 vcore/0,
 	 vcore/1,
 	 verbose/2,
@@ -376,6 +377,12 @@ search_key(_Key, []) ->
 %%   mnesia2_status                        -> status | running | stopping (**)
 %%   (**) ==   (Different on all nodes)
 %%
+
+val(Var, Default) ->
+    case ?catch_val(Var) of
+       {'EXIT', _Reason} -> Default;
+       Value -> Value
+    end.
 
 val(Var) ->
     case ?catch_val(Var) of
