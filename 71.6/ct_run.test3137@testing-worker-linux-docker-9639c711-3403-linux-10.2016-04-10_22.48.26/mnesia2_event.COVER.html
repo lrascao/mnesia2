@@ -1,0 +1,281 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test3137@testing-worker-linux-docker-9639c711-3403-linux-10.2016-04-10_22.48.26/mnesia2_event.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_event.erl by COVER 2016-04-10 at 22:52:15
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 1997-2014. All Rights Reserved.
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_event).
+        |  
+        |  -behaviour(gen_event).
+        |  %-behaviour(mnesia2_event).
+        |  
+        |  %% gen_event callback interface
+        |  -export([init/1,
+        |  	 handle_event/2,
+        |  	 handle_call/2,
+        |  	 handle_info/2,
+        |  	 terminate/2,
+        |  	 code_change/3]).
+        |  
+        |  -record(state, {nodes = [], 
+        |  		dumped_core = false,  %% only dump fatal core once
+        |  		args}).
+        |  
+        |  %%%----------------------------------------------------------------
+        |  %%% Callback functions from gen_server
+        |  %%%----------------------------------------------------------------
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% init(Args) -&gt;
+        |  %%     {ok, State} | Error
+        |  %%-----------------------------------------------------------------
+        |  
+        |  init(Args) -&gt;
+    74..|      {ok, #state{args = Args}}.
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% handle_event(Event, State) -&gt; 
+        |  %%    {ok, NewState} | remove_handler |
+        |  %%    {swap_handler, Args1, State1, Mod2, Args2}
+        |  %%-----------------------------------------------------------------
+        |  
+        |  handle_event(Event, State) -&gt;
+   230..|      handle_any_event(Event, State).
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% handle_info(Msg, State) -&gt;
+        |  %%    {ok, NewState} | remove_handler |
+        |  %%    {swap_handler, Args1, State1, Mod2, Args2}
+        |  %%-----------------------------------------------------------------
+        |  
+        |  handle_info(Msg, State) -&gt;
+<font color=red>     0..|      {ok, _} = handle_any_event(Msg, State),</font>
+<font color=red>     0..|      {ok, State}.</font>
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% handle_call(Event, State) -&gt; 
+        |  %%    {ok, Reply, NewState} | {remove_handler, Reply} | 
+        |  %%    {swap_handler, Reply, Args1, State1, Mod2, Args2}
+        |  %%-----------------------------------------------------------------
+        |  
+        |  handle_call(Msg, State) -&gt;
+     7..|      Reply = ok,
+     7..|      {ok, NewState} = handle_any_event(Msg, State),
+     7..|      {ok, Reply, NewState}.
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% terminate(Reason, State) -&gt;
+        |  %%     AnyVal
+        |  %%-----------------------------------------------------------------
+        |  
+        |  terminate(_Reason, _State) -&gt;
+    25..|      ok.
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: code_change/3
+        |  %% Purpose: Upgrade process when its code is to be changed
+        |  %% Returns: {ok, NewState}
+        |  %%----------------------------------------------------------------------
+        |  code_change(_OldVsn, State, _Extra) -&gt;
+<font color=red>     0..|      {ok, State}.</font>
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% Internal functions
+        |  %%-----------------------------------------------------------------
+        |  
+        |  handle_any_event({mnesia2_system_event, Event}, State) -&gt;
+   237..|      handle_system_event(Event, State);
+        |  handle_any_event({mnesia2_table_event, Event}, State) -&gt;
+<font color=red>     0..|      handle_table_event(Event, State);</font>
+        |  handle_any_event(Msg, State) -&gt;
+<font color=red>     0..|      report_error("~p got unexpected event: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|      {ok, State}.</font>
+        |  
+        |  handle_table_event({Oper, Record, TransId}, State) -&gt;
+<font color=red>     0..|      report_info("~p performed by ~p on record:~n\t~p~n",</font>
+        |  		[Oper, TransId, Record]),
+<font color=red>     0..|      {ok, State}.  </font>
+        |  
+        |  handle_system_event({mnesia2_checkpoint_activated, _Checkpoint}, State) -&gt;
+<font color=red>     0..|      {ok, State};</font>
+        |  
+        |  handle_system_event({mnesia2_checkpoint_deactivated, _Checkpoint}, State) -&gt;
+<font color=red>     0..|      {ok, State};</font>
+        |  
+        |  handle_system_event({mnesia2_up, Node}, State) -&gt;
+    67..|      Nodes = [Node | State#state.nodes],
+    67..|      {ok, State#state{nodes = Nodes}}; 
+        |  
+        |  handle_system_event({mnesia2_down, Node}, State) -&gt;
+    42..|      case mnesia2:system_info(fallback_activated) andalso Node =/= node() of
+        |  	true -&gt;
+     1..|  	    case mnesia2_monitor:get_env(fallback_error_function) of
+        |  		{mnesia2, lkill} -&gt;
+     1..|  		    Msg = "A fallback is installed and Mnesia2 "
+        |  			"must be restarted. Forcing shutdown "
+        |  			"after mnesia2_down from ~p...~n",
+     1..|  		    report_fatal(Msg, [Node], nocore, State#state.dumped_core),
+     1..|  		    catch exit(whereis(mnesia2_monitor), fatal),
+     1..|  		    {ok, State};
+        |  		{UserMod, UserFunc} -&gt;
+<font color=red>     0..|  		    Msg = "Warning: A fallback is installed and Mnesia2 got mnesia2_down "</font>
+        |  			"from ~p. ~n",
+<font color=red>     0..|  		    report_info(Msg, [Node]),</font>
+<font color=red>     0..|  		    case catch apply(UserMod, UserFunc, [Node]) of</font>
+        |  			{'EXIT', {undef, _Reason}} -&gt;
+        |  			    %% Backward compatibility
+<font color=red>     0..|  			    apply(UserMod, UserFunc, []);</font>
+        |  			{'EXIT', Reason} -&gt;
+<font color=red>     0..|  			    exit(Reason);</font>
+        |  			_ -&gt;
+<font color=red>     0..|  			    ok</font>
+        |  		    end,
+<font color=red>     0..|  		    Nodes = lists:delete(Node, State#state.nodes),</font>
+<font color=red>     0..|  		    {ok, State#state{nodes = Nodes}}</font>
+        |  	    end;
+        |  	false -&gt;
+    41..|  	    Nodes = lists:delete(Node, State#state.nodes),
+    41..|  	    {ok, State#state{nodes = Nodes}}
+        |      end;
+        |  
+        |  handle_system_event({mnesia2_overload,
+        |                       {mnesia2_tm, message_queue_len, [Prev, Len]}}, State) -&gt;
+<font color=red>     0..|      report_warning("Mnesia2 is overloaded: ~p messages were added to mnesia2_tm since last time (was at ~p), now at ~p", </font>
+        |          [Len - Prev, Prev, Len]),
+<font color=red>     0..|      {ok, State};</font>
+        |  
+        |  handle_system_event({mnesia2_overload, Details}, State) -&gt;
+     2..|      report_warning("Mnesia2 is overloaded: ~w~n", [Details]),
+     2..|      {ok, State}; 
+        |  
+        |  handle_system_event({mnesia2_info, Format, Args}, State) -&gt;
+   125..|      report_info(Format, Args),
+   116..|      {ok, State}; 
+        |  
+        |  handle_system_event({mnesia2_warning, Format, Args}, State) -&gt;
+<font color=red>     0..|      report_warning(Format, Args),</font>
+<font color=red>     0..|      {ok, State}; </font>
+        |  
+        |  handle_system_event({mnesia2_error, Format, Args}, State) -&gt;
+<font color=red>     0..|      report_error(Format, Args),</font>
+<font color=red>     0..|      {ok, State}; </font>
+        |  
+        |  handle_system_event({mnesia2_fatal, Format, Args, BinaryCore}, State) -&gt;
+     1..|      report_fatal(Format, Args, BinaryCore, State#state.dumped_core),
+     1..|      {ok, State#state{dumped_core = true}};
+        |  
+        |  handle_system_event({inconsistent_database, Reason, Node}, State) -&gt;
+<font color=red>     0..|      report_error("mnesia2_event got {inconsistent_database, ~w, ~w}~n",</font>
+        |  		 [Reason, Node]),
+<font color=red>     0..|      {ok, State}; </font>
+        |  
+        |  handle_system_event({mnesia2_user, Event}, State) -&gt;
+<font color=red>     0..|      report_info("User event: ~p~n", [Event]),</font>
+<font color=red>     0..|      {ok, State}; </font>
+        |  
+        |  handle_system_event(Msg, State) -&gt;
+<font color=red>     0..|      report_error("mnesia2_event got unexpected system event: ~p~n", [Msg]),</font>
+<font color=red>     0..|      {ok, State}.</font>
+        |  
+        |  report_info(Format0, Args0) -&gt;
+   125..|      Format = "Mnesia2(~p): " ++ Format0,
+   125..|      Args = [node() | Args0],
+   125..|      error_logger:info_msg(Format, Args),
+   125..|      case global:whereis_name(mnesia2_global_logger) of
+        |  	undefined -&gt;
+<font color=red>     0..|  	    io:format(Format, Args);</font>
+        |  	Pid -&gt;
+   125..|  	    io:format(Pid, Format, Args)
+        |      end.
+        |  
+        |  report_warning(Format0, Args0) -&gt;
+     2..|      Format = "Mnesia2(~p): ** WARNING ** " ++ Format0,
+     2..|      Args = [node() | Args0],
+     2..|      case erlang:function_exported(error_logger, warning_msg, 2) of
+        |  	true -&gt; 
+     2..|  	    error_logger:warning_msg(Format, Args);
+        |  	false -&gt;
+<font color=red>     0..|  	    error_logger:format(Format, Args)</font>
+        |      end,
+     2..|      case global:whereis_name(mnesia2_global_logger) of
+        |  	undefined -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	Pid -&gt;
+     2..|  	    io:format(Pid, Format, Args)
+        |      end.
+        |  
+        |  report_error(Format0, Args0) -&gt;
+     2..|      Format = "Mnesia2(~p): ** ERROR ** " ++ Format0,
+     2..|      Args = [node() | Args0],
+     2..|      error_logger:format(Format, Args),
+     2..|      case global:whereis_name(mnesia2_global_logger) of
+        |  	undefined -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	Pid -&gt;
+     2..|  	    io:format(Pid, Format, Args)
+        |      end.
+        |  
+        |  report_fatal(Format, Args, BinaryCore, CoreDumped) -&gt;
+     2..|      UseDir = mnesia2_monitor:use_dir(),
+     2..|      CoreDir = mnesia2_monitor:get_env(core_dir),
+     2..|      if
+        |  	is_list(CoreDir),CoreDumped == false, is_binary(BinaryCore) -&gt;	    
+<font color=red>     0..|  	    core_file(CoreDir,BinaryCore,Format,Args);</font>
+        |  	(UseDir == true),CoreDumped == false, is_binary(BinaryCore) -&gt;
+     1..|  	    core_file(CoreDir,BinaryCore,Format,Args);
+        |  	true -&gt;
+     1..|  	    report_error("(ignoring core) ** FATAL ** " ++ Format, Args)
+        |      end.
+        |  
+        |  core_file(CoreDir,BinaryCore,Format,Args) -&gt;
+     1..|      Integers = tuple_to_list(mnesia2_time:timestamp()),
+     1..|      Fun = fun(I) when I &lt; 10 -&gt; ["_0",I];
+     3..|  	     (I) -&gt; ["_",I]
+        |  	  end,
+     1..|      List = lists:append([Fun(I) || I &lt;- Integers]),
+     1..|      CoreFile = if is_list(CoreDir) -&gt;
+<font color=red>     0..|  		       filename:absname(lists:concat(["Mnesia2Core.", node()] ++ List), </font>
+        |  					CoreDir);
+        |  		  true -&gt;
+     1..|  		       filename:absname(lists:concat(["Mnesia2Core.", node()] ++ List))
+        |  	       end,
+     1..|      case file:write_file(CoreFile, BinaryCore) of
+        |  	ok -&gt;
+     1..|  	    report_error("(core dumped to file: ~p)~n ** FATAL ** " ++ Format,
+        |  			 [CoreFile] ++ Args);
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    report_error("(could not write core file: ~p)~n ** FATAL ** " ++ Format,</font>
+        |  			 [Reason] ++ Args)
+        |      end.
+        |  
+        |  
+        |  	
+</pre>
+</body>
+</html>

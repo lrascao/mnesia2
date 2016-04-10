@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_examples_test:frag_test result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_examples_test.src.html#frag_test-1">source code for mnesia2_examples_test:frag_test/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_examples_test:frag_test([{watchdog,<0.7564.0>},
+                                 {tc_logfile,
+                                     "/home/travis/build/lrascao/mnesia2/logs/ct_run.test3137@testing-worker-linux-docker-9639c711-3403-linux-10.2016-04-10_22.48.26/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.48.52/mnesia2_examples_test.frag_test.html"},
+                                 {tc_group_properties,[{name,tpcb}]},
+                                 {tc_group_path,
+                                     [[{suite,mnesia2_examples_test}],
+                                      [{name,examples}],
+                                      [{name,config}],
+                                      [{name,config}],
+                                      [{name,registry}],
+                                      [{name,registry}],
+                                      [{name,qlc}],
+                                      [{name,qlc}],
+                                      [{name,nice}],
+                                      [{name,nice}],
+                                      [{name,install}],
+                                      [{name,install}],
+                                      [{name,extra_light}]]},
+                                 {data_dir,
+                                     "/home/travis/build/lrascao/mnesia2/test/mnesia2_examples_test_data/"},
+                                 {priv_dir,
+                                     "/home/travis/build/lrascao/mnesia2/logs/ct_run.test3137@testing-worker-linux-docker-9639c711-3403-linux-10.2016-04-10_22.48.26/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.48.52/log_private/"},
+                                 {nodenames,
+                                     ['d867236o867192n867192@testing-worker-linux-docker-9639c711-3403-linux-10',
+                                      'd867244o867184n867177@testing-worker-linux-docker-9639c711-3403-linux-10']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test3137@testing-worker-linux-docker-9639c711-3403-linux-10.2016-04-10_22.48.26"
+
+=== Started at 2016-04-10 22:51:45
+
+<br />
+TPC-B: Table config: [{db_nodes,['test3137@testing-worker-linux-docker-9639c711-3403-linux-10',
+                                 'd867236o867192n867192@testing-worker-linux-docker-9639c711-3403-linux-10',
+                                 'd867244o867184n867177@testing-worker-linux-docker-9639c711-3403-linux-10']},
+                      {n_replicas,1},
+                      {replica_nodes,['test3137@testing-worker-linux-docker-9639c711-3403-linux-10',
+                                      'd867236o867192n867192@testing-worker-linux-docker-9639c711-3403-linux-10',
+                                      'd867244o867184n867177@testing-worker-linux-docker-9639c711-3403-linux-10']},
+                      {replica_type,ram_copies},
+                      {use_running_mnesia2,false},
+                      {n_fragments,3},
+                      {n_branches,3},
+                      {n_tellers_per_branch,10},
+                      {n_accounts_per_branch,100},
+                      {branch_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890}},
+                      {account_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234}},
+                      {teller_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      1234567890123456789012345678901234567890123456789012345678}}] 
+
+TPC-B: Generating 3 branches a 102 bytes
+
+TPC-B: Generating 3 * 10 tellers a 103 bytes
+
+TPC-B: Generating 3 * 100 accounts a 103 bytes
+
+TPC-B: Generating 0 history records a 42 bytes
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+TPC-B: Run config: [{driver_nodes,['test3137@testing-worker-linux-docker-9639c711-3403-linux-10',
+                                   'd867236o867192n867192@testing-worker-linux-docker-9639c711-3403-linux-10',
+                                   'd867244o867184n867177@testing-worker-linux-docker-9639c711-3403-linux-10']},
+                    {n_drivers_per_node,1},
+                    {use_running_mnesia2,false},
+                    {seed,undefined},
+                    {stop_after,6000},
+                    {report_interval,1000},
+                    {send_bench_report,false},
+                    {use_sticky_locks,false},
+                    {spawn_near_branch,false},
+                    {activity_type,transaction},
+                    {reuse_history_id,true}] 
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+TPC-B: Orphan branches: []
+
+TPC-B: Driver 1 started as <37252.3598.0> on node 'd867244o867184n867177@testing-worker-linux-docker-9639c711-3403-linux-10' with 1 local branches
+
+TPC-B: Driver 1 started as <0.10129.0> on node 'test3137@testing-worker-linux-docker-9639c711-3403-linux-10' with 1 local branches
+
+TPC-B: Driver 1 started as <37253.6801.0> on node 'd867236o867192n867192@testing-worker-linux-docker-9639c711-3403-linux-10' with 1 local branches
+
+TPC-B: 1 iter 0 diff 9375 (0) tps 320 avg micros 28876 max micros 4.106361829025845 unfairness
+
+TPC-B: 2 iter -88 diff 9287 (0) tps 323 avg micros 24660 max micros 2.6897931954636425 unfairness
+
+TPC-B: 3 iter +1022 diff 10309 (0) tps 291 avg micros 40557 max micros 6.78516057585825 unfairness
+
+TPC-B: 4 iter -309 diff 10000 (0) tps 300 avg micros 20179 max micros 3.0140646976090015 unfairness
+
+TPC-B: 5 iter -132 diff 9868 (0) tps 304 avg micros 28172 max micros 2.710099750623441 unfairness
+
+TPC-B: Driver 1 (<0.10129.0>) on node 'test3137@testing-worker-linux-docker-9639c711-3403-linux-10' stopped: {time,7212,6434,6434,5837615,40557}
+
+TPC-B: Driver 1 (<37253.6801.0>) on node 'd867236o867192n867192@testing-worker-linux-docker-9639c711-3403-linux-10' stopped: {time,27096,22923,22923,5714213,20218}
+
+TPC-B: Driver 1 (<37252.3598.0>) on node 'd867244o867184n867177@testing-worker-linux-docker-9639c711-3403-linux-10' stopped: {time,22052,19212,19212,5636458,28172}
+
+TPC-B: 5 iter +476 diff 10344 (0) tps 290 avg micros 20208 max micros 5.363753213367609 unfairness
+
+TPC-B: 9868 (0) transactions per second, duration of longest transaction was 40 milliseconds
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 22:51:52
+=== successfully completed test case
+=== returned value = {success,{ok,{time,56360,778,6127,17188286,40557}}}
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 22:51:45<!/date><br />
+</div>
+</center>
+</body>
+</html>
