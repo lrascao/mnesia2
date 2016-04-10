@@ -1,0 +1,2493 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10.2016-04-10_16.49.54/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_16.50.21/mnesia2_tm.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_tm.erl by COVER 2016-04-10 at 16:51:30
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1996-2014. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_tm).
+        |  
+        |  -export([
+        |  	 start/0,
+        |  	 init/1,
+        |  	 non_transaction/5,
+        |  	 transaction/6,
+        |  	 commit_participant/5,
+        |  	 dirty/2,
+        |  	 display_info/2,
+        |  	 do_update_op/3,
+        |  	 get_info/1,
+        |  	 get_transactions/0,
+        |  	 info/1,
+        |  	 mnesia2_down/1,
+        |  	 prepare_checkpoint/2,
+        |  	 prepare_checkpoint/1, % Internal
+        |  	 prepare_snmp/3,
+        |  	 do_snmp/2,
+        |  	 put_activity_id/1,
+        |  	 put_activity_id/2,
+        |  	 block_tab/1,
+        |  	 unblock_tab/1,
+        |  	 fixtable/3
+        |  	]).
+        |  
+        |  %% sys callback functions
+        |  -export([system_continue/3,
+        |  	 system_terminate/4,
+        |  	 system_code_change/4
+        |  	]).
+        |  
+        |  -export([mnesia2_up/1,
+        |  	 	 get_aux_workers/0,
+        |  	 	 start_async_dirty_tm/1,
+        |  		 init_async_dirty_tm/2]).
+        |  
+        |  -export([num_to_async_dirty_tm_name/1]).
+        |  
+        |  -define(NUM_ASYNC_DIRTY_TM, 32).
+        |  -define(NUM_ASYNC_DIRTY_TM_MODULUS, 17).
+        |  -define(NUM_ASYNC_DIRTY_TM_SENDER, 3).
+        |  
+        |  -define(PDQ_DEQ_CHECK_COUNT, 100).
+        |  
+        |  -include("mnesia2.hrl").
+        |  
+        |  -import(mnesia2_lib, [set/2]).
+        |  -import(mnesia2_lib, [fatal/2, verbose/2, dbg_out/2]).
+        |  
+        |  -record(state, {
+        |  		coordinators = gb_trees:empty(),
+        |  		participants = gb_trees:empty(),
+        |  		supervisor,
+        |  		dirty_queue = [], fixed_tabs = [],
+        |  		msg_queue = [], msg_rqueue = [],
+        |  		async_dirty_tm}).
+        |  %% Format on coordinators is [{Tid, EtsTabList} .....
+        |  
+        |  -record(prep, {protocol = sym_trans,
+        |  	       %% async_dirty | sync_dirty | sym_trans | sync_sym_trans | asym_trans
+        |  	       records = [],
+        |  	       prev_tab = [], % initiate to a non valid table name
+        |  	       prev_types,
+        |  	       prev_snmp,
+        |  	       types,
+        |  	       majority = []
+        |  	      }).
+        |  
+        |  -record(participant, {tid, pid, commit, disc_nodes = [],
+        |  		      ram_nodes = [], protocol = sym_trans}).
+        |  
+        |  start() -&gt;
+<font color=red>     0..|      mnesia2_monitor:start_proc(?MODULE, ?MODULE, init, [self()]).</font>
+        |  
+        |  mnesia2_up (Node) -&gt;
+<font color=red>     0..|  	?MODULE ! {mnesia2_up, Node}.</font>
+        |  
+        |  init(Parent) -&gt;
+<font color=red>     0..|      register(?MODULE, self()),</font>
+<font color=red>     0..|      process_flag(trap_exit, true),</font>
+        |  
+        |      %% Initialize the schema
+<font color=red>     0..|      IgnoreFallback = mnesia2_monitor:get_env(ignore_fallback_at_startup),</font>
+<font color=red>     0..|      mnesia2_bup:tm_fallback_start(IgnoreFallback),</font>
+<font color=red>     0..|      mnesia2_schema:init(IgnoreFallback),</font>
+        |  
+        |      %% Handshake and initialize transaction recovery
+<font color=red>     0..|      mnesia2_recover:init(),</font>
+<font color=red>     0..|      Early = mnesia2_monitor:init(),</font>
+<font color=red>     0..|      AllOthers = mnesia2_lib:uniq(Early ++ mnesia2_lib:all_nodes()) -- [node()],</font>
+<font color=red>     0..|      set(original_nodes, AllOthers),</font>
+<font color=red>     0..|      mnesia2_recover:connect_nodes(AllOthers),</font>
+        |  
+        |      %% Recover transactions, may wait for decision
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    P = mnesia2_dumper:opt_dump_log(startup), % previous log</font>
+<font color=red>     0..|  	    L = mnesia2_dumper:opt_dump_log(startup), % latest log</font>
+<font color=red>     0..|  	    Msg = "Initial dump of log during startup: ~p~n",</font>
+<font color=red>     0..|  	    mnesia2_lib:verbose(Msg, [[P, L]]),</font>
+<font color=red>     0..|  	    mnesia2_log:init();</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+        |  
+<font color=red>     0..|      mnesia2_schema:purge_tmp_files(),</font>
+<font color=red>     0..|      mnesia2_recover:next_garb(),</font>
+<font color=red>     0..|      mnesia2_recover:next_check_overload(),</font>
+        |  
+<font color=red>     0..|      lager:info("starting mnesia2_tm, ~p, ~p", [node(), self()]),</font>
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, init},  [{nodes, AllOthers}]),</font>
+        |  
+<font color=red>     0..|      case val(debug) of</font>
+        |  	Debug when Debug /= debug, Debug /= trace -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    mnesia2_subscr:subscribe(whereis(mnesia2_event), {table, schema})</font>
+        |      end,
+<font color=red>     0..|      proc_lib:init_ack(Parent, {ok, self()}),</font>
+<font color=red>     0..|      doit_loop(#state{supervisor = Parent}).</font>
+        |  
+        |  get_aux_workers () -&gt;
+<font color=red>     0..|      [ {num_to_async_dirty_tm_name(I),</font>
+        |      	{?MODULE, start_async_dirty_tm, [I]},
+        |      	permanent,
+        |      	timer:hours(24),
+        |      	worker,
+<font color=red>     0..|      	[?MODULE, proc_lib, mnesia2_monitor]} || I &lt;- lists:seq(1, ?NUM_ASYNC_DIRTY_TM) ].</font>
+        |  
+        |  start_async_dirty_tm (I) -&gt;
+<font color=red>     0..|      mnesia2_monitor:start_proc(num_to_async_dirty_tm_name(I),</font>
+        |      						   ?MODULE,
+        |      						   init_async_dirty_tm,
+        |      						   [I, self()]).
+        |  
+        |  init_async_dirty_tm (I, Parent) -&gt;
+<font color=red>     0..|      register(num_to_async_dirty_tm_name(I), self()),</font>
+<font color=red>     0..|      process_flag(trap_exit, true),</font>
+<font color=red>     0..|      proc_lib:init_ack(Parent, {ok, self()}),</font>
+<font color=red>     0..|      doit_loop(#state{supervisor = Parent, async_dirty_tm = I}).</font>
+        |  
+        |  val(Var) -&gt;
+<font color=red>     0..|      case ?catch_val(Var) of</font>
+<font color=red>     0..|  	{'EXIT', _} -&gt; mnesia2_lib:other_val(Var);</font>
+<font color=red>     0..|  	_VaLuE_ -&gt; _VaLuE_</font>
+        |      end.
+        |  
+        |  reply({From,Ref}, R) -&gt;
+<font color=red>     0..|      From ! {?MODULE, Ref, R};</font>
+        |  reply(From, R) -&gt;
+<font color=red>     0..|      From ! {?MODULE, node(), R}.</font>
+        |  
+        |  reply(From, R, State) -&gt;
+<font color=red>     0..|      reply(From, R),</font>
+<font color=red>     0..|      doit_loop(State).</font>
+        |  
+        |  req(Where, R) -&gt;
+    19..|      case whereis(Where) of
+        |  		undefined -&gt;
+    19..|  		    {error, {node_not_running, node()}};
+        |  		Pid when is_pid(Pid) -&gt;
+<font color=red>     0..|  		    Ref = make_ref(),</font>
+<font color=red>     0..|  		    Pid ! {{self(), Ref}, R},</font>
+<font color=red>     0..|  		    rec(Pid, Ref)</font>
+        |      end.
+        |  
+        |  req(R) -&gt;
+    19..|      req(?MODULE, R).
+        |  
+        |  rec() -&gt;
+<font color=red>     0..|      rec(whereis(?MODULE)).</font>
+        |  
+        |  rec(Pid) when is_pid(Pid) -&gt;
+<font color=red>     0..|      receive</font>
+        |  		{?MODULE, _, Reply} -&gt;
+<font color=red>     0..|  		    Reply;</font>
+        |  
+        |  		{'EXIT', Pid, _} -&gt;
+<font color=red>     0..|  		    {error, {node_not_running, node()}}</font>
+        |      end;
+        |  rec(undefined) -&gt;
+<font color=red>     0..|      {error, {node_not_running, node()}}.</font>
+        |  
+        |  rec(Pid, Ref) -&gt;
+<font color=red>     0..|      receive</font>
+        |  		{?MODULE, Ref, Reply} -&gt;
+<font color=red>     0..|  		    Reply;</font>
+        |  		{'EXIT', Pid, _} -&gt;
+<font color=red>     0..|  		    {error, {node_not_running, node()}}</font>
+        |      end.
+        |  
+        |  tmlink({From, Ref}) when is_reference(Ref) -&gt;
+<font color=red>     0..|      link(From);</font>
+        |  tmlink(From) -&gt;
+<font color=red>     0..|      link(From).</font>
+        |  tmpid({Pid, _Ref}) when is_pid(Pid) -&gt;
+<font color=red>     0..|      Pid;</font>
+        |  tmpid(Pid) -&gt;
+<font color=red>     0..|      Pid.</font>
+        |  
+        |  %% Returns a list of participant transaction Tid's
+        |  mnesia2_down(Node) -&gt;
+        |      %% Syncronously call needed in order to avoid
+        |      %% race with mnesia2_tm's coordinator processes
+        |      %% that may restart and acquire new locks.
+        |      %% mnesia2_monitor takes care of the sync
+<font color=red>     0..|      case whereis(?MODULE) of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    mnesia2_monitor:mnesia2_down(?MODULE, Node);</font>
+        |  	Pid -&gt;
+<font color=red>     0..|  	    Pid ! {mnesia2_down, Node},</font>
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  prepare_checkpoint(Nodes, Cp) -&gt;
+<font color=red>     0..|      rpc:multicall(Nodes, ?MODULE, prepare_checkpoint, [Cp]).</font>
+        |  
+        |  prepare_checkpoint(Cp) -&gt;
+<font color=red>     0..|      req({prepare_checkpoint,Cp}).</font>
+        |  
+        |  block_tab(Tab) -&gt;
+<font color=red>     0..|      req(tab_to_async_dirty_tm_name_old(Tab), {block_tab, Tab}),</font>
+<font color=red>     0..|      req(tab_to_async_dirty_tm_name(Tab), {block_tab, Tab}),</font>
+<font color=red>     0..|      req({block_tab, Tab}).</font>
+        |  
+        |  unblock_tab(Tab) -&gt;
+<font color=red>     0..|      req(tab_to_async_dirty_tm_name_old(Tab), {unblock_tab, Tab}),</font>
+<font color=red>     0..|      req(tab_to_async_dirty_tm_name(Tab), {unblock_tab, Tab}),</font>
+<font color=red>     0..|      req({unblock_tab, Tab}).</font>
+        |  
+        |  doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=Sup}=State0) -&gt;
+<font color=red>     0..|      {RecvMsg, State} = tm_dequeue(State0),</font>
+<font color=red>     0..|      case RecvMsg of</font>
+        |  	{_From, {async_dirty, Tid, Commit, Tab}} -&gt;
+<font color=red>     0..|  	    case mnesia2_tab:is_blocked(Tab) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    do_async_dirty(Tid, Commit, Tab),</font>
+<font color=red>     0..|  		    doit_loop(State);</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    Item = {async_dirty, Tid, Commit, Tab},</font>
+<font color=red>     0..|  		    State2 = State#state{dirty_queue = [Item | State#state.dirty_queue]},</font>
+<font color=red>     0..|  		    doit_loop(State2)</font>
+        |  	    end;
+        |  
+        |  	{From, {sync_dirty, Tid, Commit, Tab}} -&gt;
+<font color=red>     0..|  	    case mnesia2_tab:is_blocked(Tab) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    do_sync_dirty(From, Tid, Commit, Tab),</font>
+<font color=red>     0..|  		    doit_loop(State);</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    Item = {sync_dirty, From, Tid, Commit, Tab},</font>
+<font color=red>     0..|  		    State2 = State#state{dirty_queue = [Item | State#state.dirty_queue]},</font>
+<font color=red>     0..|  		    doit_loop(State2)</font>
+        |  	    end;
+        |  
+        |  	{From, start_outer} -&gt; %% Create and associate ets_tab with Tid
+<font color=red>     0..|  	    try ?ets_new_table(mnesia2_trans_store, [bag, public]) of</font>
+        |  		Etab -&gt;
+<font color=red>     0..|  		    tmlink(From),</font>
+<font color=red>     0..|  		    C = mnesia2_recover:incr_trans_tid_serial(),</font>
+<font color=red>     0..|  		    ?ets_insert(Etab, {nodes, node()}),</font>
+<font color=red>     0..|  		    Tid = #tid{pid = tmpid(From), counter = C},</font>
+<font color=red>     0..|  		    A2 = gb_trees:insert(Tid,[Etab],Coordinators),</font>
+<font color=red>     0..|  		    S2 = State#state{coordinators = A2},</font>
+<font color=red>     0..|  		    reply(From, {new_tid, Tid, Etab}, S2)</font>
+        |  	    catch error:Reason -&gt; %% system limit
+<font color=red>     0..|  		    Msg = "Cannot create an ets table for the "</font>
+        |  			"local transaction store",
+<font color=red>     0..|  		    reply(From, {error, {system_limit, Msg, Reason}}, State)</font>
+        |  	    end;
+        |  
+        |  	{From, {ask_commit, Protocol, Tid, Commit, DiscNs, RamNs}} -&gt;
+<font color=red>     0..|  	    ?eval_debug_fun({?MODULE, doit_ask_commit},</font>
+        |  			    [{tid, Tid}, {prot, Protocol}]),
+<font color=red>     0..|  	    mnesia2_checkpoint:tm_enter_pending(Tid, DiscNs, RamNs),</font>
+<font color=red>     0..|  	    Pid =</font>
+        |  		case Protocol of
+        |  		    asym_trans when node(Tid#tid.pid) /= node() -&gt;
+<font color=red>     0..|  			Args = [tmpid(From), Tid, Commit, DiscNs, RamNs],</font>
+<font color=red>     0..|  			spawn_link(?MODULE, commit_participant, Args);</font>
+        |  		    _ when node(Tid#tid.pid) /= node() -&gt; %% *_sym_trans
+<font color=red>     0..|  			reply(From, {vote_yes, Tid}),</font>
+<font color=red>     0..|  			nopid</font>
+        |  		end,
+<font color=red>     0..|  	    P = #participant{tid = Tid,</font>
+        |  			     pid = Pid,
+        |  			     commit = Commit,
+        |  			     disc_nodes = DiscNs,
+        |  			     ram_nodes = RamNs,
+        |  			     protocol = Protocol},
+<font color=red>     0..|  	    State2 = State#state{participants = gb_trees:insert(Tid,P,Participants)},</font>
+<font color=red>     0..|  	    doit_loop(State2);</font>
+        |  
+        |  	{Tid, do_commit} -&gt;
+<font color=red>     0..|  	    case gb_trees:lookup(Tid, Participants) of</font>
+        |  		none -&gt;
+<font color=red>     0..|  		    verbose("Tried to commit a non participant transaction ~p~n",[Tid]),</font>
+<font color=red>     0..|  		    doit_loop(State);</font>
+        |  		{value, P} -&gt;
+<font color=red>     0..|  		    ?eval_debug_fun({?MODULE,do_commit,pre},[{tid,Tid},{participant,P}]),</font>
+<font color=red>     0..|  		    case P#participant.pid of</font>
+        |  			nopid -&gt;
+<font color=red>     0..|  			    Commit = P#participant.commit,</font>
+<font color=red>     0..|  			    Member = lists:member(node(), P#participant.disc_nodes),</font>
+<font color=red>     0..|  			    if Member == false -&gt;</font>
+<font color=red>     0..|  				    ignore;</font>
+        |  			       P#participant.protocol == sym_trans -&gt;
+<font color=red>     0..|  				    mnesia2_log:log(Commit);</font>
+        |  			       P#participant.protocol == sync_sym_trans -&gt;
+<font color=red>     0..|  				    mnesia2_log:slog(Commit)</font>
+        |  			    end,
+<font color=red>     0..|  			    mnesia2_recover:note_decision(Tid, committed),</font>
+<font color=red>     0..|  			    do_commit(Tid, Commit),</font>
+<font color=red>     0..|  			    if</font>
+        |  				P#participant.protocol == sync_sym_trans -&gt;
+<font color=red>     0..|  				    Tid#tid.pid ! {?MODULE, node(), {committed, Tid}};</font>
+        |  				true -&gt;
+<font color=red>     0..|  				    ignore</font>
+        |  			    end,
+<font color=red>     0..|  			    mnesia2_locker:release_tid(Tid),</font>
+<font color=red>     0..|  			    transaction_terminated(Tid),</font>
+<font color=red>     0..|  			    ?eval_debug_fun({?MODULE,do_commit,post},[{tid,Tid},{pid,nopid}]),</font>
+<font color=red>     0..|  			    doit_loop(State#state{participants=</font>
+        |  						  gb_trees:delete(Tid,Participants)});
+        |  			Pid when is_pid(Pid) -&gt;
+<font color=red>     0..|  			    Pid ! {Tid, committed},</font>
+<font color=red>     0..|  			    ?eval_debug_fun({?MODULE, do_commit, post}, [{tid, Tid}, {pid, Pid}]),</font>
+<font color=red>     0..|  			    doit_loop(State)</font>
+        |  		    end
+        |  	    end;
+        |  
+        |  	{Tid, simple_commit} -&gt;
+<font color=red>     0..|  	    mnesia2_recover:note_decision(Tid, committed),</font>
+<font color=red>     0..|  	    mnesia2_locker:release_tid(Tid),</font>
+<font color=red>     0..|  	    transaction_terminated(Tid),</font>
+<font color=red>     0..|  	    doit_loop(State);</font>
+        |  
+        |  	{Tid, {do_abort, Reason}} -&gt;
+<font color=red>     0..|  	    ?eval_debug_fun({?MODULE, do_abort, pre}, [{tid, Tid}]),</font>
+<font color=red>     0..|  	    case gb_trees:lookup(Tid, Participants) of</font>
+        |  		none -&gt;
+<font color=red>     0..|  		    verbose("Tried to abort a non participant transaction ~p: ~p~n",</font>
+        |  			    [Tid, Reason]),
+<font color=red>     0..|  		    mnesia2_locker:release_tid(Tid),</font>
+<font color=red>     0..|  		    doit_loop(State);</font>
+        |  		{value, P} -&gt;
+<font color=red>     0..|  		    case P#participant.pid of</font>
+        |  			nopid -&gt;
+<font color=red>     0..|  			    Commit = P#participant.commit,</font>
+<font color=red>     0..|  			    mnesia2_recover:note_decision(Tid, aborted),</font>
+<font color=red>     0..|  			    do_abort(Tid, Commit),</font>
+<font color=red>     0..|  			    if</font>
+        |  				P#participant.protocol == sync_sym_trans -&gt;
+<font color=red>     0..|  				    Tid#tid.pid ! {?MODULE, node(), {aborted, Tid}};</font>
+        |  				true -&gt;
+<font color=red>     0..|  				    ignore</font>
+        |  			    end,
+<font color=red>     0..|  			    transaction_terminated(Tid),</font>
+<font color=red>     0..|  			    mnesia2_locker:release_tid(Tid),</font>
+<font color=red>     0..|  			    ?eval_debug_fun({?MODULE, do_abort, post}, [{tid, Tid}, {pid, nopid}]),</font>
+<font color=red>     0..|  			    doit_loop(State#state{participants=</font>
+        |  						  gb_trees:delete(Tid,Participants)});
+        |  			Pid when is_pid(Pid) -&gt;
+<font color=red>     0..|  			    Pid ! {Tid, {do_abort, Reason}},</font>
+<font color=red>     0..|  			    ?eval_debug_fun({?MODULE, do_abort, post},</font>
+        |  					    [{tid, Tid}, {pid, Pid}]),
+<font color=red>     0..|  			    doit_loop(State)</font>
+        |  		    end
+        |  	    end;
+        |  
+        |  	{From, {add_store, Tid}} -&gt; %% new store for nested  transaction
+<font color=red>     0..|  	    try ?ets_new_table(mnesia2_trans_store, [bag, public]) of</font>
+        |  		Etab -&gt;
+<font color=red>     0..|  		    A2 = add_coord_store(Coordinators, Tid, Etab),</font>
+<font color=red>     0..|  		    reply(From, {new_store, Etab},</font>
+        |  			  State#state{coordinators = A2})
+        |  	    catch error:Reason -&gt; %% system limit
+<font color=red>     0..|  		    Msg = "Cannot create an ets table for a nested "</font>
+        |  			"local transaction store",
+<font color=red>     0..|  		    reply(From, {error, {system_limit, Msg, Reason}}, State)</font>
+        |  	    end;
+        |  
+        |  	{From, {del_store, Tid, Current, Obsolete, PropagateStore}} -&gt;
+<font color=red>     0..|  	    opt_propagate_store(Current, Obsolete, PropagateStore),</font>
+<font color=red>     0..|  	    A2 = del_coord_store(Coordinators, Tid, Current, Obsolete),</font>
+<font color=red>     0..|  	    reply(From, store_erased, State#state{coordinators = A2});</font>
+        |  
+        |  	{'EXIT', Pid, Reason} -&gt;
+<font color=red>     0..|  	    handle_exit(Pid, Reason, State);</font>
+        |  
+        |  	{From, {restart, Tid, Store}} -&gt;
+<font color=red>     0..|  	    A2 = restore_stores(Coordinators, Tid, Store),</font>
+<font color=red>     0..|  	    clear_fixtable([Store]),</font>
+<font color=red>     0..|  	    ?ets_match_delete(Store, '_'),</font>
+<font color=red>     0..|  	    ?ets_insert(Store, {nodes, node()}),</font>
+<font color=red>     0..|  	    reply(From, {restarted, Tid}, State#state{coordinators = A2});</font>
+        |  
+        |  	{delete_transaction, Tid} -&gt;
+        |  	    %% used to clear transactions which are committed
+        |  	    %% in coordinator or participant processes
+<font color=red>     0..|  	    case gb_trees:is_defined(Tid, Participants) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    case gb_trees:lookup(Tid, Coordinators) of</font>
+        |  			none -&gt;
+<font color=red>     0..|  			    verbose("** ERROR ** Tried to delete a non transaction ~p~n",</font>
+        |  				    [Tid]),
+<font color=red>     0..|  			    doit_loop(State);</font>
+        |  			{value, Etabs} -&gt;
+<font color=red>     0..|  			    clear_fixtable(Etabs),</font>
+<font color=red>     0..|  			    erase_ets_tabs(Etabs),</font>
+<font color=red>     0..|  			    transaction_terminated(Tid),</font>
+<font color=red>     0..|  			    doit_loop(State#state{coordinators =</font>
+        |  						  gb_trees:delete(Tid,Coordinators)})
+        |  		    end;
+        |  		true -&gt;
+<font color=red>     0..|  		    transaction_terminated(Tid),</font>
+<font color=red>     0..|  		    State2 = State#state{participants=gb_trees:delete(Tid,Participants)},</font>
+<font color=red>     0..|  		    doit_loop(State2)</font>
+        |  	    end;
+        |  
+        |  	{sync_trans_serial, Tid} -&gt;
+        |  	    %% Do the Lamport thing here
+<font color=red>     0..|  	    mnesia2_recover:sync_trans_tid_serial(Tid),</font>
+<font color=red>     0..|  	    doit_loop(State);</font>
+        |  
+        |  	{From, info} -&gt;
+<font color=red>     0..|  	    reply(From, {info, gb_trees:values(Participants),</font>
+        |  			 gb_trees:to_list(Coordinators)}, State);
+        |  
+        |  	{mnesia2_up, Node} -&gt;
+<font color=red>     0..|  	    verbose("Got mnesia2_up from ~p, starting ~p async_dirty senders ...~n",</font>
+        |  	    	[Node, ?NUM_ASYNC_DIRTY_TM_SENDER]),
+<font color=red>     0..|  	    {ok, Pid} =</font>
+        |  		    poolgirl:start_link([{name, {local, mnesia2_async_dirty_sender:pool_name(Node)}},
+        |  		    					 {worker_module, mnesia2_async_dirty_sender},
+        |  		    					 {size, ?NUM_ASYNC_DIRTY_TM_SENDER}],
+        |  		    					[Node, 1, self()]),
+<font color=red>     0..|  		tmlink(Pid),</font>
+<font color=red>     0..|  	    doit_loop(State);</font>
+        |  
+        |  	{mnesia2_down, N} -&gt;
+<font color=red>     0..|  	    verbose("Got mnesia2_down from ~p, reconfiguring...~n", [N]),</font>
+<font color=red>     0..|  	    lager:debug("Got mnesia2_down from ~p, reconfiguring...~n", [N]),</font>
+        |  	    %% stop the async dirty sender pool that's handling the node
+        |  	    %% that went down
+<font color=red>     0..|  	    DirtySenderPoolName = mnesia2_async_dirty_sender:pool_name(N),</font>
+<font color=red>     0..|  	    case whereis(DirtySenderPoolName) of</font>
+<font color=red>     0..|  	    	undefined -&gt; ok;</font>
+<font color=red>     0..|  	    	Pid when is_pid(Pid) -&gt; poolgirl:stop(DirtySenderPoolName)</font>
+        |  	    end,
+        |  
+<font color=red>     0..|  	    reconfigure_coordinators(N, gb_trees:to_list(Coordinators)),</font>
+        |  
+<font color=red>     0..|  	    Tids = gb_trees:keys(Participants),</font>
+<font color=red>     0..|  	    reconfigure_participants(N, gb_trees:values(Participants)),</font>
+<font color=red>     0..|  	    NewState = clear_fixtable(N, State),</font>
+        |  
+<font color=red>     0..|  	    mnesia2_locker:mnesia2_down(N, Tids),</font>
+<font color=red>     0..|  	    mnesia2_monitor:mnesia2_down(?MODULE, N),</font>
+<font color=red>     0..|  	    doit_loop(NewState);</font>
+        |  
+        |  	{From, {unblock_me, Tab}} -&gt;
+<font color=red>     0..|  	    case mnesia2_tab:is_blocked(Tab) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    verbose("Wrong dirty Op blocked on ~p ~p ~p",</font>
+        |  			    [node(), Tab, From]),
+<font color=red>     0..|  		    reply(From, unblocked),</font>
+<font color=red>     0..|  		    doit_loop(State);</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    Item = {Tab, unblock_me, From},</font>
+<font color=red>     0..|  		    State2 = State#state{dirty_queue = [Item | State#state.dirty_queue]},</font>
+<font color=red>     0..|  		    doit_loop(State2)</font>
+        |  	    end;
+        |  
+        |  	{From, {block_tab, Tab}} -&gt;
+<font color=red>     0..|  		mnesia2_tab:block(Tab),</font>
+<font color=red>     0..|  	    reply(From, ok, State);</font>
+        |  
+        |  	{From, {unblock_tab, Tab}} -&gt;
+<font color=red>     0..|  	    case mnesia2_tab:unblock(Tab) of</font>
+        |  		0 -&gt;
+<font color=red>     0..|  		    mnesia2_controller:unblock_table(Tab),</font>
+<font color=red>     0..|  		    State2 = process_dirty_queue(Tab, State),</font>
+<font color=red>     0..|  		    reply(From, ok, State2);</font>
+        |  		N when N &gt; 0 -&gt;
+<font color=red>     0..|  		    reply(From, ok, State)</font>
+        |  	    end;
+        |  
+        |  	{From, {prepare_checkpoint, Cp}} -&gt;
+<font color=red>     0..|  	    Res = mnesia2_checkpoint:tm_prepare(Cp),</font>
+<font color=red>     0..|  	    case Res of</font>
+        |  		{ok, _Name, IgnoreNew, _Node} -&gt;
+<font color=red>     0..|  		    prepare_pending_coordinators(gb_trees:to_list(Coordinators), IgnoreNew),</font>
+<font color=red>     0..|  		    prepare_pending_participants(gb_trees:values(Participants), IgnoreNew);</font>
+        |  		{error, _Reason} -&gt;
+<font color=red>     0..|  		    ignore</font>
+        |  	    end,
+<font color=red>     0..|  	    reply(From, Res, State);</font>
+        |  	{From, {fixtable, [Tab,Lock,Requester]}} -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, storage_type}) of</font>
+        |  		{'EXIT', _} -&gt;
+<font color=red>     0..|  		    reply(From, error, State);</font>
+        |  		Storage -&gt;
+<font color=red>     0..|  		    mnesia2_lib:db_fixtable(Storage,Tab,Lock),</font>
+<font color=red>     0..|  		    NewState = manage_fixtable(Tab,Lock,Requester,State),</font>
+<font color=red>     0..|  		    reply(From, node(), NewState)</font>
+        |  	    end;
+        |  
+        |  	{system, From, Msg} -&gt;
+<font color=red>     0..|  	    dbg_out("~p got {system, ~p, ~p}~n", [?MODULE, From, Msg]),</font>
+<font color=red>     0..|  	    sys:handle_system_msg(Msg, From, Sup, ?MODULE, [], State);</font>
+        |  
+        |  	Msg -&gt;
+<font color=red>     0..|  	    verbose("** ERROR ** ~p got unexpected message: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|  	    doit_loop(State)</font>
+        |      end.
+        |  
+        |  tm_dequeue (#state{msg_queue=[], msg_rqueue=[]} = State) -&gt;
+<font color=red>     0..|      tm_dequeue(State, infinity);</font>
+        |  tm_dequeue (State) -&gt;
+<font color=red>     0..|      tm_dequeue(State, 0).</font>
+        |  
+        |  tm_dequeue (State, Timeout) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	Msg -&gt;
+<font color=red>     0..|  	    tm_dequeue(State#state{msg_rqueue = [Msg | State#state.msg_rqueue]}, 0)</font>
+        |      after
+        |  	Timeout -&gt;
+<font color=red>     0..|  	    case {State#state.msg_queue, State#state.msg_rqueue} of</font>
+        |  		{[], [M]} -&gt;
+<font color=red>     0..|  		    {M, State#state{msg_rqueue=[]}};</font>
+        |  		{[], RQ} -&gt;
+<font color=red>     0..|  		    [M | Ms] = lists:reverse(RQ),</font>
+<font color=red>     0..|  		    {M, State#state{msg_queue = Ms, msg_rqueue = []}};</font>
+        |  		{[M | Ms], _} -&gt;
+<font color=red>     0..|  		    {M, State#state{msg_queue = Ms}}</font>
+        |  	    end
+        |      end.
+        |  
+        |  do_sync_dirty(From, Tid, Commit, _Tab) -&gt;
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, sync_dirty, pre}, [{tid, Tid}]),</font>
+<font color=red>     0..|      Res = do_dirty(Tid, Commit),</font>
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, sync_dirty, post}, [{tid, Tid}]),</font>
+<font color=red>     0..|      From ! {?MODULE, node(), {dirty_res, Res}}.</font>
+        |  
+        |  do_async_dirty(Tid, Commit, _Tab) -&gt;
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, async_dirty, pre}, [{tid, Tid}]),</font>
+<font color=red>     0..|      do_dirty(Tid, Commit),</font>
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, async_dirty, post}, [{tid, Tid}]).</font>
+        |  
+        |  tab_to_async_dirty_tm_name (Tab) when is_atom(Tab) -&gt;
+<font color=red>     0..|  	num_to_async_dirty_tm_name(tab_to_async_dirty_tm_num(Tab)).</font>
+        |  
+        |  tab_to_async_dirty_tm_name_old (Tab) when is_atom(Tab) -&gt;
+<font color=red>     0..|      num_to_async_dirty_tm_name(tab_to_async_dirty_tm_num_old(Tab)).</font>
+        |  
+        |  num_to_async_dirty_tm_name (N) when is_integer(N) -&gt;
+<font color=red>     0..|      list_to_atom("mnesia2_tm_" ++ integer_to_list(N)).</font>
+        |  
+        |  tab_to_async_dirty_tm_num (Tab) -&gt;
+<font color=red>     0..|      (tab_to_frag_num(Tab) rem ?NUM_ASYNC_DIRTY_TM_MODULUS) + 1.</font>
+        |  
+        |  tab_to_async_dirty_tm_num_old (Tab) -&gt;
+<font color=red>     0..|      ((tab_to_frag_num(Tab)-1) rem ?NUM_ASYNC_DIRTY_TM) + 1.</font>
+        |  
+        |  tab_to_frag_num (Tab) when is_atom(Tab) -&gt;
+<font color=red>     0..|      tab_to_frag_num(atom_to_list(Tab));</font>
+        |  tab_to_frag_num ([]) -&gt;
+<font color=red>     0..|      1;</font>
+        |  tab_to_frag_num ([$_ | S]) -&gt;
+<font color=red>     0..|      case S of</font>
+        |  	[$f, $r, $a, $g | NS] -&gt;
+<font color=red>     0..|  	    try list_to_integer(NS) of</font>
+        |  		N -&gt;
+<font color=red>     0..|  		    N</font>
+        |  	    catch
+        |  		_:_ -&gt;
+<font color=red>     0..|  		    tab_to_frag_num(S)</font>
+        |  	    end;
+        |  	_ -&gt;
+<font color=red>     0..|  	    tab_to_frag_num(S)</font>
+        |      end;
+        |  tab_to_frag_num ([_ | S]) -&gt;
+<font color=red>     0..|      tab_to_frag_num(S).</font>
+        |  
+        |  %% Process items in fifo order
+        |  process_dirty_queue (Tab, State) -&gt;
+<font color=red>     0..|      process_dirty_queue(Tab, State#state{dirty_queue = []},</font>
+        |      					lists:reverse(State#state.dirty_queue),
+        |      					?PDQ_DEQ_CHECK_COUNT).
+        |  
+        |  process_dirty_queue (_Tab, State, [], _Count) -&gt;
+<font color=red>     0..|      State;</font>
+        |  process_dirty_queue (Tab, State, Queue, 0) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	Msg -&gt;
+<font color=red>     0..|  	    process_dirty_queue(Tab, State#state{msg_rqueue = [Msg | State#state.msg_rqueue]},</font>
+        |  	    					Queue, 0)
+        |      after
+        |  	0 -&gt;
+<font color=red>     0..|  	    process_dirty_queue(Tab, State, Queue, ?PDQ_DEQ_CHECK_COUNT)</font>
+        |      end;
+        |  process_dirty_queue (Tab, State, [Item | Queue], Count) -&gt;
+<font color=red>     0..|      State2 = case Item of</font>
+        |  		 {async_dirty, Tid, Commit, Tab} -&gt;
+<font color=red>     0..|  		     do_async_dirty(Tid, Commit, Tab),</font>
+<font color=red>     0..|  		     State;</font>
+        |  		 {sync_dirty, From, Tid, Commit, Tab} -&gt;
+<font color=red>     0..|  		     do_sync_dirty(From, Tid, Commit, Tab),</font>
+<font color=red>     0..|  		     State;</font>
+        |  		 {Tab, unblock_me, From} -&gt;
+<font color=red>     0..|  		     reply(From, unblocked),</font>
+<font color=red>     0..|  		     State;</font>
+        |  		 _ -&gt;
+<font color=red>     0..|  		     State#state{dirty_queue = [Item | State#state.dirty_queue]}</font>
+        |  	     end,
+<font color=red>     0..|      process_dirty_queue(Tab, State2, Queue, Count-1).</font>
+        |  
+        |  prepare_pending_coordinators([{Tid, [Store | _Etabs]} | Coords], IgnoreNew) -&gt;
+<font color=red>     0..|      try ?ets_lookup(Store, pending) of</font>
+        |  	[] -&gt;
+<font color=red>     0..|  	    prepare_pending_coordinators(Coords, IgnoreNew);</font>
+        |  	[Pending] -&gt;
+<font color=red>     0..|  	    case lists:member(Tid, IgnoreNew) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    mnesia2_checkpoint:tm_enter_pending(Pending);</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    ignore</font>
+        |  	    end,
+<font color=red>     0..|  	    prepare_pending_coordinators(Coords, IgnoreNew)</font>
+        |      catch error:_ -&gt;
+<font color=red>     0..|  	    prepare_pending_coordinators(Coords, IgnoreNew)</font>
+        |      end;
+        |  prepare_pending_coordinators([], _IgnoreNew) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  prepare_pending_participants([Part | Parts], IgnoreNew) -&gt;
+<font color=red>     0..|      Tid = Part#participant.tid,</font>
+<font color=red>     0..|      D = Part#participant.disc_nodes,</font>
+<font color=red>     0..|      R = Part#participant.ram_nodes,</font>
+<font color=red>     0..|      case lists:member(Tid, IgnoreNew) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    mnesia2_checkpoint:tm_enter_pending(Tid, D, R);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      prepare_pending_participants(Parts, IgnoreNew);</font>
+        |  prepare_pending_participants([], _IgnoreNew) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  handle_exit(Pid, _Reason, State) when node(Pid) /= node() -&gt;
+        |      %% We got exit from a remote fool
+<font color=red>     0..|      doit_loop(State);</font>
+        |  
+        |  handle_exit(Pid, _Reason, State)
+        |  		when Pid == State#state.supervisor, State#state.async_dirty_tm == undefined -&gt;
+        |      %% Our supervisor has died, time to stop
+<font color=red>     0..|      do_stop(State);</font>
+        |  
+        |  handle_exit(Pid, _Reason, State) when Pid == State#state.supervisor -&gt;
+        |      %% Our supervisor has died, time to stop
+<font color=red>     0..|      exit(shutdown);</font>
+        |  
+        |  handle_exit(Pid, Reason, State) -&gt;
+        |      %% Check if it is a coordinator
+<font color=red>     0..|      case pid_search_delete(Pid, gb_trees:to_list(State#state.coordinators)) of</font>
+        |  	{none, _} -&gt;
+        |  	    %% Check if it is a participant
+<font color=red>     0..|  	    Ps = gb_trees:values(State#state.participants),</font>
+<font color=red>     0..|  	    case mnesia2_lib:key_search_delete(Pid,#participant.pid,Ps) of</font>
+        |  		{none, _} -&gt;
+        |  		    %% We got exit from a local fool
+<font color=red>     0..|  		    doit_loop(State);</font>
+        |  		{P = #participant{}, _RestP} -&gt;
+<font color=red>     0..|  		    fatal("Participant ~p in transaction ~p died ~p~n",</font>
+        |  			  [P#participant.pid, P#participant.tid, Reason]),
+<font color=red>     0..|  		    NewPs = gb_trees:delete(P#participant.tid,State#state.participants),</font>
+<font color=red>     0..|  		    doit_loop(State#state{participants = NewPs})</font>
+        |  	    end;
+        |  
+        |  	{{Tid, Etabs}, RestC} -&gt;
+        |  	    %% A local coordinator has died and
+        |  	    %% we must determine the outcome of the
+        |  	    %% transaction and tell mnesia2_tm on the
+        |  	    %% other nodes about it and then recover
+        |  	    %% locally.
+<font color=red>     0..|  	    recover_coordinator(Tid, Etabs),</font>
+<font color=red>     0..|  	    doit_loop(State#state{coordinators = RestC})</font>
+        |      end.
+        |  
+        |  recover_coordinator(Tid, Etabs) -&gt;
+<font color=red>     0..|      verbose("Coordinator ~p in transaction ~p died.~n", [Tid#tid.pid, Tid]),</font>
+        |  
+<font color=red>     0..|      Store = hd(Etabs),</font>
+<font color=red>     0..|      CheckNodes = get_elements(nodes,Store),</font>
+<font color=red>     0..|      TellNodes = CheckNodes -- [node()],</font>
+<font color=red>     0..|      try arrange(Tid, Store, async) of</font>
+        |  	{_N, Prep} -&gt;
+        |  	    %% Tell the participants about the outcome
+<font color=red>     0..|  	    Protocol = Prep#prep.protocol,</font>
+<font color=red>     0..|  	    Outcome = tell_outcome(Tid, Protocol, node(), CheckNodes, TellNodes),</font>
+        |  
+        |  	    %% Recover locally
+<font color=red>     0..|  	    CR = Prep#prep.records,</font>
+<font color=red>     0..|  	    {DiscNs, RamNs} = commit_nodes(CR, [], []),</font>
+<font color=red>     0..|  	    case lists:keysearch(node(), #commit.node, CR) of</font>
+        |  		{value, Local} -&gt;
+<font color=red>     0..|  		    ?eval_debug_fun({?MODULE, recover_coordinator, pre},</font>
+        |  				    [{tid, Tid}, {outcome, Outcome}, {prot, Protocol}]),
+<font color=red>     0..|  		    recover_coordinator(Tid, Protocol, Outcome, Local, DiscNs, RamNs),</font>
+<font color=red>     0..|  		    ?eval_debug_fun({?MODULE, recover_coordinator, post},</font>
+        |  				    [{tid, Tid}, {outcome, Outcome}, {prot, Protocol}]);
+        |  		false -&gt;  %% When killed before store havn't been copied to
+<font color=red>     0..|  		    ok    %% to the new nested trans store.</font>
+        |  	    end
+        |      catch _:Reason -&gt;
+<font color=red>     0..|  	    dbg_out("Recovery of coordinator ~p failed:~n",</font>
+        |  		    [Tid, {Reason, erlang:get_stacktrace()}]),
+<font color=red>     0..|  	    Protocol = asym_trans,</font>
+<font color=red>     0..|  	    tell_outcome(Tid, Protocol, node(), CheckNodes, TellNodes)</font>
+        |      end,
+<font color=red>     0..|      erase_ets_tabs(Etabs),</font>
+<font color=red>     0..|      transaction_terminated(Tid),</font>
+<font color=red>     0..|      mnesia2_locker:release_tid(Tid).</font>
+        |  
+        |  recover_coordinator(Tid, sym_trans, committed, Local, _, _) -&gt;
+<font color=red>     0..|      mnesia2_recover:note_decision(Tid, committed),</font>
+<font color=red>     0..|      do_dirty(Tid, Local);</font>
+        |  recover_coordinator(Tid, sym_trans, aborted, _Local, _, _) -&gt;
+<font color=red>     0..|      mnesia2_recover:note_decision(Tid, aborted);</font>
+        |  recover_coordinator(Tid, sync_sym_trans, committed, Local, _, _) -&gt;
+<font color=red>     0..|      mnesia2_recover:note_decision(Tid, committed),</font>
+<font color=red>     0..|      do_dirty(Tid, Local);</font>
+        |  recover_coordinator(Tid, sync_sym_trans, aborted, _Local, _, _) -&gt;
+<font color=red>     0..|      mnesia2_recover:note_decision(Tid, aborted);</font>
+        |  
+        |  recover_coordinator(Tid, asym_trans, committed, Local, DiscNs, RamNs) -&gt;
+<font color=red>     0..|      D = #decision{tid = Tid, outcome = committed,</font>
+        |  		  disc_nodes = DiscNs, ram_nodes = RamNs},
+<font color=red>     0..|      mnesia2_recover:log_decision(D),</font>
+<font color=red>     0..|      do_commit(Tid, Local);</font>
+        |  recover_coordinator(Tid, asym_trans, aborted, Local, DiscNs, RamNs) -&gt;
+<font color=red>     0..|      D = #decision{tid = Tid, outcome = aborted,</font>
+        |  		  disc_nodes = DiscNs, ram_nodes = RamNs},
+<font color=red>     0..|      mnesia2_recover:log_decision(D),</font>
+<font color=red>     0..|      do_abort(Tid, Local).</font>
+        |  
+        |  restore_stores(Coords, Tid, Store) -&gt;
+<font color=red>     0..|      Etstabs = gb_trees:get(Tid,Coords),</font>
+<font color=red>     0..|      Remaining  = lists:delete(Store, Etstabs),</font>
+<font color=red>     0..|      erase_ets_tabs(Remaining),</font>
+<font color=red>     0..|      gb_trees:update(Tid,[Store],Coords).</font>
+        |  
+        |  add_coord_store(Coords, Tid, Etab) -&gt;
+<font color=red>     0..|      Stores = gb_trees:get(Tid, Coords),</font>
+<font color=red>     0..|      gb_trees:update(Tid, [Etab|Stores], Coords).</font>
+        |  
+        |  del_coord_store(Coords, Tid, Current, Obsolete) -&gt;
+<font color=red>     0..|      Stores = gb_trees:get(Tid, Coords),</font>
+<font color=red>     0..|      Rest =</font>
+        |      	case Stores of
+<font color=red>     0..|      	    [Obsolete, Current | Tail] -&gt; Tail;</font>
+<font color=red>     0..|      	    [Current, Obsolete | Tail] -&gt; Tail</font>
+        |      	end,
+<font color=red>     0..|      ?ets_delete_table(Obsolete),</font>
+<font color=red>     0..|      gb_trees:update(Tid, [Current|Rest], Coords).</font>
+        |  
+        |  erase_ets_tabs([H | T]) -&gt;
+<font color=red>     0..|      ?ets_delete_table(H),</font>
+<font color=red>     0..|      erase_ets_tabs(T);</font>
+        |  erase_ets_tabs([]) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %% Clear one transactions all fixtables
+        |  clear_fixtable([Store|_]) -&gt;
+<font color=red>     0..|      Fixed = get_elements(fixtable, Store),</font>
+<font color=red>     0..|      lists:foreach(fun({Tab,Node}) -&gt;</font>
+<font color=red>     0..|  			  rpc:cast(Node, ?MODULE, fixtable, [Tab,false,self()])</font>
+        |  		  end, Fixed).
+        |  
+        |  %% Clear all fixtable Node have done
+        |  clear_fixtable(Node, State=#state{fixed_tabs = FT0}) -&gt;
+<font color=red>     0..|      case mnesia2_lib:key_search_delete(Node, 1, FT0) of</font>
+        |  	{none, _Ft} -&gt;
+<font color=red>     0..|  	    State;</font>
+        |  	{{Node,Tabs},FT} -&gt;
+<font color=red>     0..|  	    lists:foreach(</font>
+        |  	      fun(Tab) -&gt;
+<font color=red>     0..|  		      case ?catch_val({Tab, storage_type}) of</font>
+        |  			  {'EXIT', _} -&gt;
+<font color=red>     0..|  			      ignore;</font>
+        |  			  Storage -&gt;
+<font color=red>     0..|  			      mnesia2_lib:db_fixtable(Storage,Tab,false)</font>
+        |  		      end
+        |  	      end, Tabs),
+<font color=red>     0..|  	    State#state{fixed_tabs=FT}</font>
+        |      end.
+        |  
+        |  manage_fixtable(Tab,true,Requester,State=#state{fixed_tabs = FT0}) -&gt;
+<font color=red>     0..|      Node = node(Requester),</font>
+<font color=red>     0..|      case mnesia2_lib:key_search_delete(Node, 1, FT0) of</font>
+        |  	{none, FT}-&gt;
+<font color=red>     0..|  	    State#state{fixed_tabs=[{Node, [Tab]}|FT]};</font>
+        |  	{{Node,Tabs},FT} -&gt;
+<font color=red>     0..|  	    State#state{fixed_tabs=[{Node, [Tab|Tabs]}|FT]}</font>
+        |      end;
+        |  manage_fixtable(Tab,false,Requester,State = #state{fixed_tabs = FT0}) -&gt;
+<font color=red>     0..|      Node = node(Requester),</font>
+<font color=red>     0..|      case mnesia2_lib:key_search_delete(Node, 1, FT0) of</font>
+<font color=red>     0..|  	{none,_FT} -&gt; State; % Hmm? Safeguard</font>
+        |  	{{Node, Tabs0},FT} -&gt;
+<font color=red>     0..|  	    case lists:delete(Tab, Tabs0) of</font>
+<font color=red>     0..|  		[] -&gt; State#state{fixed_tabs=FT};</font>
+<font color=red>     0..|  		Tabs -&gt; State#state{fixed_tabs=[{Node,Tabs}|FT]}</font>
+        |  	    end
+        |      end.
+        |  
+        |  %% Deletes a pid from a list of participants
+        |  %% or from a gb_trees of coordinators
+        |  %% {none, All} or {Tr, Rest}
+        |  pid_search_delete(Pid, Trs) -&gt;
+<font color=red>     0..|      pid_search_delete(Pid, Trs, none, []).</font>
+        |  pid_search_delete(Pid, [Tr = {Tid, _Ts} | Trs], _Val, Ack) when Tid#tid.pid == Pid -&gt;
+<font color=red>     0..|      pid_search_delete(Pid, Trs, Tr, Ack);</font>
+        |  pid_search_delete(Pid, [Tr | Trs], Val, Ack) -&gt;
+<font color=red>     0..|      pid_search_delete(Pid, Trs, Val, [Tr | Ack]);</font>
+        |  
+        |  pid_search_delete(_Pid, [], Val, Ack) -&gt;
+<font color=red>     0..|      {Val, gb_trees:from_orddict(lists:reverse(Ack))}.</font>
+        |  
+        |  transaction_terminated(Tid)  -&gt;
+<font color=red>     0..|      mnesia2_checkpoint:tm_exit_pending(Tid),</font>
+<font color=red>     0..|      Pid = Tid#tid.pid,</font>
+<font color=red>     0..|      if</font>
+        |  	node(Pid) == node() -&gt;
+<font color=red>     0..|  	    unlink(Pid);</font>
+        |  	true -&gt;  %% Do the Lamport thing here
+<font color=red>     0..|  	    mnesia2_recover:sync_trans_tid_serial(Tid)</font>
+        |      end.
+        |  
+        |  %% If there are an surrounding transaction, we inherit it's context
+        |  non_transaction(OldState={_,_,Trans}, Fun, Args, ActivityKind, Mod)
+        |    when Trans /= non_transaction -&gt;
+<font color=red>     0..|      Kind = case ActivityKind of</font>
+<font color=red>     0..|  	       sync_dirty -&gt; sync;</font>
+<font color=red>     0..|  	       _ -&gt; async</font>
+        |  	   end,
+<font color=red>     0..|      case transaction(OldState, Fun, Args, infinity, Mod, Kind) of</font>
+<font color=red>     0..|  	{atomic, Res} -&gt; Res;</font>
+<font color=red>     0..|  	{aborted,Res} -&gt; exit(Res)</font>
+        |      end;
+        |  non_transaction(OldState, Fun, Args, ActivityKind, Mod) -&gt;
+<font color=red>     0..|      Id = {ActivityKind, self()},</font>
+<font color=red>     0..|      NewState = {Mod, Id, non_transaction},</font>
+<font color=red>     0..|      put(mnesia2_activity_state, NewState),</font>
+<font color=red>     0..|      try apply(Fun, Args) of</font>
+<font color=red>     0..|  	{'EXIT', Reason} -&gt; exit(Reason);</font>
+<font color=red>     0..|  	{aborted, Reason} -&gt; mnesia2:abort(Reason);</font>
+<font color=red>     0..|  	Res -&gt; Res</font>
+        |      catch
+<font color=red>     0..|  	throw:Throw -&gt; throw(Throw);</font>
+<font color=red>     0..|  	_:Reason    -&gt; exit(Reason)</font>
+        |      after
+<font color=red>     0..|  	case OldState of</font>
+<font color=red>     0..|  	    undefined -&gt; erase(mnesia2_activity_state);</font>
+<font color=red>     0..|  	    _ -&gt; put(mnesia2_activity_state, OldState)</font>
+        |  	end
+        |      end.
+        |  
+        |  transaction(OldTidTs, Fun, Args, Retries, Mod, Type) -&gt;
+    19..|      Factor = 1,
+    19..|      case OldTidTs of
+        |  	undefined -&gt; % Outer
+    19..|  	    execute_outer(Mod, Fun, Args, Factor, Retries, Type);
+        |  	{_, _, non_transaction} -&gt; % Transaction inside ?sync_dirty
+<font color=red>     0..|  	    Res = execute_outer(Mod, Fun, Args, Factor, Retries, Type),</font>
+<font color=red>     0..|  	    put(mnesia2_activity_state, OldTidTs),</font>
+<font color=red>     0..|  	    Res;</font>
+        |  	{OldMod, Tid, Ts} -&gt;  % Nested
+<font color=red>     0..|  	    execute_inner(Mod, Tid, OldMod, Ts, Fun, Args, Factor, Retries, Type);</font>
+        |  	_ -&gt; % Bad nesting
+<font color=red>     0..|  	    {aborted, nested_transaction}</font>
+        |      end.
+        |  
+        |  execute_outer(Mod, Fun, Args, Factor, Retries, Type) -&gt;
+    19..|      case req(start_outer) of
+        |  	{error, Reason} -&gt;
+    19..|  	    {aborted, Reason};
+        |  	{new_tid, Tid, Store} -&gt;
+<font color=red>     0..|  	    Ts = #tidstore{store = Store},</font>
+<font color=red>     0..|  	    NewTidTs = {Mod, Tid, Ts},</font>
+<font color=red>     0..|  	    put(mnesia2_activity_state, NewTidTs),</font>
+<font color=red>     0..|  	    execute_transaction(Fun, Args, Factor, Retries, Type)</font>
+        |      end.
+        |  
+        |  execute_inner(Mod, Tid, OldMod, Ts, Fun, Args, Factor, Retries, Type) -&gt;
+<font color=red>     0..|      case req({add_store, Tid}) of</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {aborted, Reason};</font>
+        |  	{new_store, Ets} -&gt;
+<font color=red>     0..|  	    copy_ets(Ts#tidstore.store, Ets),</font>
+<font color=red>     0..|  	    Up = [{OldMod,Ts#tidstore.store} | Ts#tidstore.up_stores],</font>
+<font color=red>     0..|  	    NewTs = Ts#tidstore{level = 1 + Ts#tidstore.level,</font>
+        |  				store = Ets,
+        |  				up_stores = Up},
+<font color=red>     0..|  	    NewTidTs = {Mod, Tid, NewTs},</font>
+<font color=red>     0..|  	    put(mnesia2_activity_state, NewTidTs),</font>
+<font color=red>     0..|  	    execute_transaction(Fun, Args, Factor, Retries, Type)</font>
+        |      end.
+        |  
+        |  copy_ets(From, To) -&gt;
+<font color=red>     0..|      do_copy_ets(?ets_first(From), From, To).</font>
+        |  do_copy_ets('$end_of_table', _,_) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  do_copy_ets(K, From, To) -&gt;
+<font color=red>     0..|      Objs = ?ets_lookup(From, K),</font>
+<font color=red>     0..|      insert_objs(Objs, To),</font>
+<font color=red>     0..|      do_copy_ets(?ets_next(From, K), From, To).</font>
+        |  
+        |  insert_objs([H|T], Tab) -&gt;
+<font color=red>     0..|      ?ets_insert(Tab, H),</font>
+<font color=red>     0..|      insert_objs(T, Tab);</font>
+        |  insert_objs([], _Tab) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  execute_transaction(Fun, Args, Factor, Retries, Type) -&gt;
+<font color=red>     0..|      try apply_fun(Fun, Args, Type) of</font>
+        |  	{atomic, Value} -&gt;
+<font color=red>     0..|  	    mnesia2_lib:incr_counter(trans_commits),</font>
+<font color=red>     0..|  	    erase(mnesia2_activity_state),</font>
+        |  	    %% no need to clear locks, already done by commit ...
+        |  	    %% Flush any un processed mnesia2_down messages we might have
+<font color=red>     0..|  	    flush_downs(),</font>
+<font color=red>     0..|  	    ?SAFE(unlink(whereis(?MODULE))),</font>
+<font color=red>     0..|  	    {atomic, Value};</font>
+        |  	{do_abort, Reason} -&gt;
+<font color=red>     0..|  	    check_exit(Fun, Args, Factor, Retries, {aborted, Reason}, Type);</font>
+        |  	{nested_atomic, Value} -&gt;
+<font color=red>     0..|  	    mnesia2_lib:incr_counter(trans_commits),</font>
+<font color=red>     0..|  	    {atomic, Value}</font>
+        |      catch throw:Value -&gt;  %% User called throw
+<font color=red>     0..|  	    Reason = {aborted, {throw, Value}},</font>
+<font color=red>     0..|  	    return_abort(Fun, Args, Reason);</font>
+        |  	  error:Reason -&gt;
+<font color=red>     0..|  	    ST = erlang:get_stacktrace(),</font>
+<font color=red>     0..|  	    check_exit(Fun, Args, Factor, Retries, {Reason,ST}, Type);</font>
+        |  	  _:Reason -&gt;
+<font color=red>     0..|  	    check_exit(Fun, Args, Factor, Retries, Reason, Type)</font>
+        |      end.
+        |  
+        |  apply_fun(Fun, Args, Type) -&gt;
+<font color=red>     0..|      Result = apply(Fun, Args),</font>
+<font color=red>     0..|      case t_commit(Type) of</font>
+        |  	do_commit -&gt;
+<font color=red>     0..|              {atomic, Result};</font>
+        |          do_commit_nested -&gt;
+<font color=red>     0..|              {nested_atomic, Result};</font>
+        |  	{do_abort, {aborted, Reason}} -&gt;
+<font color=red>     0..|  	    {do_abort, Reason};</font>
+        |  	{do_abort, _} = Abort -&gt;
+<font color=red>     0..|  	    Abort</font>
+        |      end.
+        |  
+        |  check_exit(Fun, Args, Factor, Retries, Reason, Type) -&gt;
+<font color=red>     0..|      case Reason of</font>
+        |  	{aborted, C = #cyclic{}} -&gt;
+<font color=red>     0..|  	    maybe_restart(Fun, Args, Factor, Retries, Type, C);</font>
+        |  	{aborted, {node_not_running, N}} -&gt;
+<font color=red>     0..|  	    maybe_restart(Fun, Args, Factor, Retries, Type, {node_not_running, N});</font>
+        |  	{aborted, {bad_commit, N}} -&gt;
+<font color=red>     0..|  	    maybe_restart(Fun, Args, Factor, Retries, Type, {bad_commit, N});</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    return_abort(Fun, Args, Reason)</font>
+        |      end.
+        |  
+        |  maybe_restart(Fun, Args, Factor, Retries, Type, Why) -&gt;
+<font color=red>     0..|      {Mod, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      case try_again(Retries) of</font>
+        |  	yes when Ts#tidstore.level == 1 -&gt;
+<font color=red>     0..|  	    restart(Mod, Tid, Ts, Fun, Args, Factor, Retries, Type, Why);</font>
+        |  	yes -&gt;
+<font color=red>     0..|  	    return_abort(Fun, Args, Why);</font>
+        |  	no -&gt;
+<font color=red>     0..|  	    return_abort(Fun, Args, {aborted, nomore})</font>
+        |      end.
+        |  
+<font color=red>     0..|  try_again(infinity) -&gt; yes;</font>
+<font color=red>     0..|  try_again(X) when is_number(X) , X &gt; 1 -&gt; yes;</font>
+<font color=red>     0..|  try_again(_) -&gt; no.</font>
+        |  
+        |  %% We can only restart toplevel transactions.
+        |  %% If a deadlock situation occurs in a nested transaction
+        |  %% The whole thing including all nested transactions need to be
+        |  %% restarted. The stack is thus popped by a consequtive series of
+        |  %% exit({aborted, #cyclic{}}) calls
+        |  
+        |  restart(Mod, Tid, Ts, Fun, Args, Factor0, Retries0, Type, Why) -&gt;
+<font color=red>     0..|      mnesia2_lib:incr_counter(trans_restarts),</font>
+<font color=red>     0..|      Retries = decr(Retries0),</font>
+<font color=red>     0..|      case Why of</font>
+        |  	{bad_commit, _N} -&gt;
+<font color=red>     0..|  	    return_abort(Fun, Args, Why),</font>
+<font color=red>     0..|  	    Factor = 1,</font>
+<font color=red>     0..|  	    SleepTime = mnesia2_lib:random_time(Factor, Tid#tid.counter),</font>
+<font color=red>     0..|  	    dbg_out("Restarting transaction ~w: in ~wms ~w~n", [Tid, SleepTime, Why]),</font>
+<font color=red>     0..|  	    timer:sleep(SleepTime),</font>
+<font color=red>     0..|  	    execute_outer(Mod, Fun, Args, Factor, Retries, Type);</font>
+        |  	{node_not_running, _N} -&gt;   %% Avoids hanging in receive_release_tid_ack
+<font color=red>     0..|  	    return_abort(Fun, Args, Why),</font>
+<font color=red>     0..|  	    Factor = 1,</font>
+<font color=red>     0..|  	    SleepTime = mnesia2_lib:random_time(Factor, Tid#tid.counter),</font>
+<font color=red>     0..|  	    dbg_out("Restarting transaction ~w: in ~wms ~w~n", [Tid, SleepTime, Why]),</font>
+<font color=red>     0..|  	    timer:sleep(SleepTime),</font>
+<font color=red>     0..|  	    execute_outer(Mod, Fun, Args, Factor, Retries, Type);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    SleepTime = mnesia2_lib:random_time(Factor0, Tid#tid.counter),</font>
+<font color=red>     0..|  	    dbg_out("Restarting transaction ~w: in ~wms ~w~n", [Tid, SleepTime, Why]),</font>
+        |  
+<font color=red>     0..|  	    if</font>
+        |  		Factor0 /= 10 -&gt;
+<font color=red>     0..|  		    ignore;</font>
+        |  		true -&gt;
+        |  		    %% Our serial may be much larger than other nodes ditto
+<font color=red>     0..|  		    AllNodes = val({current, db_nodes}),</font>
+<font color=red>     0..|  		    verbose("Sync serial ~p~n", [Tid]),</font>
+<font color=red>     0..|  		    rpc:abcast(AllNodes, ?MODULE, {sync_trans_serial, Tid})</font>
+        |  	    end,
+<font color=red>     0..|  	    intercept_friends(Tid, Ts),</font>
+<font color=red>     0..|  	    Store = Ts#tidstore.store,</font>
+<font color=red>     0..|  	    Nodes = get_elements(nodes,Store),</font>
+<font color=red>     0..|  	    ?MODULE ! {self(), {restart, Tid, Store}},</font>
+<font color=red>     0..|  	    mnesia2_locker:send_release_tid(Nodes, Tid),</font>
+<font color=red>     0..|  	    timer:sleep(SleepTime),</font>
+<font color=red>     0..|  	    mnesia2_locker:receive_release_tid_acc(Nodes, Tid),</font>
+<font color=red>     0..|  	    case get_restarted(Tid) of</font>
+        |  		{restarted, Tid} -&gt;
+<font color=red>     0..|  		    execute_transaction(Fun, Args, Factor0 + 1,</font>
+        |  					Retries, Type);
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    mnesia2:abort(Reason)</font>
+        |  	    end
+        |      end.
+        |  
+        |  get_restarted(Tid) -&gt;
+<font color=red>     0..|      case Res = rec() of</font>
+        |  	{restarted, Tid} -&gt;
+<font color=red>     0..|  	    Res;</font>
+        |  	{error,_} -&gt;
+<font color=red>     0..|  	    Res;</font>
+        |  	_ -&gt; %% We could get a couple of aborts to many.
+<font color=red>     0..|  	    get_restarted(Tid)</font>
+        |      end.
+        |  
+<font color=red>     0..|  decr(infinity) -&gt; infinity;</font>
+<font color=red>     0..|  decr(X) when is_integer(X), X &gt; 1 -&gt; X - 1;</font>
+<font color=red>     0..|  decr(_X) -&gt; 0.</font>
+        |  
+        |  return_abort(Fun, Args, Reason)  -&gt;
+<font color=red>     0..|      {_Mod, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      dbg_out("Transaction ~p calling ~p with ~p failed: ~n ~p~n",</font>
+        |  	    [Tid, Fun, Args, Reason]),
+<font color=red>     0..|      OldStore = Ts#tidstore.store,</font>
+<font color=red>     0..|      Nodes = get_elements(nodes, OldStore),</font>
+<font color=red>     0..|      intercept_friends(Tid, Ts),</font>
+<font color=red>     0..|      ?SAFE(mnesia2_lib:incr_counter(trans_failures)),</font>
+<font color=red>     0..|      Level = Ts#tidstore.level,</font>
+<font color=red>     0..|      if</font>
+        |  	Level == 1 -&gt;
+<font color=red>     0..|  	    mnesia2_locker:async_release_tid(Nodes, Tid),</font>
+<font color=red>     0..|  	    ?MODULE ! {delete_transaction, Tid},</font>
+<font color=red>     0..|  	    erase(mnesia2_activity_state),</font>
+<font color=red>     0..|  	    flush_downs(),</font>
+<font color=red>     0..|  	    ?SAFE(unlink(whereis(?MODULE))),</font>
+<font color=red>     0..|  	    {aborted, mnesia2_lib:fix_error(Reason)};</font>
+        |  	true -&gt;
+        |  	    %% Nested transaction
+<font color=red>     0..|  	    [{OldMod,NewStore} | Tail] = Ts#tidstore.up_stores,</font>
+<font color=red>     0..|  	    req({del_store, Tid, NewStore, OldStore, true}),</font>
+<font color=red>     0..|  	    Ts2 = Ts#tidstore{store = NewStore,</font>
+        |  			      up_stores = Tail,
+        |  			      level = Level - 1},
+<font color=red>     0..|  	    NewTidTs = {OldMod, Tid, Ts2},</font>
+<font color=red>     0..|  	    put(mnesia2_activity_state, NewTidTs),</font>
+<font color=red>     0..|  	    case Reason of</font>
+        |  		#cyclic{} -&gt;
+<font color=red>     0..|  		    exit({aborted, Reason});</font>
+        |  		{node_not_running, _N} -&gt;
+<font color=red>     0..|  		    exit({aborted, Reason});</font>
+        |  		{bad_commit, _N}-&gt;
+<font color=red>     0..|  		    exit({aborted, Reason});</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    {aborted, mnesia2_lib:fix_error(Reason)}</font>
+        |  	    end
+        |      end.
+        |  
+        |  flush_downs() -&gt;
+<font color=red>     0..|      receive</font>
+<font color=red>     0..|  	{?MODULE, _, _} -&gt; flush_downs(); % Votes</font>
+<font color=red>     0..|  	{mnesia2_down, _} -&gt; flush_downs()</font>
+<font color=red>     0..|      after 0 -&gt; flushed</font>
+        |      end.
+        |  
+        |  
+        |  put_activity_id(MTT) -&gt;
+<font color=red>     0..|      put_activity_id(MTT, undefined).</font>
+        |  put_activity_id(undefined,_) -&gt;
+<font color=red>     0..|      erase_activity_id();</font>
+        |  put_activity_id({Mod, Tid = #tid{}, Ts = #tidstore{}},Fun) -&gt;
+<font color=red>     0..|      flush_downs(),</font>
+<font color=red>     0..|      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|      if</font>
+        |  	is_function(Fun) -&gt;
+<font color=red>     0..|  	    ?ets_insert(Store, {friends, {stop,Fun}});</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    ?ets_insert(Store, {friends, self()})</font>
+        |      end,
+<font color=red>     0..|      NewTidTs = {Mod, Tid, Ts},</font>
+<font color=red>     0..|      put(mnesia2_activity_state, NewTidTs);</font>
+        |  put_activity_id(SimpleState,_) -&gt;
+<font color=red>     0..|      put(mnesia2_activity_state, SimpleState).</font>
+        |  
+        |  erase_activity_id() -&gt;
+<font color=red>     0..|      flush_downs(),</font>
+<font color=red>     0..|      erase(mnesia2_activity_state).</font>
+        |  
+        |  get_elements(Type,Store) -&gt;
+<font color=red>     0..|      try ?ets_lookup(Store, Type) of</font>
+<font color=red>     0..|  	[] -&gt; [];</font>
+<font color=red>     0..|  	[{_,Val}] -&gt; [Val];</font>
+<font color=red>     0..|  	Vals -&gt; [Val|| {_,Val} &lt;- Vals]</font>
+<font color=red>     0..|      catch error:_ -&gt; []</font>
+        |      end.
+        |  
+        |  opt_propagate_store(_Current, _Obsolete, false) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  opt_propagate_store(Current, Obsolete, true) -&gt;
+<font color=red>     0..|      propagate_store(Current, nodes, get_elements(nodes,Obsolete)),</font>
+<font color=red>     0..|      propagate_store(Current, fixtable, get_elements(fixtable,Obsolete)),</font>
+<font color=red>     0..|      propagate_store(Current, friends, get_elements(friends, Obsolete)).</font>
+        |  
+        |  propagate_store(Store, Var, [Val | Vals]) -&gt;
+<font color=red>     0..|      ?ets_insert(Store, {Var, Val}),</font>
+<font color=red>     0..|      propagate_store(Store, Var, Vals);</font>
+        |  propagate_store(_Store, _Var, []) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %% Tell all processes that are cooperating with the current transaction
+        |  intercept_friends(_Tid, Ts) -&gt;
+<font color=red>     0..|      Friends = get_elements(friends,Ts#tidstore.store),</font>
+<font color=red>     0..|      intercept_best_friend(Friends, false).</font>
+        |  
+<font color=red>     0..|  intercept_best_friend([],_) -&gt;    ok;</font>
+        |  intercept_best_friend([{stop,Fun} | R],Ignore) -&gt;
+<font color=red>     0..|      ?CATCH(Fun()),</font>
+<font color=red>     0..|      intercept_best_friend(R,Ignore);</font>
+        |  intercept_best_friend([Pid | R],false) -&gt;
+<font color=red>     0..|      Pid ! {activity_ended, undefined, self()},</font>
+<font color=red>     0..|      wait_for_best_friend(Pid, 0),</font>
+<font color=red>     0..|      intercept_best_friend(R,true);</font>
+        |  intercept_best_friend([_|R],true) -&gt;
+<font color=red>     0..|      intercept_best_friend(R,true).</font>
+        |  
+        |  wait_for_best_friend(Pid, Timeout) -&gt;
+<font color=red>     0..|      receive</font>
+<font color=red>     0..|  	{'EXIT', Pid, _} -&gt; ok;</font>
+<font color=red>     0..|  	{activity_ended, _, Pid} -&gt; ok</font>
+        |      after Timeout -&gt;
+<font color=red>     0..|  	    case erlang:is_process_alive(Pid) of</font>
+<font color=red>     0..|  		true -&gt; wait_for_best_friend(Pid, 1000);</font>
+<font color=red>     0..|  		false -&gt; ok</font>
+        |  	    end
+        |      end.
+        |  
+        |  dirty(Protocol, Item) -&gt;
+<font color=red>     0..|      {{Tab, Key}, _Val, _Op} = Item,</font>
+<font color=red>     0..|      Tid = {dirty, self()},</font>
+<font color=red>     0..|      Prep = prepare_items(Tid, Tab, Key, [Item], #prep{protocol= Protocol}),</font>
+<font color=red>     0..|      CR =  Prep#prep.records,</font>
+<font color=red>     0..|      case Protocol of</font>
+        |  	async_dirty -&gt;
+        |  	    %% Send commit records to the other involved nodes,
+        |  	    %% but do only wait for one node to complete.
+        |  	    %% Preferrably, the local node if possible.
+        |  
+<font color=red>     0..|  	    ReadNode = val({Tab, where_to_read}),</font>
+<font color=red>     0..|  	    {WaitFor, FirstRes} = async_send_dirty(Tid, CR, Tab, ReadNode),</font>
+<font color=red>     0..|  	    rec_dirty(WaitFor, FirstRes);</font>
+        |  
+        |  	sync_dirty -&gt;
+        |  	    %% Send commit records to the other involved nodes,
+        |  	    %% and wait for all nodes to complete
+<font color=red>     0..|  	    {WaitFor, FirstRes} = sync_send_dirty(Tid, CR, Tab, []),</font>
+<font color=red>     0..|  	    rec_dirty(WaitFor, FirstRes);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    mnesia2:abort({bad_activity, Protocol})</font>
+        |      end.
+        |  
+        |  %% This is the commit function, The first thing it does,
+        |  %% is to find out which nodes that have been participating
+        |  %% in this particular transaction, all of the mnesia2_locker:lock*
+        |  %% functions insert the names of the nodes where it aquires locks
+        |  %% into the local shadow Store
+        |  %% This function exacutes in the context of the user process
+        |  t_commit(Type) -&gt;
+<font color=red>     0..|      {_Mod, Tid, Ts} = get(mnesia2_activity_state),</font>
+<font color=red>     0..|      Store = Ts#tidstore.store,</font>
+<font color=red>     0..|      if</font>
+        |  	Ts#tidstore.level == 1 -&gt;
+<font color=red>     0..|  	    intercept_friends(Tid, Ts),</font>
+        |  	    %% N is number of updates
+<font color=red>     0..|  	    case arrange(Tid, Store, Type) of</font>
+        |  		{N, Prep} when N &gt; 0 -&gt;
+<font color=red>     0..|  		    multi_commit(Prep#prep.protocol,</font>
+        |  				 majority_attr(Prep),
+        |  				 Tid, Prep#prep.records, Store);
+        |  		{0, Prep} -&gt;
+<font color=red>     0..|  		    multi_commit(read_only,</font>
+        |  				 majority_attr(Prep),
+        |  				 Tid, Prep#prep.records, Store)
+        |  	    end;
+        |  	true -&gt;
+        |  	    %% nested commit
+<font color=red>     0..|  	    Level = Ts#tidstore.level,</font>
+<font color=red>     0..|  	    [{OldMod,Obsolete} | Tail] = Ts#tidstore.up_stores,</font>
+<font color=red>     0..|  	    req({del_store, Tid, Store, Obsolete, false}),</font>
+<font color=red>     0..|  	    NewTs = Ts#tidstore{store = Store,</font>
+        |  				up_stores = Tail,
+        |  				level = Level - 1},
+<font color=red>     0..|  	    NewTidTs = {OldMod, Tid, NewTs},</font>
+<font color=red>     0..|  	    put(mnesia2_activity_state, NewTidTs),</font>
+<font color=red>     0..|  	    do_commit_nested</font>
+        |      end.
+        |  
+        |  majority_attr(#prep{majority = M}) -&gt;
+<font color=red>     0..|      M.</font>
+        |  
+        |  
+        |  %% This function arranges for all objects we shall write in S to be
+        |  %% in a list of {Node, CommitRecord}
+        |  %% Important function for the performance of mnesia2.
+        |  
+        |  arrange(Tid, Store, Type) -&gt;
+        |      %% The local node is always included
+<font color=red>     0..|      Nodes = get_elements(nodes,Store),</font>
+<font color=red>     0..|      Recs = prep_recs(Nodes, []),</font>
+<font color=red>     0..|      Key = ?ets_first(Store),</font>
+<font color=red>     0..|      N = 0,</font>
+<font color=red>     0..|      Prep =</font>
+        |  	case Type of
+<font color=red>     0..|  	    async -&gt; #prep{protocol = sym_trans, records = Recs};</font>
+<font color=red>     0..|  	    sync -&gt; #prep{protocol = sync_sym_trans, records = Recs}</font>
+        |  	end,
+<font color=red>     0..|      {New, Prepared} = do_arrange(Tid, Store, Key, Prep, N),</font>
+<font color=red>     0..|      {New, Prepared#prep{records = reverse(Prepared#prep.records)}}.</font>
+        |  
+        |  reverse([]) -&gt;
+<font color=red>     0..|      [];</font>
+        |  reverse([H=#commit{ram_copies=Ram, disc_copies=DC,
+        |  		   disc_only_copies=DOC,snmp = Snmp}
+        |  	 |R]) -&gt;
+<font color=red>     0..|      [</font>
+        |       H#commit{
+        |         ram_copies       =  lists:reverse(Ram),
+        |         disc_copies      =  lists:reverse(DC),
+        |         disc_only_copies =  lists:reverse(DOC),
+        |         snmp             = lists:reverse(Snmp)
+        |        }
+        |       | reverse(R)].
+        |  
+        |  prep_recs([N | Nodes], Recs) -&gt;
+<font color=red>     0..|      prep_recs(Nodes, [#commit{decision = presume_commit, node = N} | Recs]);</font>
+        |  prep_recs([], Recs) -&gt;
+<font color=red>     0..|      Recs.</font>
+        |  
+        |  %% storage_types is a list of {Node, Storage} tuples
+        |  %% where each tuple represents an active replica
+        |  do_arrange(Tid, Store, {Tab, Key}, Prep, N) -&gt;
+<font color=red>     0..|      Oid = {Tab, Key},</font>
+<font color=red>     0..|      Items = ?ets_lookup(Store, Oid), %% Store is a bag</font>
+<font color=red>     0..|      P2 = prepare_items(Tid, Tab, Key, Items, Prep),</font>
+<font color=red>     0..|      do_arrange(Tid, Store, ?ets_next(Store, Oid), P2, N + 1);</font>
+        |  do_arrange(Tid, Store, SchemaKey, Prep, N) when SchemaKey == op -&gt;
+<font color=red>     0..|      Items = ?ets_lookup(Store, SchemaKey), %% Store is a bag</font>
+<font color=red>     0..|      P2 = prepare_schema_items(Tid, Items, Prep),</font>
+<font color=red>     0..|      do_arrange(Tid, Store, ?ets_next(Store, SchemaKey), P2, N + 1);</font>
+        |  do_arrange(Tid, Store, RestoreKey, Prep, N) when RestoreKey == restore_op -&gt;
+<font color=red>     0..|      [{restore_op, R}] = ?ets_lookup(Store, RestoreKey),</font>
+<font color=red>     0..|      Fun = fun({Tab, Key}, CommitRecs, _RecName, Where, Snmp) -&gt;</font>
+<font color=red>     0..|  		  Item = [{{Tab, Key}, {Tab, Key}, delete}],</font>
+<font color=red>     0..|  		  do_prepare_items(Tid, Tab, Key, Where, Snmp, Item, CommitRecs);</font>
+        |  	     (BupRec, CommitRecs, RecName, Where, Snmp) -&gt;
+<font color=red>     0..|  		  Tab = element(1, BupRec),</font>
+<font color=red>     0..|  		  Key = element(2, BupRec),</font>
+<font color=red>     0..|  		  Item =</font>
+        |  		      if
+        |  			  Tab == RecName -&gt;
+<font color=red>     0..|  			      [{{Tab, Key}, BupRec, write}];</font>
+        |  			  true -&gt;
+<font color=red>     0..|  			      BupRec2 = setelement(1, BupRec, RecName),</font>
+<font color=red>     0..|  			      [{{Tab, Key}, BupRec2, write}]</font>
+        |  		      end,
+<font color=red>     0..|  		  do_prepare_items(Tid, Tab, Key, Where, Snmp, Item, CommitRecs)</font>
+        |  	  end,
+<font color=red>     0..|      Recs2 = mnesia2_schema:arrange_restore(R, Fun, Prep#prep.records),</font>
+<font color=red>     0..|      P2 = Prep#prep{protocol = asym_trans, records = Recs2},</font>
+<font color=red>     0..|      do_arrange(Tid, Store, ?ets_next(Store, RestoreKey), P2, N + 1);</font>
+        |  do_arrange(_Tid, _Store, '$end_of_table', Prep, N) -&gt;
+<font color=red>     0..|      {N, Prep};</font>
+        |  do_arrange(Tid, Store, IgnoredKey, Prep, N) -&gt; %% locks, nodes ... local atoms...
+<font color=red>     0..|      do_arrange(Tid, Store, ?ets_next(Store, IgnoredKey), Prep, N).</font>
+        |  
+        |  %% Returns a prep record  with all items in reverse order
+        |  prepare_schema_items(Tid, Items, Prep) -&gt;
+<font color=red>     0..|      Types = [{N, schema_ops} || N &lt;- val({current, db_nodes})],</font>
+<font color=red>     0..|      Recs = prepare_nodes(Tid, Types, Items, Prep#prep.records, schema),</font>
+<font color=red>     0..|      Prep#prep{protocol = asym_trans, records = Recs}.</font>
+        |  
+        |  %% Returns a prep record with all items in reverse order
+        |  prepare_items(Tid, Tab, Key, Items, Prep) when Prep#prep.prev_tab == Tab -&gt;
+<font color=red>     0..|      Types = Prep#prep.prev_types,</font>
+<font color=red>     0..|      Snmp = Prep#prep.prev_snmp,</font>
+<font color=red>     0..|      Recs = Prep#prep.records,</font>
+<font color=red>     0..|      Recs2 = do_prepare_items(Tid, Tab, Key, Types, Snmp, Items, Recs),</font>
+<font color=red>     0..|      Prep#prep{records = Recs2};</font>
+        |  
+        |  prepare_items(Tid, Tab, Key, Items, Prep) -&gt;
+<font color=red>     0..|      Types = val({Tab, where_to_commit}),</font>
+<font color=red>     0..|      case Types of</font>
+<font color=red>     0..|  		[] -&gt; mnesia2:abort({no_exists, Tab});</font>
+        |  		{blocked, _} -&gt;
+<font color=red>     0..|  		    unblocked = req({unblock_me, Tab}),</font>
+<font color=red>     0..|  		    unblocked = req(tab_to_async_dirty_tm_name(Tab), {unblock_me, Tab}),</font>
+<font color=red>     0..|  		    prepare_items(Tid, Tab, Key, Items, Prep);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    Majority = needs_majority(Tab, Prep),</font>
+<font color=red>     0..|  		    Snmp = val({Tab, snmp}),</font>
+<font color=red>     0..|  		    Recs2 = do_prepare_items(Tid, Tab, Key, Types,</font>
+        |  					     Snmp, Items, Prep#prep.records),
+<font color=red>     0..|  		    Prep2 = Prep#prep{records = Recs2, prev_tab = Tab,</font>
+        |  				      majority = Majority,
+        |  				      prev_types = Types, prev_snmp = Snmp},
+<font color=red>     0..|  		    check_prep(Prep2, Types)</font>
+        |      end.
+        |  
+        |  do_prepare_items(Tid, Tab, Key, Types, Snmp, Items, Recs) -&gt;
+<font color=red>     0..|      Recs2 = prepare_snmp(Tid, Tab, Key, Types, Snmp, Items, Recs), % May exit</font>
+<font color=red>     0..|      prepare_nodes(Tid, Types, Items, Recs2, normal).</font>
+        |  
+        |  
+        |  needs_majority(Tab, #prep{majority = M}) -&gt;
+<font color=red>     0..|      case lists:keymember(Tab, 1, M) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    M;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, majority}) of</font>
+        |  		{'EXIT', _} -&gt;
+<font color=red>     0..|  		    M;</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    M;</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    CopyHolders = val({Tab, all_nodes}),</font>
+<font color=red>     0..|  		    [{Tab, CopyHolders} | M]</font>
+        |  	    end
+        |      end.
+        |  
+        |  have_majority([], _) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  have_majority([{Tab, AllNodes} | Rest], Nodes) -&gt;
+<font color=red>     0..|      case mnesia2_lib:have_majority(Tab, AllNodes, Nodes) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    have_majority(Rest, Nodes);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    {error, Tab}</font>
+        |      end.
+        |  
+        |  prepare_snmp(Tab, Key, Items) -&gt;
+<font color=red>     0..|      case val({Tab, snmp}) of</font>
+        |  	[] -&gt;
+<font color=red>     0..|  	    [];</font>
+        |  	Ustruct when Key /= '_' -&gt;
+<font color=red>     0..|  	    {_Oid, _Val, Op} = hd(Items),</font>
+        |  	    %% Still making snmp oid (not used) because we want to catch errors here
+        |  	    %% And also it keeps backwards comp. with old nodes.
+<font color=red>     0..|  	    SnmpOid = mnesia2_snmp_hook:key_to_oid(Tab, Key, Ustruct), % May exit</font>
+<font color=red>     0..|  	    [{Op, Tab, Key, SnmpOid}];</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    [{clear_table, Tab}]</font>
+        |      end.
+        |  
+        |  prepare_snmp(_Tid, _Tab, _Key, _Types, [], _Items, Recs) -&gt;
+<font color=red>     0..|      Recs;</font>
+        |  
+        |  prepare_snmp(Tid, Tab, Key, Types, Us, Items, Recs) -&gt;
+<font color=red>     0..|      if Key /= '_' -&gt;</font>
+<font color=red>     0..|  	    {_Oid, _Val, Op} = hd(Items),</font>
+<font color=red>     0..|  	    SnmpOid = mnesia2_snmp_hook:key_to_oid(Tab, Key, Us), % May exit</font>
+<font color=red>     0..|  	    prepare_nodes(Tid, Types, [{Op, Tab, Key, SnmpOid}], Recs, snmp);</font>
+        |         Key == '_' -&gt;
+<font color=red>     0..|  	    prepare_nodes(Tid, Types, [{clear_table, Tab}], Recs, snmp)</font>
+        |      end.
+        |  
+        |  check_prep(#prep{majority = [], types = Types} = Prep, Types) -&gt;
+<font color=red>     0..|      Prep;</font>
+        |  check_prep(#prep{majority = M, types = undefined} = Prep, Types) -&gt;
+<font color=red>     0..|      Protocol = if M == [] -&gt;</font>
+<font color=red>     0..|  		       Prep#prep.protocol;</font>
+        |  		  true -&gt;
+<font color=red>     0..|  		       asym_trans</font>
+        |  	       end,
+<font color=red>     0..|      Prep#prep{protocol = Protocol, types = Types};</font>
+        |  check_prep(Prep, _Types) -&gt;
+<font color=red>     0..|      Prep#prep{protocol = asym_trans}.</font>
+        |  
+        |  %% Returns a list of commit records
+        |  prepare_nodes(Tid, [{Node, Storage} | Rest], Items, C, Kind) -&gt;
+<font color=red>     0..|      {Rec, C2} = pick_node(Tid, Node, C, []),</font>
+<font color=red>     0..|      Rec2 = prepare_node(Node, Storage, Items, Rec, Kind),</font>
+<font color=red>     0..|      [Rec2 | prepare_nodes(Tid, Rest, Items, C2, Kind)];</font>
+        |  prepare_nodes(_Tid, [], _Items, CommitRecords, _Kind) -&gt;
+<font color=red>     0..|      CommitRecords.</font>
+        |  
+        |  pick_node(Tid, Node, [Rec | Rest], Done) -&gt;
+<font color=red>     0..|      if</font>
+        |  	Rec#commit.node == Node -&gt;
+<font color=red>     0..|  	    {Rec, Done ++ Rest};</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    pick_node(Tid, Node, Rest, [Rec | Done])</font>
+        |      end;
+        |  pick_node({dirty,_}, Node, [], Done) -&gt;
+<font color=red>     0..|      {#commit{decision = presume_commit, node = Node}, Done};</font>
+        |  pick_node(_Tid, Node, [], _Done) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_commit, {missing_lock, Node}}).</font>
+        |  
+        |  prepare_node(Node, Storage, [Item | Items], Rec, Kind) when Kind == snmp -&gt;
+<font color=red>     0..|      Rec2 = Rec#commit{snmp = [Item | Rec#commit.snmp]},</font>
+<font color=red>     0..|      prepare_node(Node, Storage, Items, Rec2, Kind);</font>
+        |  prepare_node(Node, Storage, [Item | Items], Rec, Kind) when Kind /= schema -&gt;
+<font color=red>     0..|      Rec2 =</font>
+        |  	case Storage of
+        |  	    ram_copies -&gt;
+<font color=red>     0..|  		Rec#commit{ram_copies = [Item | Rec#commit.ram_copies]};</font>
+        |  	    disc_copies -&gt;
+<font color=red>     0..|  		Rec#commit{disc_copies = [Item | Rec#commit.disc_copies]};</font>
+        |  	    disc_only_copies -&gt;
+<font color=red>     0..|  		Rec#commit{disc_only_copies =</font>
+        |  			   [Item | Rec#commit.disc_only_copies]}
+        |  	end,
+<font color=red>     0..|      prepare_node(Node, Storage, Items, Rec2, Kind);</font>
+        |  prepare_node(_Node, _Storage, Items, Rec, Kind)
+        |    when Kind == schema, Rec#commit.schema_ops == []  -&gt;
+<font color=red>     0..|      Rec#commit{schema_ops = Items};</font>
+        |  prepare_node(_Node, _Storage, [], Rec, _Kind) -&gt;
+<font color=red>     0..|      Rec.</font>
+        |  
+        |  %% multi_commit((Protocol, Tid, CommitRecords, Store)
+        |  %% Local work is always performed in users process
+        |  multi_commit(read_only, _Maj = [], Tid, CR, _Store) -&gt;
+        |      %% This featherweight commit protocol is used when no
+        |      %% updates has been performed in the transaction.
+        |  
+<font color=red>     0..|      {DiscNs, RamNs} = commit_nodes(CR, [], []),</font>
+<font color=red>     0..|      Msg = {Tid, simple_commit},</font>
+<font color=red>     0..|      rpc:abcast(DiscNs -- [node()], ?MODULE, Msg),</font>
+<font color=red>     0..|      rpc:abcast(RamNs -- [node()], ?MODULE, Msg),</font>
+<font color=red>     0..|      mnesia2_recover:note_decision(Tid, committed),</font>
+<font color=red>     0..|      mnesia2_locker:release_tid(Tid),</font>
+<font color=red>     0..|      ?MODULE ! {delete_transaction, Tid},</font>
+<font color=red>     0..|      do_commit;</font>
+        |  
+        |  multi_commit(sym_trans, _Maj = [], Tid, CR, Store) -&gt;
+        |      %% This lightweight commit protocol is used when all
+        |      %% the involved tables are replicated symetrically.
+        |      %% Their storage types must match on each node.
+        |      %%
+        |      %% 1  Ask the other involved nodes if they want to commit
+        |      %%    All involved nodes votes yes if they are up
+        |      %% 2a Somebody has voted no
+        |      %%    Tell all yes voters to do_abort
+        |      %% 2b Everybody has voted yes
+        |      %%    Tell everybody to do_commit. I.e. that they should
+        |      %%    prepare the commit, log the commit record and
+        |      %%    perform the updates.
+        |      %%
+        |      %%    The outcome is kept 3 minutes in the transient decision table.
+        |      %%
+        |      %% Recovery:
+        |      %%    If somebody dies before the coordinator has
+        |      %%    broadcasted do_commit, the transaction is aborted.
+        |      %%
+        |      %%    If a participant dies, the table load algorithm
+        |      %%    ensures that the contents of the involved tables
+        |      %%    are picked from another node.
+        |      %%
+        |      %%    If the coordinator dies, each participants checks
+        |      %%    the outcome with all the others. If all are uncertain
+        |      %%    about the outcome, the transaction is aborted. If
+        |      %%    somebody knows the outcome the others will follow.
+        |  
+<font color=red>     0..|      {DiscNs, RamNs} = commit_nodes(CR, [], []),</font>
+<font color=red>     0..|      Pending = mnesia2_checkpoint:tm_enter_pending(Tid, DiscNs, RamNs),</font>
+<font color=red>     0..|      ?ets_insert(Store, Pending),</font>
+        |  
+<font color=red>     0..|      {WaitFor, Local} = ask_commit(sym_trans, Tid, CR, DiscNs, RamNs),</font>
+<font color=red>     0..|      {Outcome, []} = rec_all(WaitFor, Tid, do_commit, []),</font>
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, multi_commit_sym},</font>
+        |  		    [{tid, Tid}, {outcome, Outcome}]),
+<font color=red>     0..|      rpc:abcast(DiscNs -- [node()], ?MODULE, {Tid, Outcome}),</font>
+<font color=red>     0..|      rpc:abcast(RamNs -- [node()], ?MODULE, {Tid, Outcome}),</font>
+<font color=red>     0..|      case Outcome of</font>
+        |  	do_commit -&gt;
+<font color=red>     0..|  	    mnesia2_recover:note_decision(Tid, committed),</font>
+<font color=red>     0..|  	    do_dirty(Tid, Local),</font>
+<font color=red>     0..|  	    mnesia2_locker:release_tid(Tid),</font>
+<font color=red>     0..|  	    ?MODULE ! {delete_transaction, Tid};</font>
+        |  	{do_abort, _Reason} -&gt;
+<font color=red>     0..|  	    mnesia2_recover:note_decision(Tid, aborted)</font>
+        |      end,
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, multi_commit_sym, post},</font>
+        |  		    [{tid, Tid}, {outcome, Outcome}]),
+<font color=red>     0..|      Outcome;</font>
+        |  
+        |  multi_commit(sync_sym_trans, _Maj = [], Tid, CR, Store) -&gt;
+        |      %%   This protocol is the same as sym_trans except that it
+        |      %%   uses syncronized calls to disk_log and syncronized commits
+        |      %%   when several nodes are involved.
+        |  
+<font color=red>     0..|      {DiscNs, RamNs} = commit_nodes(CR, [], []),</font>
+<font color=red>     0..|      Pending = mnesia2_checkpoint:tm_enter_pending(Tid, DiscNs, RamNs),</font>
+<font color=red>     0..|      ?ets_insert(Store, Pending),</font>
+        |  
+<font color=red>     0..|      {WaitFor, Local} = ask_commit(sync_sym_trans, Tid, CR, DiscNs, RamNs),</font>
+<font color=red>     0..|      {Outcome, []} = rec_all(WaitFor, Tid, do_commit, []),</font>
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, multi_commit_sym_sync},</font>
+        |  		    [{tid, Tid}, {outcome, Outcome}]),
+<font color=red>     0..|      [?ets_insert(Store, {waiting_for_commit_ack, Node}) || Node &lt;- WaitFor],</font>
+<font color=red>     0..|      rpc:abcast(DiscNs -- [node()], ?MODULE, {Tid, Outcome}),</font>
+<font color=red>     0..|      rpc:abcast(RamNs -- [node()], ?MODULE, {Tid, Outcome}),</font>
+<font color=red>     0..|      case Outcome of</font>
+        |  	do_commit -&gt;
+<font color=red>     0..|  	    mnesia2_recover:note_decision(Tid, committed),</font>
+<font color=red>     0..|  	    mnesia2_log:slog(Local),</font>
+<font color=red>     0..|  	    do_commit(Tid, Local),</font>
+        |  	    %% Just wait for completion result is ignore.
+<font color=red>     0..|  	    rec_all(WaitFor, Tid, ignore, []),</font>
+<font color=red>     0..|  	    mnesia2_locker:release_tid(Tid),</font>
+<font color=red>     0..|  	    ?MODULE ! {delete_transaction, Tid};</font>
+        |  	{do_abort, _Reason} -&gt;
+<font color=red>     0..|  	    mnesia2_recover:note_decision(Tid, aborted)</font>
+        |      end,
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, multi_commit_sym, post},</font>
+        |  		    [{tid, Tid}, {outcome, Outcome}]),
+<font color=red>     0..|      Outcome;</font>
+        |  
+        |  multi_commit(asym_trans, Majority, Tid, CR, Store) -&gt;
+        |      %% This more expensive commit protocol is used when
+        |      %% table definitions are changed (schema transactions).
+        |      %% It is also used when the involved tables are
+        |      %% replicated asymetrically. If the storage type differs
+        |      %% on at least one node this protocol is used.
+        |      %%
+        |      %% 1 Ask the other involved nodes if they want to commit.
+        |      %%   All involved nodes prepares the commit, logs a presume_abort
+        |      %%   commit record and votes yes or no depending of the
+        |      %%   outcome of the prepare. The preparation is also performed
+        |      %%   by the coordinator.
+        |      %%
+        |      %% 2a Somebody has died or voted no
+        |      %%    Tell all yes voters to do_abort
+        |      %% 2b Everybody has voted yes
+        |      %%    Put a unclear marker in the log.
+        |      %%    Tell the others to pre_commit. I.e. that they should
+        |      %%    put a unclear marker in the log and reply
+        |      %%    acc_pre_commit when they are done.
+        |      %%
+        |      %% 3a Somebody died
+        |      %%    Tell the remaining participants to do_abort
+        |      %% 3b Everybody has replied acc_pre_commit
+        |      %%    Tell everybody to committed. I.e that they should
+        |      %%    put a committed marker in the log, perform the updates
+        |      %%    and reply done_commit when they are done. The coordinator
+        |      %%    must wait with putting his committed marker inte the log
+        |      %%    until the committed has been sent to all the others.
+        |      %%    Then he performs local commit before collecting replies.
+        |      %%
+        |      %% 4  Everybody has either died or replied done_commit
+        |      %%    Return to the caller.
+        |      %%
+        |      %% Recovery:
+        |      %%    If the coordinator dies, the participants (and
+        |      %%    the coordinator when he starts again) must do
+        |      %%    the following:
+        |      %%
+        |      %%    If we have no unclear marker in the log we may
+        |      %%    safely abort, since we know that nobody may have
+        |      %%    decided to commit yet.
+        |      %%
+        |      %%    If we have a committed marker in the log we may
+        |      %%    safely commit since we know that everybody else
+        |      %%    also will come to this conclusion.
+        |      %%
+        |      %%    If we have a unclear marker but no committed
+        |      %%    in the log we are uncertain about the real outcome
+        |      %%    of the transaction and must ask the others before
+        |      %%    we can decide what to do. If someone knows the
+        |      %%    outcome we will do the same. If nobody knows, we
+        |      %%    will wait for the remaining involved nodes to come
+        |      %%    up. When all involved nodes are up and uncertain,
+        |      %%    we decide to commit (first put a committed marker
+        |      %%    in the log, then do the updates).
+        |  
+<font color=red>     0..|      D = #decision{tid = Tid, outcome = presume_abort},</font>
+<font color=red>     0..|      {D2, CR2} = commit_decision(D, CR, [], []),</font>
+<font color=red>     0..|      DiscNs = D2#decision.disc_nodes,</font>
+<font color=red>     0..|      RamNs = D2#decision.ram_nodes,</font>
+<font color=red>     0..|      case have_majority(Majority, DiscNs ++ RamNs) of</font>
+<font color=red>     0..|  	ok  -&gt; ok;</font>
+<font color=red>     0..|  	{error, Tab} -&gt; mnesia2:abort({no_majority, Tab})</font>
+        |      end,
+<font color=red>     0..|      Pending = mnesia2_checkpoint:tm_enter_pending(Tid, DiscNs, RamNs),</font>
+<font color=red>     0..|      ?ets_insert(Store, Pending),</font>
+<font color=red>     0..|      {WaitFor, Local} = ask_commit(asym_trans, Tid, CR2, DiscNs, RamNs),</font>
+<font color=red>     0..|      SchemaPrep = ?CATCH(mnesia2_schema:prepare_commit(Tid, Local, {coord, WaitFor})),</font>
+<font color=red>     0..|      {Votes, Pids} = rec_all(WaitFor, Tid, do_commit, []),</font>
+        |  
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, multi_commit_asym_got_votes},</font>
+        |  		    [{tid, Tid}, {votes, Votes}]),
+<font color=red>     0..|      case Votes of</font>
+        |  	do_commit -&gt;
+<font color=red>     0..|  	    case SchemaPrep of</font>
+        |  		{_Modified, C = #commit{}, DumperMode} -&gt;
+<font color=red>     0..|  		    mnesia2_log:log(C), % C is not a binary</font>
+<font color=red>     0..|  		    ?eval_debug_fun({?MODULE, multi_commit_asym_log_commit_rec},</font>
+        |  				    [{tid, Tid}]),
+        |  
+<font color=red>     0..|  		    D3 = C#commit.decision,</font>
+<font color=red>     0..|  		    D4 = D3#decision{outcome = unclear},</font>
+<font color=red>     0..|  		    mnesia2_recover:log_decision(D4),</font>
+<font color=red>     0..|  		    ?eval_debug_fun({?MODULE, multi_commit_asym_log_commit_dec},</font>
+        |  				    [{tid, Tid}]),
+<font color=red>     0..|  		    tell_participants(Pids, {Tid, pre_commit}),</font>
+        |  		    %% Now we are uncertain and we do not know
+        |  		    %% if all participants have logged that
+        |  		    %% they are uncertain or not
+<font color=red>     0..|  		    rec_acc_pre_commit(Pids, Tid, Store, {C,Local},</font>
+        |  				       do_commit, DumperMode, [], []);
+        |  		{'EXIT', Reason} -&gt;
+        |  		    %% The others have logged the commit
+        |  		    %% record but they are not uncertain
+<font color=red>     0..|  		    mnesia2_recover:note_decision(Tid, aborted),</font>
+<font color=red>     0..|  		    ?eval_debug_fun({?MODULE, multi_commit_asym_prepare_exit},</font>
+        |  				    [{tid, Tid}]),
+<font color=red>     0..|  		    tell_participants(Pids, {Tid, {do_abort, Reason}}),</font>
+<font color=red>     0..|  		    do_abort(Tid, Local),</font>
+<font color=red>     0..|  		    {do_abort, Reason}</font>
+        |  	    end;
+        |  
+        |  	{do_abort, Reason} -&gt;
+        |  	    %% The others have logged the commit
+        |  	    %% record but they are not uncertain
+<font color=red>     0..|  	    mnesia2_recover:note_decision(Tid, aborted),</font>
+<font color=red>     0..|  	    ?eval_debug_fun({?MODULE, multi_commit_asym_do_abort}, [{tid, Tid}]),</font>
+<font color=red>     0..|  	    tell_participants(Pids, {Tid, {do_abort, Reason}}),</font>
+<font color=red>     0..|  	    do_abort(Tid, Local),</font>
+<font color=red>     0..|  	    {do_abort, Reason}</font>
+        |      end.
+        |  
+        |  %% Returns do_commit or {do_abort, Reason}
+        |  rec_acc_pre_commit([Pid | Tail], Tid, Store, Commit, Res, DumperMode,
+        |  		   GoodPids, SchemaAckPids) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, _, {acc_pre_commit, Tid, Pid, true}} -&gt;
+<font color=red>     0..|  	    rec_acc_pre_commit(Tail, Tid, Store, Commit, Res, DumperMode,</font>
+        |  			       [Pid | GoodPids], [Pid | SchemaAckPids]);
+        |  
+        |  	{?MODULE, _, {acc_pre_commit, Tid, Pid, false}} -&gt;
+<font color=red>     0..|  	    rec_acc_pre_commit(Tail, Tid, Store, Commit, Res, DumperMode,</font>
+        |  			       [Pid | GoodPids], SchemaAckPids);
+        |  
+        |  	{?MODULE, _, {acc_pre_commit, Tid, Pid}} -&gt;
+        |  	    %% Kept for backwards compatibility. Remove after Mnesia2 4.x
+<font color=red>     0..|  	    rec_acc_pre_commit(Tail, Tid, Store, Commit, Res, DumperMode,</font>
+        |  			       [Pid | GoodPids], [Pid | SchemaAckPids]);
+        |  	{?MODULE, _, {do_abort, Tid, Pid, _Reason}} -&gt;
+<font color=red>     0..|  	    AbortRes = {do_abort, {bad_commit, node(Pid)}},</font>
+<font color=red>     0..|  	    rec_acc_pre_commit(Tail, Tid, Store, Commit, AbortRes, DumperMode,</font>
+        |  			       GoodPids, SchemaAckPids);
+        |  	{mnesia2_down, Node} when Node == node(Pid) -&gt;
+<font color=red>     0..|  	    AbortRes = {do_abort, {bad_commit, Node}},</font>
+<font color=red>     0..|  	    ?SAFE(Pid ! {Tid, AbortRes}),  %% Tell him that he has died</font>
+<font color=red>     0..|  	    rec_acc_pre_commit(Tail, Tid, Store, Commit, AbortRes, DumperMode,</font>
+        |  			       GoodPids, SchemaAckPids)
+        |      end;
+        |  rec_acc_pre_commit([], Tid, Store, {Commit,OrigC}, Res, DumperMode, GoodPids, SchemaAckPids) -&gt;
+<font color=red>     0..|      D = Commit#commit.decision,</font>
+<font color=red>     0..|      case Res of</font>
+        |  	do_commit -&gt;
+        |  	    %% Now everybody knows that the others
+        |  	    %% has voted yes. We also know that
+        |  	    %% everybody are uncertain.
+<font color=red>     0..|  	    prepare_sync_schema_commit(Store, SchemaAckPids),</font>
+<font color=red>     0..|  	    tell_participants(GoodPids, {Tid, committed}),</font>
+<font color=red>     0..|  	    D2 = D#decision{outcome = committed},</font>
+<font color=red>     0..|  	    mnesia2_recover:log_decision(D2),</font>
+<font color=red>     0..|              ?eval_debug_fun({?MODULE, rec_acc_pre_commit_log_commit},</font>
+        |  			    [{tid, Tid}]),
+        |  
+        |  	    %% Now we have safely logged committed
+        |  	    %% and we can recover without asking others
+<font color=red>     0..|  	    do_commit(Tid, Commit, DumperMode),</font>
+<font color=red>     0..|              ?eval_debug_fun({?MODULE, rec_acc_pre_commit_done_commit},</font>
+        |  			    [{tid, Tid}]),
+<font color=red>     0..|  	    sync_schema_commit(Tid, Store, SchemaAckPids),</font>
+<font color=red>     0..|  	    mnesia2_locker:release_tid(Tid),</font>
+<font color=red>     0..|  	    ?MODULE ! {delete_transaction, Tid};</font>
+        |  
+        |  	{do_abort, Reason} -&gt;
+<font color=red>     0..|  	    tell_participants(GoodPids, {Tid, {do_abort, Reason}}),</font>
+<font color=red>     0..|  	    D2 = D#decision{outcome = aborted},</font>
+<font color=red>     0..|  	    mnesia2_recover:log_decision(D2),</font>
+<font color=red>     0..|              ?eval_debug_fun({?MODULE, rec_acc_pre_commit_log_abort},</font>
+        |  			    [{tid, Tid}]),
+<font color=red>     0..|  	    do_abort(Tid, OrigC),</font>
+<font color=red>     0..|  	    ?eval_debug_fun({?MODULE, rec_acc_pre_commit_done_abort},</font>
+        |  			    [{tid, Tid}])
+        |      end,
+<font color=red>     0..|      Res.</font>
+        |  
+        |  %% Note all nodes in case of mnesia2_down mgt
+        |  prepare_sync_schema_commit(_Store, []) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  prepare_sync_schema_commit(Store, [Pid | Pids]) -&gt;
+<font color=red>     0..|      ?ets_insert(Store, {waiting_for_commit_ack, node(Pid)}),</font>
+<font color=red>     0..|      prepare_sync_schema_commit(Store, Pids).</font>
+        |  
+        |  sync_schema_commit(_Tid, _Store, []) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  sync_schema_commit(Tid, Store, [Pid | Tail]) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, _, {schema_commit, Tid, Pid}} -&gt;
+<font color=red>     0..|  	    ?ets_match_delete(Store, {waiting_for_commit_ack, node(Pid)}),</font>
+<font color=red>     0..|  	    sync_schema_commit(Tid, Store, Tail);</font>
+        |  
+        |  	{mnesia2_down, Node} when Node == node(Pid) -&gt;
+<font color=red>     0..|  	    ?ets_match_delete(Store, {waiting_for_commit_ack, Node}),</font>
+<font color=red>     0..|  	    sync_schema_commit(Tid, Store, Tail)</font>
+        |      end.
+        |  
+        |  tell_participants([Pid | Pids], Msg) -&gt;
+<font color=red>     0..|      Pid ! Msg,</font>
+<font color=red>     0..|      tell_participants(Pids, Msg);</font>
+        |  tell_participants([], _Msg) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  -spec commit_participant(_, _, _, _, _) -&gt; no_return().
+        |  %% Trap exit because we can get a shutdown from application manager
+        |  commit_participant(Coord, Tid, Bin, DiscNs, RamNs) when is_binary(Bin) -&gt;
+<font color=red>     0..|      process_flag(trap_exit, true),</font>
+<font color=red>     0..|      Commit = binary_to_term(Bin),</font>
+<font color=red>     0..|      commit_participant(Coord, Tid, Bin, Commit, DiscNs, RamNs);</font>
+        |  commit_participant(Coord, Tid, C = #commit{}, DiscNs, RamNs) -&gt;
+<font color=red>     0..|      process_flag(trap_exit, true),</font>
+<font color=red>     0..|      commit_participant(Coord, Tid, C, C, DiscNs, RamNs).</font>
+        |  
+        |  commit_participant(Coord, Tid, Bin, C0, DiscNs, _RamNs) -&gt;
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, commit_participant, pre}, [{tid, Tid}]),</font>
+<font color=red>     0..|      try mnesia2_schema:prepare_commit(Tid, C0, {part, Coord}) of</font>
+        |  	{Modified, C = #commit{}, DumperMode} -&gt;
+        |  	    %% If we can not find any local unclear decision
+        |  	    %% we should presume abort at startup recovery
+<font color=red>     0..|  	    case lists:member(node(), DiscNs) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    ignore;</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    case Modified of</font>
+<font color=red>     0..|  			false -&gt; mnesia2_log:log(Bin);</font>
+<font color=red>     0..|  			true  -&gt; mnesia2_log:log(C)</font>
+        |  		    end
+        |  	    end,
+<font color=red>     0..|  	    ?eval_debug_fun({?MODULE, commit_participant, vote_yes},</font>
+        |  			    [{tid, Tid}]),
+<font color=red>     0..|  	    reply(Coord, {vote_yes, Tid, self()}),</font>
+        |  
+<font color=red>     0..|  	    receive</font>
+        |  		{Tid, pre_commit} -&gt;
+<font color=red>     0..|  		    D = C#commit.decision,</font>
+<font color=red>     0..|  		    mnesia2_recover:log_decision(D#decision{outcome = unclear}),</font>
+<font color=red>     0..|  		    ?eval_debug_fun({?MODULE, commit_participant, pre_commit},</font>
+        |  				    [{tid, Tid}]),
+<font color=red>     0..|  		    Expect_schema_ack = C#commit.schema_ops /= [],</font>
+<font color=red>     0..|  		    reply(Coord, {acc_pre_commit, Tid, self(), Expect_schema_ack}),</font>
+        |  
+        |  		    %% Now we are vulnerable for failures, since
+        |  		    %% we cannot decide without asking others
+<font color=red>     0..|  		    receive</font>
+        |  			{Tid, committed} -&gt;
+<font color=red>     0..|  			    mnesia2_recover:log_decision(D#decision{outcome = committed}),</font>
+<font color=red>     0..|  			    ?eval_debug_fun({?MODULE, commit_participant, log_commit},</font>
+        |  					    [{tid, Tid}]),
+<font color=red>     0..|  			    do_commit(Tid, C, DumperMode),</font>
+<font color=red>     0..|  			    case Expect_schema_ack of</font>
+<font color=red>     0..|  				false -&gt; ignore;</font>
+<font color=red>     0..|  				true -&gt; reply(Coord, {schema_commit, Tid, self()})</font>
+        |  			    end,
+<font color=red>     0..|  			    ?eval_debug_fun({?MODULE, commit_participant, do_commit},</font>
+        |  					    [{tid, Tid}]);
+        |  
+        |  			{Tid, {do_abort, _Reason}} -&gt;
+<font color=red>     0..|  			    mnesia2_recover:log_decision(D#decision{outcome = aborted}),</font>
+<font color=red>     0..|  			    ?eval_debug_fun({?MODULE, commit_participant, log_abort},</font>
+        |  					    [{tid, Tid}]),
+<font color=red>     0..|  			    mnesia2_schema:undo_prepare_commit(Tid, C0),</font>
+<font color=red>     0..|  			    ?eval_debug_fun({?MODULE, commit_participant, undo_prepare},</font>
+        |  					    [{tid, Tid}]);
+        |  
+        |  			{'EXIT', _, _} -&gt;
+<font color=red>     0..|  			    mnesia2_recover:log_decision(D#decision{outcome = aborted}),</font>
+<font color=red>     0..|  			    ?eval_debug_fun({?MODULE, commit_participant, exit_log_abort},</font>
+        |  					    [{tid, Tid}]),
+<font color=red>     0..|  			    mnesia2_schema:undo_prepare_commit(Tid, C0),</font>
+<font color=red>     0..|  			    ?eval_debug_fun({?MODULE, commit_participant, exit_undo_prepare},</font>
+        |  					    [{tid, Tid}]);
+        |  
+        |  			Msg -&gt;
+<font color=red>     0..|  			    verbose("** ERROR ** commit_participant ~p, got unexpected msg: ~p~n",</font>
+        |  				    [Tid, Msg])
+        |  		    end;
+        |  		{Tid, {do_abort, Reason}} -&gt;
+<font color=red>     0..|  		    reply(Coord, {do_abort, Tid, self(), Reason}),</font>
+<font color=red>     0..|  		    mnesia2_schema:undo_prepare_commit(Tid, C0),</font>
+<font color=red>     0..|  		    ?eval_debug_fun({?MODULE, commit_participant, pre_commit_undo_prepare},</font>
+        |  				    [{tid, Tid}]);
+        |  
+        |  		{'EXIT', _, Reason} -&gt;
+<font color=red>     0..|  		    reply(Coord, {do_abort, Tid, self(), {bad_commit,Reason}}),</font>
+<font color=red>     0..|  		    mnesia2_schema:undo_prepare_commit(Tid, C0),</font>
+<font color=red>     0..|  		    ?eval_debug_fun({?MODULE, commit_participant, pre_commit_undo_prepare}, [{tid, Tid}]);</font>
+        |  
+        |  		Msg -&gt;
+<font color=red>     0..|  		    reply(Coord, {do_abort, Tid, self(), {bad_commit,internal}}),</font>
+<font color=red>     0..|  		    verbose("** ERROR ** commit_participant ~p, got unexpected msg: ~p~n",</font>
+        |  			    [Tid, Msg])
+        |  	    end
+        |      catch _:Reason -&gt;
+<font color=red>     0..|  	    ?eval_debug_fun({?MODULE, commit_participant, vote_no},</font>
+        |  			    [{tid, Tid}]),
+<font color=red>     0..|  	    reply(Coord, {vote_no, Tid, Reason}),</font>
+<font color=red>     0..|  	    mnesia2_schema:undo_prepare_commit(Tid, C0)</font>
+        |      end,
+<font color=red>     0..|      mnesia2_locker:release_tid(Tid),</font>
+<font color=red>     0..|      ?MODULE ! {delete_transaction, Tid},</font>
+<font color=red>     0..|      unlink(whereis(?MODULE)),</font>
+<font color=red>     0..|      exit(normal).</font>
+        |  
+        |  do_abort(Tid, Bin) when is_binary(Bin) -&gt;
+        |      %% Possible optimization:
+        |      %% If we want we could pass arround a flag
+        |      %% that tells us whether the binary contains
+        |      %% schema ops or not. Only if the binary
+        |      %% contains schema ops there are meningful
+        |      %% unpack the binary and perform
+        |      %% mnesia2_schema:undo_prepare_commit/1.
+<font color=red>     0..|      do_abort(Tid, binary_to_term(Bin));</font>
+        |  do_abort(Tid, Commit) -&gt;
+<font color=red>     0..|      mnesia2_schema:undo_prepare_commit(Tid, Commit),</font>
+<font color=red>     0..|      Commit.</font>
+        |  
+        |  do_dirty(Tid, Commit) when Commit#commit.schema_ops == [] -&gt;
+<font color=red>     0..|      mnesia2_log:log(Commit),</font>
+<font color=red>     0..|      do_commit(Tid, Commit).</font>
+        |  
+        |  %% do_commit(Tid, CommitRecord)
+        |  do_commit(Tid, Bin) when is_binary(Bin) -&gt;
+<font color=red>     0..|      do_commit(Tid, binary_to_term(Bin));</font>
+        |  do_commit(Tid, C) -&gt;
+<font color=red>     0..|      do_commit(Tid, C, optional).</font>
+        |  do_commit(Tid, Bin, DumperMode) when is_binary(Bin) -&gt;
+<font color=red>     0..|      do_commit(Tid, binary_to_term(Bin), DumperMode);</font>
+        |  do_commit(Tid, C, DumperMode) -&gt;
+<font color=red>     0..|      mnesia2_dumper:update(Tid, C#commit.schema_ops, DumperMode),</font>
+<font color=red>     0..|      R  = do_snmp(Tid, C#commit.snmp),</font>
+<font color=red>     0..|      R2 = do_update(Tid, ram_copies, C#commit.ram_copies, R),</font>
+<font color=red>     0..|      R3 = do_update(Tid, disc_copies, C#commit.disc_copies, R2),</font>
+<font color=red>     0..|      R4 = do_update(Tid, disc_only_copies, C#commit.disc_only_copies, R3),</font>
+<font color=red>     0..|      mnesia2_subscr:report_activity(Tid),</font>
+<font color=red>     0..|      R4.</font>
+        |  
+        |  %% Update the items
+        |  do_update(Tid, Storage, [Op | Ops], OldRes) -&gt;
+<font color=red>     0..|      try do_update_op(Tid, Storage, Op) of</font>
+<font color=red>     0..|  	ok -&gt;     do_update(Tid, Storage, Ops, OldRes);</font>
+<font color=red>     0..|  	NewRes -&gt; do_update(Tid, Storage, Ops, NewRes)</font>
+        |      catch _:Reason -&gt;
+        |  	    %% This may only happen when we recently have
+        |  	    %% deleted our local replica, changed storage_type
+        |  	    %% or transformed table
+        |  	    %% BUGBUG: Updates may be lost if storage_type is changed.
+        |  	    %%         Determine actual storage type and try again.
+        |  	    %% BUGBUG: Updates may be lost if table is transformed.
+<font color=red>     0..|  	    ST = erlang:get_stacktrace(),</font>
+<font color=red>     0..|  	    verbose("do_update in ~w failed: ~p -&gt; {'EXIT', ~p}~n",</font>
+        |  		    [Tid, Op, {Reason, ST}]),
+<font color=red>     0..|  	    do_update(Tid, Storage, Ops, OldRes)</font>
+        |      end;
+        |  do_update(_Tid, _Storage, [], Res) -&gt;
+<font color=red>     0..|      Res.</font>
+        |  
+        |  do_update_op(Tid, Storage, {{Tab, K}, Obj, write}) -&gt;
+<font color=red>     0..|      commit_write(?catch_val({Tab, commit_work}), Tid,</font>
+        |  		 Tab, K, Obj, undefined),
+<font color=red>     0..|      mnesia2_lib:db_put(Storage, Tab, Obj);</font>
+        |  
+        |  do_update_op(Tid, Storage, {{Tab, K}, Val, delete}) -&gt;
+<font color=red>     0..|      commit_delete(?catch_val({Tab, commit_work}), Tid, Tab, K, Val, undefined),</font>
+<font color=red>     0..|      mnesia2_lib:db_erase(Storage, Tab, K);</font>
+        |  
+        |  do_update_op(Tid, Storage, {{Tab, K}, {RecName, Incr}, update_counter}) -&gt;
+<font color=red>     0..|      {NewObj, OldObjs} =</font>
+        |          try
+<font color=red>     0..|  	    NewVal = mnesia2_lib:db_update_counter(Storage, Tab, K, Incr),</font>
+<font color=red>     0..|  	    true = is_integer(NewVal) andalso (NewVal &gt;= 0),</font>
+<font color=red>     0..|  	    {{RecName, K, NewVal}, [{RecName, K, NewVal - Incr}]}</font>
+        |  	catch error:_ when Incr &gt; 0 -&gt;
+<font color=red>     0..|                  New = {RecName, K, Incr},</font>
+<font color=red>     0..|                  mnesia2_lib:db_put(Storage, Tab, New),</font>
+<font color=red>     0..|                  {New, []};</font>
+        |  	      error:_ -&gt;
+<font color=red>     0..|  		Zero = {RecName, K, 0},</font>
+<font color=red>     0..|  		mnesia2_lib:db_put(Storage, Tab, Zero),</font>
+<font color=red>     0..|  		{Zero, []}</font>
+        |          end,
+<font color=red>     0..|      commit_update(?catch_val({Tab, commit_work}), Tid, Tab,</font>
+        |  		  K, NewObj, OldObjs),
+<font color=red>     0..|      element(3, NewObj);</font>
+        |  
+        |  do_update_op(Tid, Storage, {{Tab, Key}, Obj, delete_object}) -&gt;
+<font color=red>     0..|      commit_del_object(?catch_val({Tab, commit_work}),</font>
+        |  		      Tid, Tab, Key, Obj, undefined),
+<font color=red>     0..|      mnesia2_lib:db_match_erase(Storage, Tab, Obj);</font>
+        |  
+        |  do_update_op(Tid, Storage, {{Tab, Key}, Obj, clear_table}) -&gt;
+<font color=red>     0..|      commit_clear(?catch_val({Tab, commit_work}), Tid, Tab, Key, Obj),</font>
+<font color=red>     0..|      mnesia2_lib:db_match_erase(Storage, Tab, Obj).</font>
+        |  
+<font color=red>     0..|  commit_write([], _, _, _, _, _) -&gt; ok;</font>
+        |  commit_write([{checkpoints, CpList}|R], Tid, Tab, K, Obj, Old) -&gt;
+<font color=red>     0..|      mnesia2_checkpoint:tm_retain(Tid, Tab, K, write, CpList),</font>
+<font color=red>     0..|      commit_write(R, Tid, Tab, K, Obj, Old);</font>
+        |  commit_write([H|R], Tid, Tab, K, Obj, Old)
+        |    when element(1, H) == subscribers -&gt;
+<font color=red>     0..|      mnesia2_subscr:report_table_event(H, Tab, Tid, Obj, write, Old),</font>
+<font color=red>     0..|      commit_write(R, Tid, Tab, K, Obj, Old);</font>
+        |  commit_write([H|R], Tid, Tab, K, Obj, Old)
+        |    when element(1, H) == index -&gt;
+<font color=red>     0..|      mnesia2_index:add_index(H, Tab, K, Obj, Old),</font>
+<font color=red>     0..|      commit_write(R, Tid, Tab, K, Obj, Old).</font>
+        |  
+<font color=red>     0..|  commit_update([], _, _, _, _, _) -&gt; ok;</font>
+        |  commit_update([{checkpoints, CpList}|R], Tid, Tab, K, Obj, _) -&gt;
+<font color=red>     0..|      Old = mnesia2_checkpoint:tm_retain(Tid, Tab, K, write, CpList),</font>
+<font color=red>     0..|      commit_update(R, Tid, Tab, K, Obj, Old);</font>
+        |  commit_update([H|R], Tid, Tab, K, Obj, Old)
+        |    when element(1, H) == subscribers -&gt;
+<font color=red>     0..|      mnesia2_subscr:report_table_event(H, Tab, Tid, Obj, write, Old),</font>
+<font color=red>     0..|      commit_update(R, Tid, Tab, K, Obj, Old);</font>
+        |  commit_update([H|R], Tid, Tab, K, Obj, Old)
+        |    when element(1, H) == index -&gt;
+<font color=red>     0..|      mnesia2_index:add_index(H, Tab, K, Obj, Old),</font>
+<font color=red>     0..|      commit_update(R, Tid, Tab, K, Obj, Old).</font>
+        |  
+<font color=red>     0..|  commit_delete([], _, _, _, _, _) -&gt;  ok;</font>
+        |  commit_delete([{checkpoints, CpList}|R], Tid, Tab, K, Obj, _) -&gt;
+<font color=red>     0..|      Old = mnesia2_checkpoint:tm_retain(Tid, Tab, K, delete, CpList),</font>
+<font color=red>     0..|      commit_delete(R, Tid, Tab, K, Obj, Old);</font>
+        |  commit_delete([H|R], Tid, Tab, K, Obj, Old)
+        |    when element(1, H) == subscribers -&gt;
+<font color=red>     0..|      mnesia2_subscr:report_table_event(H, Tab, Tid, Obj, delete, Old),</font>
+<font color=red>     0..|      commit_delete(R, Tid, Tab, K, Obj, Old);</font>
+        |  commit_delete([H|R], Tid, Tab, K, Obj, Old)
+        |    when element(1, H) == index -&gt;
+<font color=red>     0..|      mnesia2_index:delete_index(H, Tab, K),</font>
+<font color=red>     0..|      commit_delete(R, Tid, Tab, K, Obj, Old).</font>
+        |  
+<font color=red>     0..|  commit_del_object([], _, _, _, _, _) -&gt; ok;</font>
+        |  commit_del_object([{checkpoints, CpList}|R], Tid, Tab, K, Obj, _) -&gt;
+<font color=red>     0..|      Old = mnesia2_checkpoint:tm_retain(Tid, Tab, K, delete_object, CpList),</font>
+<font color=red>     0..|      commit_del_object(R, Tid, Tab, K, Obj, Old);</font>
+        |  commit_del_object([H|R], Tid, Tab, K, Obj, Old)
+        |    when element(1, H) == subscribers -&gt;
+<font color=red>     0..|      mnesia2_subscr:report_table_event(H, Tab, Tid, Obj, delete_object, Old),</font>
+<font color=red>     0..|      commit_del_object(R, Tid, Tab, K, Obj, Old);</font>
+        |  commit_del_object([H|R], Tid, Tab, K, Obj, Old)
+        |    when element(1, H) == index -&gt;
+<font color=red>     0..|      mnesia2_index:del_object_index(H, Tab, K, Obj, Old),</font>
+<font color=red>     0..|      commit_del_object(R, Tid, Tab, K, Obj, Old).</font>
+        |  
+<font color=red>     0..|  commit_clear([], _, _, _, _) -&gt;  ok;</font>
+        |  commit_clear([{checkpoints, CpList}|R], Tid, Tab, K, Obj) -&gt;
+<font color=red>     0..|      mnesia2_checkpoint:tm_retain(Tid, Tab, K, clear_table, CpList),</font>
+<font color=red>     0..|      commit_clear(R, Tid, Tab, K, Obj);</font>
+        |  commit_clear([H|R], Tid, Tab, K, Obj)
+        |    when element(1, H) == subscribers -&gt;
+<font color=red>     0..|      mnesia2_subscr:report_table_event(H, Tab, Tid, Obj, clear_table, undefined),</font>
+<font color=red>     0..|      commit_clear(R, Tid, Tab, K, Obj);</font>
+        |  commit_clear([H|R], Tid, Tab, K, Obj)
+        |    when element(1, H) == index -&gt;
+<font color=red>     0..|      mnesia2_index:clear_index(H, Tab, K, Obj),</font>
+<font color=red>     0..|      commit_clear(R, Tid, Tab, K, Obj).</font>
+        |  
+<font color=red>     0..|  do_snmp(_, []) -&gt;   ok;</font>
+        |  do_snmp(Tid, [Head | Tail]) -&gt;
+<font color=red>     0..|      try mnesia2_snmp_hook:update(Head)</font>
+        |      catch _:Reason -&gt;
+        |  	    %% This should only happen when we recently have
+        |  	    %% deleted our local replica or recently deattached
+        |  	    %% the snmp table
+<font color=red>     0..|  	    ST = erlang:get_stacktrace(),</font>
+<font color=red>     0..|  	    verbose("do_snmp in ~w failed: ~p -&gt; {'EXIT', ~p}~n",</font>
+        |  		    [Tid, Head, {Reason, ST}])
+        |      end,
+<font color=red>     0..|      do_snmp(Tid, Tail).</font>
+        |  
+        |  commit_nodes([C | Tail], AccD, AccR)
+        |          when C#commit.disc_copies == [],
+        |               C#commit.disc_only_copies  == [],
+        |               C#commit.schema_ops == [] -&gt;
+<font color=red>     0..|      commit_nodes(Tail, AccD, [C#commit.node | AccR]);</font>
+        |  commit_nodes([C | Tail], AccD, AccR) -&gt;
+<font color=red>     0..|      commit_nodes(Tail, [C#commit.node | AccD], AccR);</font>
+        |  commit_nodes([], AccD, AccR) -&gt;
+<font color=red>     0..|      {AccD, AccR}.</font>
+        |  
+        |  commit_decision(D, [C | Tail], AccD, AccR) -&gt;
+<font color=red>     0..|      N = C#commit.node,</font>
+<font color=red>     0..|      {D2, Tail2} =</font>
+        |  	case C#commit.schema_ops of
+        |  	    [] when C#commit.disc_copies == [],
+        |  		    C#commit.disc_only_copies  == [] -&gt;
+<font color=red>     0..|  		commit_decision(D, Tail, AccD, [N | AccR]);</font>
+        |  	    [] -&gt;
+<font color=red>     0..|  		commit_decision(D, Tail, [N | AccD], AccR);</font>
+        |  	    Ops -&gt;
+<font color=red>     0..|  		case ram_only_ops(N, Ops) of</font>
+        |  		    true -&gt;
+<font color=red>     0..|  			commit_decision(D, Tail, AccD, [N | AccR]);</font>
+        |  		    false -&gt;
+<font color=red>     0..|  			commit_decision(D, Tail, [N | AccD], AccR)</font>
+        |  		end
+        |  	end,
+<font color=red>     0..|      {D2, [C#commit{decision = D2} | Tail2]};</font>
+        |  commit_decision(D, [], AccD, AccR) -&gt;
+<font color=red>     0..|      {D#decision{disc_nodes = AccD, ram_nodes = AccR}, []}.</font>
+        |  
+        |  ram_only_ops(N, [{op, change_table_copy_type, N, _FromS, _ToS, Cs} | _Ops ]) -&gt;
+<font color=red>     0..|      case lists:member({name, schema}, Cs) of</font>
+        |  	true -&gt;
+        |  	    %% We always use disk if change type of the schema
+<font color=red>     0..|  	    false;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    not lists:member(N, val({schema, disc_copies}))</font>
+        |      end;
+        |  
+        |  ram_only_ops(N, _Ops) -&gt;
+<font color=red>     0..|      not lists:member(N, val({schema, disc_copies})).</font>
+        |  
+        |  %% Returns {WaitFor, Res}
+        |  sync_send_dirty(Tid, [Head | Tail], Tab, WaitFor) -&gt;
+<font color=red>     0..|      Node = Head#commit.node,</font>
+<font color=red>     0..|      if</font>
+        |  	Node == node() -&gt;
+<font color=red>     0..|  	    {WF, _} = sync_send_dirty(Tid, Tail, Tab, WaitFor),</font>
+<font color=red>     0..|  	    Res =  do_dirty(Tid, Head),</font>
+<font color=red>     0..|  	    {WF, Res};</font>
+        |  	true -&gt;
+<font color=red>     0..|      	    {?MODULE, Node} ! {self(), {sync_dirty, Tid, Head, Tab}},</font>
+<font color=red>     0..|  	    sync_send_dirty(Tid, Tail, Tab, [Node | WaitFor])</font>
+        |      end;
+        |  sync_send_dirty(_Tid, [], _Tab, WaitFor) -&gt;
+<font color=red>     0..|      {WaitFor, {'EXIT', {aborted, {node_not_running, WaitFor}}}}.</font>
+        |  
+        |  %% Returns {WaitFor, Res}
+        |  async_send_dirty(_Tid, _Nodes, Tab, nowhere) -&gt;
+<font color=red>     0..|      {[], {'EXIT', {aborted, {no_exists, Tab}}}};</font>
+        |  async_send_dirty(Tid, Nodes, Tab, ReadNode) -&gt;
+<font color=red>     0..|      async_send_dirty(Tid, Nodes, Tab, ReadNode, [], ok).</font>
+        |  
+        |  async_send_dirty(_Tid, [], _Tab, _ReadNode, WaitFor, Res) -&gt;
+<font color=red>     0..|      {WaitFor, Res};</font>
+        |  async_send_dirty(Tid, [Head | Tail], Tab, ReadNode, WaitFor, Res) -&gt;
+<font color=red>     0..|      Node = Head#commit.node,</font>
+<font color=red>     0..|      if</font>
+        |  	ReadNode == Node, Node == node() -&gt;
+<font color=red>     0..|  	    NewRes =  do_dirty(Tid, Head),</font>
+<font color=red>     0..|  	    async_send_dirty(Tid, Tail, Tab, ReadNode, WaitFor, NewRes);</font>
+        |  	ReadNode == Node -&gt;
+<font color=red>     0..|  	    {?MODULE, Node} ! {self(), {sync_dirty, Tid, Head, Tab}},</font>
+<font color=red>     0..|  	    NewRes = {'EXIT', {aborted, {node_not_running, Node}}},</font>
+<font color=red>     0..|  	    async_send_dirty(Tid, Tail, Tab, ReadNode, [Node | WaitFor], NewRes);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    TmName = tab_to_async_dirty_tm_name(Tab),</font>
+<font color=red>     0..|  	    Txn = {self(), {async_dirty, Tid, Head, Tab}},</font>
+<font color=red>     0..|  	    poolgirl:transaction(mnesia2_async_dirty_sender:pool_name(Node),</font>
+        |  	    		fun(undefined) -&gt;
+        |  				    	% assume there are no async_dirty tm's; send to mnesia2_tm
+<font color=red>     0..|  					    {?MODULE, Node} ! Txn;</font>
+        |  	    			(Pid) when is_pid(Pid) -&gt;
+<font color=red>     0..|  		    			Pid ! {async_dirty, TmName, Txn}</font>
+        |  	    		end),
+<font color=red>     0..|  	    async_send_dirty(Tid, Tail, Tab, ReadNode, WaitFor, Res)</font>
+        |      end.
+        |  
+        |  rec_dirty([Node | Tail], Res) when Node /= node() -&gt;
+<font color=red>     0..|      NewRes = get_dirty_reply(Node, Res),</font>
+<font color=red>     0..|      rec_dirty(Tail, NewRes);</font>
+        |  rec_dirty([], Res) -&gt;
+<font color=red>     0..|      Res.</font>
+        |  
+        |  get_dirty_reply(Node, Res) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, Node, {'EXIT', Reason}} -&gt;
+<font color=red>     0..|  	    {'EXIT', {aborted, {badarg, Reason}}};</font>
+        |  	{?MODULE, Node, {dirty_res, ok}} -&gt;
+<font color=red>     0..|  	    case Res of</font>
+        |  		{'EXIT', {aborted, {node_not_running, _Node}}} -&gt;
+<font color=red>     0..|  		    ok;</font>
+        |  		_ -&gt;
+        |  		    %% Prioritize bad results, but node_not_running
+<font color=red>     0..|  		    Res</font>
+        |  	    end;
+        |  	{?MODULE, Node, {dirty_res, Reply}} -&gt;
+<font color=red>     0..|  	    Reply;</font>
+        |  	{mnesia2_down, Node} -&gt;
+<font color=red>     0..|  	    case get(mnesia2_activity_state) of</font>
+        |  		{_, Tid, _Ts} when element(1,Tid) == tid -&gt;
+        |  		    %% Hmm dirty called inside a transaction, to avoid
+        |  		    %% hanging transaction we need to restart the transaction
+<font color=red>     0..|  		    mnesia2:abort({node_not_running, Node});</font>
+        |  		_ -&gt;
+        |  		    %% It's ok to ignore mnesia2_down's since we will make
+        |  		    %% the replicas consistent again when Node is started
+<font color=red>     0..|  		    Res</font>
+        |  	    end
+        |      after 1000 -&gt;
+<font color=red>     0..|  	    case lists:member(Node, val({current, db_nodes})) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    get_dirty_reply(Node, Res);</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    Res</font>
+        |  	    end
+        |      end.
+        |  
+        |  %% Assume that CommitRecord is no binary
+        |  %% Return {Res, Pids}
+        |  ask_commit(Protocol, Tid, CR, DiscNs, RamNs) -&gt;
+<font color=red>     0..|      ask_commit(Protocol, Tid, CR, DiscNs, RamNs, [], no_local).</font>
+        |  
+        |  ask_commit(Protocol, Tid, [Head | Tail], DiscNs, RamNs, WaitFor, Local) -&gt;
+<font color=red>     0..|      Node = Head#commit.node,</font>
+<font color=red>     0..|      if</font>
+        |  	Node == node() -&gt;
+<font color=red>     0..|  	    ask_commit(Protocol, Tid, Tail, DiscNs, RamNs, WaitFor, Head);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Bin = opt_term_to_binary(Protocol, Head, DiscNs++RamNs),</font>
+<font color=red>     0..|  	    Msg = {ask_commit, Protocol, Tid, Bin, DiscNs, RamNs},</font>
+<font color=red>     0..|  	    {?MODULE, Node} ! {self(), Msg},</font>
+<font color=red>     0..|  	    ask_commit(Protocol, Tid, Tail, DiscNs, RamNs, [Node | WaitFor], Local)</font>
+        |      end;
+        |  ask_commit(_Protocol, _Tid, [], _DiscNs, _RamNs, WaitFor, Local) -&gt;
+<font color=red>     0..|      {WaitFor, Local}.</font>
+        |  
+        |  %% This used to test protocol conversion between mnesia2-nodes
+        |  %% but it is really dependent on the emulator version on the
+        |  %% two nodes (if funs are sent which they are in transform table op).
+        |  %% to be safe we let erts do the translation (many times maybe and thus
+        |  %% slower but it works.
+        |  % opt_term_to_binary(asym_trans, Head, Nodes) -&gt;
+        |  %     opt_term_to_binary(Nodes, Head);
+        |  opt_term_to_binary(_Protocol, Head, _Nodes) -&gt;
+<font color=red>     0..|      Head.</font>
+        |  
+        |  rec_all([Node | Tail], Tid, Res, Pids) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, Node, {vote_yes, Tid}} -&gt;
+<font color=red>     0..|  	    rec_all(Tail, Tid, Res, Pids);</font>
+        |  	{?MODULE, Node, {vote_yes, Tid, Pid}} -&gt;
+<font color=red>     0..|  	    rec_all(Tail, Tid, Res, [Pid | Pids]);</font>
+        |  	{?MODULE, Node, {vote_no, Tid, Reason}} -&gt;
+<font color=red>     0..|  	    rec_all(Tail, Tid, {do_abort, Reason}, Pids);</font>
+        |  	{?MODULE, Node, {committed, Tid}} -&gt;
+<font color=red>     0..|  	    rec_all(Tail, Tid, Res, Pids);</font>
+        |  	{?MODULE, Node, {aborted, Tid}} -&gt;
+<font color=red>     0..|  	    rec_all(Tail, Tid, Res, Pids);</font>
+        |  
+        |  	{mnesia2_down, Node} -&gt;
+        |  	    %% Make sure that mnesia2_tm knows it has died
+        |  	    %% it may have been restarted
+<font color=red>     0..|  	    Abort = {do_abort, {bad_commit, Node}},</font>
+<font color=red>     0..|  	    ?SAFE({?MODULE, Node} ! {Tid, Abort}),</font>
+<font color=red>     0..|  	    rec_all(Tail, Tid, Abort, Pids)</font>
+        |      end;
+        |  rec_all([], _Tid, Res, Pids) -&gt;
+<font color=red>     0..|      {Res, Pids}.</font>
+        |  
+        |  get_transactions() -&gt;
+<font color=red>     0..|      {info, Participant, Coordinator} = req(info),</font>
+<font color=red>     0..|      lists:map(fun({Tid, _Tabs}) -&gt;</font>
+<font color=red>     0..|  		      Status = tr_status(Tid,Participant),</font>
+<font color=red>     0..|  		      {Tid#tid.counter, Tid#tid.pid, Status}</font>
+        |  	      end,Coordinator).
+        |  
+        |  tr_status(Tid,Participant) -&gt;
+<font color=red>     0..|      case lists:keymember(Tid, 1, Participant) of</font>
+<font color=red>     0..|  	true -&gt; participant;</font>
+<font color=red>     0..|  	false  -&gt; coordinator</font>
+        |      end.
+        |  
+        |  get_info(Timeout) -&gt;
+<font color=red>     0..|      case whereis(?MODULE) of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    {timeout, Timeout};</font>
+        |  	Pid -&gt;
+<font color=red>     0..|  	    Pid ! {self(), info},</font>
+<font color=red>     0..|  	    receive</font>
+        |  		{?MODULE, _, {info, Part, Coord}} -&gt;
+<font color=red>     0..|  		    {info, Part, Coord}</font>
+        |  	    after Timeout -&gt;
+<font color=red>     0..|  		    {timeout, Timeout}</font>
+        |  	    end
+        |      end.
+        |  
+        |  display_info(Stream, {timeout, T}) -&gt;
+<font color=red>     0..|      io:format(Stream, "---&gt; No info about coordinator and participant transactions, "</font>
+        |  	      "timeout ~p &lt;--- ~n", [T]);
+        |  
+        |  display_info(Stream, {info, Part, Coord}) -&gt;
+<font color=red>     0..|      io:format(Stream, "---&gt; Participant transactions &lt;--- ~n", []),</font>
+<font color=red>     0..|      lists:foreach(fun(P) -&gt; pr_participant(Stream, P) end, Part),</font>
+<font color=red>     0..|      io:format(Stream, "---&gt; Coordinator transactions &lt;---~n", []),</font>
+<font color=red>     0..|      lists:foreach(fun({Tid, _Tabs}) -&gt; pr_tid(Stream, Tid) end, Coord).</font>
+        |  
+        |  pr_participant(Stream, P) -&gt;
+<font color=red>     0..|      Commit0 = P#participant.commit,</font>
+<font color=red>     0..|      Commit =</font>
+        |  	if
+<font color=red>     0..|  	    is_binary(Commit0) -&gt; binary_to_term(Commit0);</font>
+<font color=red>     0..|  	    true -&gt; Commit0</font>
+        |  	end,
+<font color=red>     0..|      pr_tid(Stream, P#participant.tid),</font>
+<font color=red>     0..|      io:format(Stream, "with participant objects ~p~n", [Commit]).</font>
+        |  
+        |  
+        |  pr_tid(Stream, Tid) -&gt;
+<font color=red>     0..|      io:format(Stream, "Tid: ~p (owned by ~p) ~n",</font>
+        |  	      [Tid#tid.counter, Tid#tid.pid]).
+        |  
+        |  info(Serial) -&gt;
+<font color=red>     0..|      io:format( "Info about transaction with serial == ~p~n", [Serial]),</font>
+<font color=red>     0..|      {info, Participant, Trs} = req(info),</font>
+<font color=red>     0..|      search_pr_participant(Serial, Participant),</font>
+<font color=red>     0..|      search_pr_coordinator(Serial, Trs).</font>
+        |  
+        |  
+<font color=red>     0..|  search_pr_coordinator(_S, []) -&gt; no;</font>
+        |  search_pr_coordinator(S, [{Tid, _Ts}|Tail]) -&gt;
+<font color=red>     0..|      case Tid#tid.counter of</font>
+        |  	S -&gt;
+<font color=red>     0..|  	    io:format( "Tid is coordinator, owner == \n", []),</font>
+<font color=red>     0..|  	    display_pid_info(Tid#tid.pid),</font>
+<font color=red>     0..|  	    search_pr_coordinator(S, Tail);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    search_pr_coordinator(S, Tail)</font>
+        |      end.
+        |  
+        |  search_pr_participant(_S, []) -&gt;
+<font color=red>     0..|      false;</font>
+        |  search_pr_participant(S, [ P | Tail]) -&gt;
+<font color=red>     0..|      Tid = P#participant.tid,</font>
+<font color=red>     0..|      Commit0 = P#participant.commit,</font>
+<font color=red>     0..|      if</font>
+        |  	Tid#tid.counter == S -&gt;
+<font color=red>     0..|  	    io:format( "Tid is participant to commit, owner == \n", []),</font>
+<font color=red>     0..|  	    Pid = Tid#tid.pid,</font>
+<font color=red>     0..|  	    display_pid_info(Pid),</font>
+<font color=red>     0..|  	    io:format( "Tid wants to write objects \n",[]),</font>
+<font color=red>     0..|  	    Commit =</font>
+        |  		if
+<font color=red>     0..|  		    is_binary(Commit0) -&gt; binary_to_term(Commit0);</font>
+<font color=red>     0..|  		    true -&gt; Commit0</font>
+        |  		end,
+        |  
+<font color=red>     0..|  	    io:format("~p~n", [Commit]),</font>
+<font color=red>     0..|  	    search_pr_participant(S,Tail);  %% !!!!!</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    search_pr_participant(S, Tail)</font>
+        |      end.
+        |  
+        |  display_pid_info(Pid) -&gt;
+<font color=red>     0..|      case rpc:pinfo(Pid) of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    io:format( "Dead process \n");</font>
+        |  	Info -&gt;
+<font color=red>     0..|  	    Call = fetch(initial_call, Info),</font>
+<font color=red>     0..|  	    Curr = case fetch(current_function, Info) of</font>
+        |  		       {Mod,F,Args} when is_list(Args) -&gt;
+<font color=red>     0..|  			   {Mod,F,length(Args)};</font>
+        |  		       Other -&gt;
+<font color=red>     0..|  			   Other</font>
+        |  		   end,
+<font color=red>     0..|  	    Reds  = fetch(reductions, Info),</font>
+<font color=red>     0..|  	    LM = length(fetch(messages, Info)),</font>
+<font color=red>     0..|  	    pformat(io_lib:format("~p", [Pid]),</font>
+        |  		    io_lib:format("~p", [Call]),
+        |  		    io_lib:format("~p", [Curr]), Reds, LM)
+        |      end.
+        |  
+        |  pformat(A1, A2, A3, A4, A5) -&gt;
+<font color=red>     0..|      io:format( "~-12s ~-21s ~-21s ~9w ~4w~n", [A1,A2,A3,A4,A5]).</font>
+        |  
+        |  fetch(Key, Info) -&gt;
+<font color=red>     0..|      case lists:keysearch(Key, 1, Info) of</font>
+        |  	{value, {_, Val}} -&gt;
+<font color=red>     0..|  	    Val;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    0</font>
+        |      end.
+        |  
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%
+        |  %%%%%%%%%%%%%%%%%%%%%  reconfigure stuff comes here ......
+        |  %%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  reconfigure_coordinators(N, [{Tid, [Store | _]} | Coordinators]) -&gt;
+<font color=red>     0..|      case mnesia2_recover:outcome(Tid, unknown) of</font>
+        |  	committed -&gt;
+<font color=red>     0..|  	    WaitingNodes = ?ets_lookup(Store, waiting_for_commit_ack),</font>
+<font color=red>     0..|  	    case lists:keymember(N, 2, WaitingNodes) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    ignore; % avoid spurious mnesia2_down messages</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    send_mnesia2_down(Tid, Store, N)</font>
+        |  	    end;
+        |  	aborted -&gt;
+<font color=red>     0..|  	    ignore; % avoid spurious mnesia2_down messages</font>
+        |  	_ -&gt;
+        |  	    %% Tell the coordinator about the mnesia2_down
+<font color=red>     0..|  	    send_mnesia2_down(Tid, Store, N)</font>
+        |      end,
+<font color=red>     0..|      reconfigure_coordinators(N, Coordinators);</font>
+        |  reconfigure_coordinators(_N, []) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  send_mnesia2_down(Tid, Store, Node) -&gt;
+<font color=red>     0..|      Msg = {mnesia2_down, Node},</font>
+<font color=red>     0..|      send_to_pids([Tid#tid.pid | get_elements(friends,Store)], Msg).</font>
+        |  
+        |  send_to_pids([Pid | Pids], Msg) when is_pid(Pid) -&gt;
+<font color=red>     0..|      Pid ! Msg,</font>
+<font color=red>     0..|      send_to_pids(Pids, Msg);</font>
+        |  send_to_pids([_ | Pids], Msg) -&gt;
+<font color=red>     0..|      send_to_pids(Pids, Msg);</font>
+        |  send_to_pids([], _Msg) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  reconfigure_participants(N, [P | Tail]) -&gt;
+<font color=red>     0..|      case lists:member(N, P#participant.disc_nodes) or</font>
+        |  	 lists:member(N, P#participant.ram_nodes) of
+        |  	false -&gt;
+        |  	    %% Ignore, since we are not a participant
+        |  	    %% in the transaction.
+<font color=red>     0..|  	    reconfigure_participants(N, Tail);</font>
+        |  
+        |  	true -&gt;
+        |  	    %% We are on a participant node, lets
+        |  	    %% check if the dead one was a
+        |  	    %% participant or a coordinator.
+<font color=red>     0..|  	    Tid  = P#participant.tid,</font>
+<font color=red>     0..|  	    if</font>
+        |  		node(Tid#tid.pid) /= N -&gt;
+        |  		    %% Another participant node died. Ignore.
+<font color=red>     0..|  		    reconfigure_participants(N, Tail);</font>
+        |  
+        |  		true -&gt;
+        |  		    %% The coordinator node has died and
+        |  		    %% we must determine the outcome of the
+        |  		    %% transaction and tell mnesia2_tm on all
+        |  		    %% nodes (including the local node) about it
+<font color=red>     0..|  		    verbose("Coordinator ~p in transaction ~p died~n",</font>
+        |  			    [Tid#tid.pid, Tid]),
+        |  
+<font color=red>     0..|  		    Nodes = P#participant.disc_nodes ++</font>
+        |  			    P#participant.ram_nodes,
+<font color=red>     0..|  		    AliveNodes = Nodes  -- [N],</font>
+<font color=red>     0..|  		    Protocol =  P#participant.protocol,</font>
+<font color=red>     0..|  		    tell_outcome(Tid, Protocol, N, AliveNodes, AliveNodes),</font>
+<font color=red>     0..|  		    reconfigure_participants(N, Tail)</font>
+        |  	    end
+        |      end;
+        |  reconfigure_participants(_, []) -&gt;
+<font color=red>     0..|      [].</font>
+        |  
+        |  %% We need to determine the outcome of the transaction and
+        |  %% tell mnesia2_tm on all involved nodes (including the local node)
+        |  %% about the outcome.
+        |  tell_outcome(Tid, Protocol, Node, CheckNodes, TellNodes) -&gt;
+<font color=red>     0..|      Outcome = mnesia2_recover:what_happened(Tid, Protocol, CheckNodes),</font>
+<font color=red>     0..|      case Outcome of</font>
+        |  	aborted -&gt;
+<font color=red>     0..|  	    rpc:abcast(TellNodes, ?MODULE, {Tid,{do_abort, {mnesia2_down, Node}}});</font>
+        |  	committed -&gt;
+<font color=red>     0..|  	    rpc:abcast(TellNodes, ?MODULE, {Tid, do_commit})</font>
+        |      end,
+<font color=red>     0..|      Outcome.</font>
+        |  
+        |  do_stop(#state{coordinators = Coordinators}) -&gt;
+<font color=red>     0..|      Msg = {mnesia2_down, node()},</font>
+<font color=red>     0..|      lists:foreach(fun({Tid, _}) -&gt; Tid#tid.pid ! Msg end, gb_trees:to_list(Coordinators)),</font>
+<font color=red>     0..|      mnesia2_checkpoint:stop(),</font>
+<font color=red>     0..|      mnesia2_log:stop(),</font>
+<font color=red>     0..|      exit(shutdown).</font>
+        |  
+        |  fixtable(Tab, Lock, Me) -&gt;
+<font color=red>     0..|      case req({fixtable, [Tab,Lock,Me]}) of</font>
+        |  	error -&gt;
+<font color=red>     0..|  	    exit({no_exists, Tab});</font>
+        |  	Else -&gt;
+<font color=red>     0..|  	    Else</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% System upgrade
+        |  
+        |  system_continue(_Parent, _Debug, State) -&gt;
+<font color=red>     0..|      doit_loop(State).</font>
+        |  
+        |  -spec system_terminate(_, _, _, _) -&gt; no_return().
+        |  system_terminate(_Reason, _Parent, _Debug, State) -&gt;
+<font color=red>     0..|      do_stop(State).</font>
+        |  
+        |  system_code_change(State=#state{coordinators=Cs0,participants=Ps0},_Module,_OldVsn,downgrade) -&gt;
+<font color=red>     0..|      case is_tuple(Cs0) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Cs = gb_trees:to_list(Cs0),</font>
+<font color=red>     0..|  	    Ps = gb_trees:values(Ps0),</font>
+<font color=red>     0..|  	    {ok, State#state{coordinators=Cs,participants=Ps}};</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    {ok, State}</font>
+        |      end;
+        |  
+        |  system_code_change(State=#state{coordinators=Cs0,participants=Ps0},_Module,_OldVsn,_Extra) -&gt;
+<font color=red>     0..|      case is_list(Cs0) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Cs = gb_trees:from_orddict(lists:sort(Cs0)),</font>
+<font color=red>     0..|  	    Ps1 = [{P#participant.tid,P}|| P &lt;- Ps0],</font>
+<font color=red>     0..|  	    Ps = gb_trees:from_orddict(lists:sort(Ps1)),</font>
+<font color=red>     0..|  	    {ok, State#state{coordinators=Cs,participants=Ps}};</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    {ok, State}</font>
+        |      end.
+</pre>
+</body>
+</html>

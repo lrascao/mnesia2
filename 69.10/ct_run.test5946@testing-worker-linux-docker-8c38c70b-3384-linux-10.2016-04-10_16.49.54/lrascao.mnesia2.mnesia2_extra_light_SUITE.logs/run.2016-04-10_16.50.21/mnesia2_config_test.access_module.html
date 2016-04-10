@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_config_test:access_module result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_config_test.src.html#access_module-1">source code for mnesia2_config_test:access_module/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_config_test:access_module([{watchdog,<0.807.0>},
+                                   {tc_logfile,
+                                       "/home/travis/build/lrascao/mnesia2/logs/ct_run.test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10.2016-04-10_16.49.54/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_16.50.21/mnesia2_config_test.access_module.html"},
+                                   {tc_group_properties,
+                                       [{suite,mnesia2_config_test}]},
+                                   {tc_group_path,
+                                       [[{name,config}],
+                                        [{name,registry}],
+                                        [{name,registry}],
+                                        [{name,qlc}],
+                                        [{name,qlc}],
+                                        [{name,nice}],
+                                        [{name,nice}],
+                                        [{name,install}],
+                                        [{name,install}],
+                                        [{name,extra_light}]]},
+                                   {data_dir,
+                                       "/home/travis/build/lrascao/mnesia2/test/mnesia2_config_test_data/"},
+                                   {priv_dir,
+                                       "/home/travis/build/lrascao/mnesia2/logs/ct_run.test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10.2016-04-10_16.49.54/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_16.50.21/log_private/"},
+                                   {nodenames,
+                                       ['d330891o330865n330874@testing-worker-linux-docker-8c38c70b-3384-linux-10',
+                                        'd330879o330869n330871@testing-worker-linux-docker-8c38c70b-3384-linux-10']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10.2016-04-10_16.49.54"
+
+=== Started at 2016-04-10 16:50:25
+
+<br />
+[2016-04-10 16:50:26] mnesia2_config_test.erl(141): <>ERROR<>
+Not Matching Actual result was:
+ {error,undef}
+  [{application,ensure_all_started,[mnesia2,temporary],[]},
+   {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+   {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+   {mnesia2_config_test,'-access_module/1-fun-1-',0,
+                        [{file,"mnesia2_config_test.erl"},{line,141}]},
+   {mnesia2_config_test,access_module,1,
+                        [{file,"mnesia2_config_test.erl"},{line,141}]},
+   {test_server,ts_tc,3,[{file,"test_server.erl"},{line,1359}]},
+   {test_server,run_test_case_eval1,6,[{file,"test_server.erl"},{line,976}]},
+   {test_server,run_test_case_eval,9,[{file,"test_server.erl"},{line,925}]}]
+
+[2016-04-10 16:50:26] mnesia2_config_test.erl(164): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10'}}
+
+kind: transaction, storage: ram_copies
+
+<div class="ct_error_notify"><b>*** CT Error Notification 2016-04-10 16:50:26.901 ***</b>
+mnesia2:wrap_trans failed on line 399
+Reason: aborted
+
+<a href="#end">Full error description and stacktrace</a>
+</div>
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 16:50:26
+=== location [{mnesia2,wrap_trans,399},
+              {mnesia2_config_test,'-access_tab/2-fun-7-',177},
+              {mnesia2_config_test,access_tab,177},
+              {mnesia2_config_test,access_module,145},
+              {test_server,ts_tc,1359},
+              {test_server,run_test_case_eval1,976},
+              {test_server,run_test_case_eval,925}]
+=== reason = {aborted,
+                     {node_not_running,
+                         'test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10'}}
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 16:50:25<!/date><br />
+</div>
+</center>
+</body>
+</html>

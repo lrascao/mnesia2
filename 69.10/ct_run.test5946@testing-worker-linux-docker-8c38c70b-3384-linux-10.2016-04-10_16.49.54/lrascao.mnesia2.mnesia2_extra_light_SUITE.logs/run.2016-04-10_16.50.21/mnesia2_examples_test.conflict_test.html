@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_examples_test:conflict_test result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_examples_test.src.html#conflict_test-1">source code for mnesia2_examples_test:conflict_test/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_examples_test:conflict_test([{watchdog,<0.1405.0>},
+                                     {tc_logfile,
+                                      "/home/travis/build/lrascao/mnesia2/logs/ct_run.test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10.2016-04-10_16.49.54/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_16.50.21/mnesia2_examples_test.conflict_test.html"},
+                                     {tc_group_properties,[{name,tpcb}]},
+                                     {tc_group_path,
+                                      [[{suite,mnesia2_examples_test}],
+                                       [{name,examples}],
+                                       [{name,config}],
+                                       [{name,config}],
+                                       [{name,registry}],
+                                       [{name,registry}],
+                                       [{name,qlc}],
+                                       [{name,qlc}],
+                                       [{name,nice}],
+                                       [{name,nice}],
+                                       [{name,install}],
+                                       [{name,install}],
+                                       [{name,extra_light}]]},
+                                     {data_dir,
+                                      "/home/travis/build/lrascao/mnesia2/test/mnesia2_examples_test_data/"},
+                                     {priv_dir,
+                                      "/home/travis/build/lrascao/mnesia2/logs/ct_run.test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10.2016-04-10_16.49.54/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_16.50.21/log_private/"},
+                                     {nodenames,
+                                      ['d330891o330865n330874@testing-worker-linux-docker-8c38c70b-3384-linux-10',
+                                       'd330879o330869n330871@testing-worker-linux-docker-8c38c70b-3384-linux-10']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10.2016-04-10_16.49.54"
+
+=== Started at 2016-04-10 16:51:22
+
+<br />
+TPC-B: Table config: [{db_nodes,['test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10',
+                                 'd330891o330865n330874@testing-worker-linux-docker-8c38c70b-3384-linux-10',
+                                 'd330879o330869n330871@testing-worker-linux-docker-8c38c70b-3384-linux-10']},
+                      {n_replicas,3},
+                      {replica_nodes,['test5946@testing-worker-linux-docker-8c38c70b-3384-linux-10',
+                                      'd330891o330865n330874@testing-worker-linux-docker-8c38c70b-3384-linux-10',
+                                      'd330879o330869n330871@testing-worker-linux-docker-8c38c70b-3384-linux-10']},
+                      {replica_type,ram_copies},
+                      {use_running_mnesia2,false},
+                      {n_fragments,0},
+                      {n_branches,1},
+                      {n_tellers_per_branch,10},
+                      {n_accounts_per_branch,10},
+                      {branch_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890}},
+                      {account_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234}},
+                      {teller_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      1234567890123456789012345678901234567890123456789012345678}}] 
+
+TPC-B: <ERROR> Failed to start []: [{badrpc,
+                                     {'EXIT',
+                                      {undef,
+                                       [{application,ensure_all_started,
+                                         [mnesia2,temporary],
+                                         []},
+                                        {timer,tc,3,
+                                         [{file,"timer.erl"},{line,194}]},
+                                        {mnesia2,start,0,
+                                         [{file,"src/mnesia2.erl"},
+                                          {line,200}]},
+                                        {rpc,'-handle_call_call/6-fun-0-',5,
+                                         [{file,"rpc.erl"},{line,205}]}]}}},
+                                    {badrpc,
+                                     {'EXIT',
+                                      {undef,
+                                       [{application,ensure_all_started,
+                                         [mnesia2,temporary],
+                                         []},
+                                        {timer,tc,3,
+                                         [{file,"timer.erl"},{line,194}]},
+                                        {mnesia2,start,0,
+                                         [{file,"src/mnesia2.erl"},
+                                          {line,200}]},
+                                        {rpc,'-handle_call_call/6-fun-0-',5,
+                                         [{file,"rpc.erl"},{line,205}]}]}}},
+                                    {badrpc,
+                                     {'EXIT',
+                                      {undef,
+                                       [{application,ensure_all_started,
+                                         [mnesia2,temporary],
+                                         []},
+                                        {timer,tc,3,
+                                         [{file,"timer.erl"},{line,194}]},
+                                        {mnesia2,start,0,
+                                         [{file,"src/mnesia2.erl"},
+                                          {line,200}]},
+                                        {rpc,'-handle_call_call/6-fun-0-',5,
+                                         [{file,"rpc.erl"},{line,205}]}]}}}]
+
+[2016-04-10 16:51:22] mnesia2_examples_test.erl(93): <>ERROR<>
+Not Matching Actual result was:
+ {'EXIT',
+     {start_failed,
+         [{badrpc,
+              {'EXIT',
+                  {undef,
+                      [{application,ensure_all_started,[mnesia2,temporary],[]},
+                       {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                       {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+                       {rpc,'-handle_call_call/6-fun-0-',5,
+                           [{file,"rpc.erl"},{line,205}]}]}}},
+          {badrpc,
+              {'EXIT',
+                  {undef,
+                      [{application,ensure_all_started,[mnesia2,temporary],[]},
+                       {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                       {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+                       {rpc,'-handle_call_call/6-fun-0-',5,
+                           [{file,"rpc.erl"},{line,205}]}]}}},
+          {badrpc,
+              {'EXIT',
+                  {undef,
+                      [{application,ensure_all_started,[mnesia2,temporary],[]},
+                       {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                       {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+                       {rpc,'-handle_call_call/6-fun-0-',5,
+                           [{file,"rpc.erl"},{line,205}]}]}}}],
+         []}}
+ [{mnesia2_tpcb,init,1,[{file,"mnesia2_tpcb.erl"},{line,540}]},
+  {mnesia2_tpcb,start,1,[{file,"mnesia2_tpcb.erl"},{line,463}]},
+  {mnesia2_examples_test,'-conflict_test/1-fun-1-',0,
+                         [{file,"mnesia2_examples_test.erl"},{line,93}]},
+  {test_server,ts_tc,3,[{file,"test_server.erl"},{line,1359}]},
+  {test_server,run_test_case_eval1,6,[{file,"test_server.erl"},{line,976}]},
+  {test_server,run_test_case_eval,9,[{file,"test_server.erl"},{line,925}]}]
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 16:51:22
+=== location {mnesia2_examples_test,conflict_test}
+=== reason = {'EXIT',
+                  {start_failed,
+                   [{badrpc,
+                     {'EXIT',
+                      {undef,
+                       [{application,ensure_all_started,
+                         [mnesia2,temporary],
+                         []},
+                        {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                        {mnesia2,start,0,
+                         [{file,"src/mnesia2.erl"},{line,200}]},
+                        {rpc,'-handle_call_call/6-fun-0-',5,
+                         [{file,"rpc.erl"},{line,205}]}]}}},
+                    {badrpc,
+                     {'EXIT',
+                      {undef,
+                       [{application,ensure_all_started,
+                         [mnesia2,temporary],
+                         []},
+                        {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                        {mnesia2,start,0,
+                         [{file,"src/mnesia2.erl"},{line,200}]},
+                        {rpc,'-handle_call_call/6-fun-0-',5,
+                         [{file,"rpc.erl"},{line,205}]}]}}},
+                    {badrpc,
+                     {'EXIT',
+                      {undef,
+                       [{application,ensure_all_started,
+                         [mnesia2,temporary],
+                         []},
+                        {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                        {mnesia2,start,0,
+                         [{file,"src/mnesia2.erl"},{line,200}]},
+                        {rpc,'-handle_call_call/6-fun-0-',5,
+                         [{file,"rpc.erl"},{line,205}]}]}}}],
+                   []}}
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 16:51:22<!/date><br />
+</div>
+</center>
+</body>
+</html>
