@@ -1,0 +1,1385 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test3455@testing-worker-linux-docker-e50ff062-3366-linux-8.2016-04-10_22.34.14/mnesia2_frag.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_frag.erl by COVER 2016-04-10 at 22:38:06
+
+****************************************************************************
+
+        |  %%%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 1998-2011. All Rights Reserved.
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%%
+        |  %%%----------------------------------------------------------------------
+        |  %%% Purpose : Support tables so large that they need
+        |  %%%           to be divided into several fragments.
+        |  %%%----------------------------------------------------------------------
+        |  
+        |  %header_doc_include
+        |  
+        |  -module(mnesia2_frag).
+        |  
+        |  %% Callback functions when accessed within an activity
+        |  -export([
+        |  	 lock/4,
+        |  	 write/5, delete/5, delete_object/5,
+        |  	 read/5, match_object/5, all_keys/4,
+        |  	 select/5,select/6,select_cont/3,
+        |  	 index_match_object/6, index_read/6,
+        |  	 foldl/6, foldr/6, table_info/4,
+        |  	 first/3, next/4, prev/4, last/3,
+        |  	 clear_table/4
+        |         ]).
+        |  
+        |  %header_doc_include
+        |  
+        |  %% -behaviour(mnesia2_access).
+        |  
+        |  -export([
+        |  	 change_table_frag/2,
+        |  	 remove_node/2,
+        |  	 expand_cstruct/1,
+        |  	 lookup_frag_hash/1,
+        |  	 lookup_foreigners/1,
+        |  	 frag_names/1,
+        |  	 set_frag_hash/2,
+        |  	 local_select/4,
+        |  	 remote_select/4
+        |  	]).
+        |  
+        |  -include("mnesia2.hrl").
+        |  
+        |  -define(OLD_HASH_MOD, mnesia2_frag_old_hash).
+        |  -define(DEFAULT_HASH_MOD, mnesia2_frag_hash).
+        |  %%-define(DEFAULT_HASH_MOD, ?OLD_HASH_MOD). %%  BUGBUG: New should be default
+        |  
+        |  -record(frag_state,
+        |  	{foreign_key,
+        |  	 n_fragments,
+        |  	 hash_module,
+        |  	 hash_state}).
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Access functions
+        |  
+        |  %impl_doc_include
+        |  
+        |  %% Callback functions which provides transparent
+        |  %% access of fragmented tables from any activity
+        |  %% access context.
+        |  
+        |  lock(ActivityId, Opaque, {table , Tab}, LockKind) -&gt;
+    32..|      case frag_names(Tab) of
+        |  	[Tab] -&gt;
+    32..|  	    mnesia2:lock(ActivityId, Opaque, {table, Tab}, LockKind);	    
+        |  	Frags -&gt;
+<font color=red>     0..|  	    DeepNs = [mnesia2:lock(ActivityId, Opaque, {table, F}, LockKind) ||</font>
+<font color=red>     0..|  			 F &lt;- Frags],</font>
+<font color=red>     0..|  	    mnesia2_lib:uniq(lists:append(DeepNs))</font>
+        |      end;
+        |  
+        |  lock(ActivityId, Opaque, LockItem, LockKind) -&gt;
+    32..|      mnesia2:lock(ActivityId, Opaque, LockItem, LockKind).
+        |  
+        |  write(ActivityId, Opaque, Tab, Rec, LockKind) -&gt;
+ 78355..|      Frag = record_to_frag_name(Tab, Rec),
+ 78355..|      mnesia2:write(ActivityId, Opaque, Frag, Rec, LockKind).
+        |  
+        |  delete(ActivityId, Opaque, Tab, Key, LockKind) -&gt;
+    48..|      Frag = key_to_frag_name(Tab, Key),
+    48..|      mnesia2:delete(ActivityId, Opaque, Frag, Key, LockKind).
+        |  
+        |  delete_object(ActivityId, Opaque, Tab, Rec, LockKind) -&gt;
+    16..|      Frag = record_to_frag_name(Tab, Rec),
+    16..|      mnesia2:delete_object(ActivityId, Opaque, Frag, Rec, LockKind).
+        |  
+        |  read(ActivityId, Opaque, Tab, Key, LockKind) -&gt;
+ 43186..|      Frag = key_to_frag_name(Tab, Key),
+ 43186..|      mnesia2:read(ActivityId, Opaque, Frag, Key, LockKind).
+        |  
+        |  match_object(ActivityId, Opaque, Tab, HeadPat, LockKind) -&gt;
+    32..|      MatchSpec = [{HeadPat, [], ['$_']}],
+    32..|      select(ActivityId, Opaque, Tab, MatchSpec, LockKind).
+        |  
+        |  select(ActivityId, Opaque, Tab, MatchSpec, LockKind) -&gt;
+    32..|      do_select(ActivityId, Opaque, Tab, MatchSpec, LockKind).
+        |  
+        |  
+        |  select(ActivityId, Opaque, Tab, MatchSpec, Limit, LockKind) -&gt;
+     2..|      init_select(ActivityId, Opaque, Tab, MatchSpec, Limit, LockKind).
+        |  
+        |  
+        |  all_keys(ActivityId, Opaque, Tab, LockKind) -&gt;
+    16..|      Match = [mnesia2:all_keys(ActivityId, Opaque, Frag, LockKind)
+    16..|  	     || Frag &lt;- frag_names(Tab)],
+    16..|      lists:append(Match).
+        |  
+        |  clear_table(ActivityId, Opaque, Tab, Obj) -&gt;
+<font color=red>     0..|      [mnesia2:clear_table(ActivityId, Opaque, Frag, Obj)  || Frag &lt;- frag_names(Tab)],</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  index_match_object(ActivityId, Opaque, Tab, Pat, Attr, LockKind) -&gt;
+    16..|      Match =
+    16..|  	[mnesia2:index_match_object(ActivityId, Opaque, Frag, Pat, Attr, LockKind)
+    16..|  	 || Frag &lt;- frag_names(Tab)],
+    16..|      lists:append(Match).
+        |  
+        |  index_read(ActivityId, Opaque, Tab, Key, Attr, LockKind) -&gt;
+    16..|      Match =
+    16..|  	[mnesia2:index_read(ActivityId, Opaque, Frag, Key, Attr, LockKind)
+    16..|  	     || Frag &lt;- frag_names(Tab)],
+    16..|      lists:append(Match).
+        |  
+        |  foldl(ActivityId, Opaque, Fun, Acc, Tab, LockKind) -&gt;
+<font color=red>     0..|      Fun2 = fun(Frag, A) -&gt;</font>
+<font color=red>     0..|  		   mnesia2:foldl(ActivityId, Opaque, Fun, A, Frag, LockKind)</font>
+        |  	   end,
+<font color=red>     0..|      lists:foldl(Fun2, Acc, frag_names(Tab)).</font>
+        |  
+        |  foldr(ActivityId, Opaque, Fun, Acc, Tab, LockKind) -&gt;
+<font color=red>     0..|      Fun2 = fun(Frag, A) -&gt;</font>
+<font color=red>     0..|  		   mnesia2:foldr(ActivityId, Opaque, Fun, A, Frag, LockKind)</font>
+        |  	   end,
+<font color=red>     0..|      lists:foldr(Fun2, Acc, frag_names(Tab)).</font>
+        |  
+        |  table_info(ActivityId, Opaque, {Tab, Key}, Item) -&gt;
+  6044..|      Frag = key_to_frag_name(Tab, Key),
+  6044..|      table_info2(ActivityId, Opaque, Tab, Frag, Item);
+        |  table_info(ActivityId, Opaque, Tab, Item) -&gt;
+   159..|      table_info2(ActivityId, Opaque, Tab, Tab, Item).
+        |  
+        |  table_info2(ActivityId, Opaque, Tab, Frag, Item) -&gt;
+  6203..|      case Item of
+        |  	size -&gt;
+    36..|  	    SumFun = fun({_, Size}, Acc) -&gt; Acc + Size end,
+    36..|  	    lists:foldl(SumFun, 0, frag_size(ActivityId, Opaque, Tab));
+        |  	memory -&gt;
+<font color=red>     0..|  	    SumFun = fun({_, Size}, Acc) -&gt; Acc + Size end,</font>
+<font color=red>     0..|  	    lists:foldl(SumFun, 0, frag_memory(ActivityId, Opaque, Tab));</font>
+        |  	base_table -&gt;
+<font color=red>     0..|  	    lookup_prop(Tab, base_table);</font>
+        |  	node_pool -&gt;
+<font color=red>     0..|  	    lookup_prop(Tab, node_pool);</font>
+        |  	n_fragments -&gt;
+<font color=red>     0..|  	    FH = lookup_frag_hash(Tab),</font>
+<font color=red>     0..|  	    FH#frag_state.n_fragments;</font>
+        |  	foreign_key -&gt;
+<font color=red>     0..|  	    FH = lookup_frag_hash(Tab),</font>
+<font color=red>     0..|  	    FH#frag_state.foreign_key;</font>
+        |  	foreigners -&gt;
+<font color=red>     0..|  	    lookup_foreigners(Tab);</font>
+        |  	n_ram_copies -&gt;
+     3..|  	    length(val({Tab, ram_copies}));
+        |  	n_disc_copies -&gt;
+     3..|  	    length(val({Tab, disc_copies}));
+        |  	n_disc_only_copies -&gt;
+     3..|  	    length(val({Tab, disc_only_copies}));
+        |  
+        |  	frag_names -&gt;
+    80..|  	    frag_names(Tab);
+        |  	frag_dist -&gt;
+     2..|  	    frag_dist(Tab);
+        |  	frag_size -&gt;
+<font color=red>     0..|  	    frag_size(ActivityId, Opaque, Tab);</font>
+        |  	frag_memory -&gt;
+<font color=red>     0..|  	    frag_memory(ActivityId, Opaque, Tab);</font>
+        |  	_ -&gt;
+  6076..|  	    mnesia2:table_info(ActivityId, Opaque, Frag, Item)
+        |      end.
+        |  
+        |  first(ActivityId, Opaque, Tab) -&gt;
+    16..|      case ?catch_val({Tab, frag_hash}) of
+        |  	{'EXIT', _} -&gt;
+    16..|  	    mnesia2:first(ActivityId, Opaque, Tab);
+        |  	FH -&gt;
+<font color=red>     0..|  	    FirstFrag = Tab,</font>
+<font color=red>     0..|  	    case mnesia2:first(ActivityId, Opaque, FirstFrag) of</font>
+        |  		'$end_of_table' -&gt;
+<font color=red>     0..|  		    search_first(ActivityId, Opaque, Tab, 1, FH);</font>
+        |  		Next -&gt;
+<font color=red>     0..|  		    Next</font>
+        |  	    end
+        |      end.
+        |  
+        |  search_first(ActivityId, Opaque, Tab, N, FH) when N &lt; FH#frag_state.n_fragments -&gt;
+<font color=red>     0..|      NextN = N + 1,</font>
+<font color=red>     0..|      NextFrag = n_to_frag_name(Tab, NextN),</font>
+<font color=red>     0..|      case mnesia2:first(ActivityId, Opaque, NextFrag) of</font>
+        |  	'$end_of_table' -&gt;
+<font color=red>     0..|  	    search_first(ActivityId, Opaque, Tab, NextN, FH);</font>
+        |  	Next -&gt;
+<font color=red>     0..|  	    Next</font>
+        |      end;
+        |  search_first(_ActivityId, _Opaque, _Tab, _N, _FH) -&gt;
+<font color=red>     0..|      '$end_of_table'.</font>
+        |  
+        |  last(ActivityId, Opaque, Tab) -&gt;
+    16..|      case ?catch_val({Tab, frag_hash}) of
+        |  	{'EXIT', _} -&gt;
+    16..|  	    mnesia2:last(ActivityId, Opaque, Tab);
+        |  	FH -&gt;
+<font color=red>     0..|  	    LastN = FH#frag_state.n_fragments,</font>
+<font color=red>     0..|  	    search_last(ActivityId, Opaque, Tab, LastN, FH)</font>
+        |      end.
+        |  
+        |  search_last(ActivityId, Opaque, Tab, N, FH) when N &gt;= 1 -&gt;
+<font color=red>     0..|      Frag = n_to_frag_name(Tab, N),</font>
+<font color=red>     0..|      case mnesia2:last(ActivityId, Opaque, Frag) of</font>
+        |  	'$end_of_table' -&gt;
+<font color=red>     0..|  	    PrevN = N - 1,</font>
+<font color=red>     0..|  	    search_last(ActivityId, Opaque, Tab, PrevN, FH);</font>
+        |  	Prev -&gt;
+<font color=red>     0..|  	    Prev</font>
+        |      end;
+        |  search_last(_ActivityId, _Opaque, _Tab, _N, _FH) -&gt;
+<font color=red>     0..|      '$end_of_table'.</font>
+        |  
+        |  prev(ActivityId, Opaque, Tab, Key) -&gt;
+    48..|      case ?catch_val({Tab, frag_hash}) of
+        |  	{'EXIT', _} -&gt;
+    48..|  	    mnesia2:prev(ActivityId, Opaque, Tab, Key);
+        |  	FH -&gt;
+<font color=red>     0..|  	    N = key_to_n(FH, Key),</font>
+<font color=red>     0..|  	    Frag = n_to_frag_name(Tab, N),</font>
+<font color=red>     0..|  	    case mnesia2:prev(ActivityId, Opaque, Frag, Key) of</font>
+        |  		'$end_of_table' -&gt;
+<font color=red>     0..|  		    search_prev(ActivityId, Opaque, Tab, N);</font>
+        |  		Prev -&gt;
+<font color=red>     0..|  		    Prev</font>
+        |  	    end
+        |      end.
+        |  
+        |  search_prev(ActivityId, Opaque, Tab, N) when N &gt; 1 -&gt;
+<font color=red>     0..|      PrevN = N - 1,</font>
+<font color=red>     0..|      PrevFrag = n_to_frag_name(Tab, PrevN),</font>
+<font color=red>     0..|      case mnesia2:last(ActivityId, Opaque, PrevFrag) of</font>
+        |  	'$end_of_table' -&gt;
+<font color=red>     0..|  	    search_prev(ActivityId, Opaque, Tab, PrevN);</font>
+        |  	Prev -&gt;
+<font color=red>     0..|  	    Prev</font>
+        |      end;
+        |  search_prev(_ActivityId, _Opaque, _Tab, _N) -&gt;
+<font color=red>     0..|      '$end_of_table'.</font>
+        |  
+        |  next(ActivityId, Opaque, Tab, Key) -&gt;
+    48..|      case ?catch_val({Tab, frag_hash}) of
+        |  	{'EXIT', _} -&gt;
+    48..|  	    mnesia2:next(ActivityId, Opaque, Tab, Key);
+        |  	FH -&gt;
+<font color=red>     0..|  	    N = key_to_n(FH, Key),</font>
+<font color=red>     0..|  	    Frag = n_to_frag_name(Tab, N),</font>
+<font color=red>     0..|  	    case mnesia2:next(ActivityId, Opaque, Frag, Key) of</font>
+        |  		'$end_of_table' -&gt;
+<font color=red>     0..|  		    search_next(ActivityId, Opaque, Tab, N, FH);</font>
+        |  		Prev -&gt;
+<font color=red>     0..|  		    Prev</font>
+        |  	    end
+        |      end.
+        |  
+        |  search_next(ActivityId, Opaque, Tab, N, FH) when N &lt; FH#frag_state.n_fragments -&gt;
+<font color=red>     0..|      NextN = N + 1,</font>
+<font color=red>     0..|      NextFrag = n_to_frag_name(Tab, NextN),</font>
+<font color=red>     0..|      case mnesia2:first(ActivityId, Opaque, NextFrag) of</font>
+        |  	'$end_of_table' -&gt;
+<font color=red>     0..|  	    search_next(ActivityId, Opaque, Tab, NextN, FH);</font>
+        |  	Next -&gt;
+<font color=red>     0..|  	    Next</font>
+        |      end;
+        |  search_next(_ActivityId, _Opaque, _Tab, _N, _FH) -&gt;
+<font color=red>     0..|      '$end_of_table'.</font>
+        |  
+        |  %impl_doc_include
+        |  
+        |  frag_size(ActivityId, Opaque, Tab) -&gt;
+    36..|      [{F, remote_table_info(ActivityId, Opaque, F, size)} || F &lt;- frag_names(Tab)].
+        |  
+        |  frag_memory(ActivityId, Opaque, Tab) -&gt;
+<font color=red>     0..|      [{F, remote_table_info(ActivityId, Opaque, F, memory)} || F &lt;- frag_names(Tab)].</font>
+        |  
+        |  remote_table_info(ActivityId, Opaque, Tab, Item) -&gt;
+    56..|      N = val({Tab, where_to_read}),
+    56..|      case rpc:call(N, mnesia2, table_info, [ActivityId, Opaque, Tab, Item]) of
+        |  	{badrpc, _} -&gt;
+<font color=red>     0..|  	    mnesia2:abort({no_exists, Tab, Item});</font>
+        |  	Info -&gt;
+    56..|  	    Info
+        |      end.
+        |  
+        |  init_select(Tid,Opaque,Tab,Pat,Limit,LockKind) -&gt;
+     2..|      case ?catch_val({Tab, frag_hash}) of
+        |  	{'EXIT', _} -&gt;
+<font color=red>     0..|  	    mnesia2:select(Tid, Opaque, Tab, Pat, Limit,LockKind);</font>
+        |  	FH -&gt;
+     2..|  	    FragNumbers = verify_numbers(FH,Pat), 
+     2..|  	    Fun = fun(Num) -&gt;
+     4..|  			  Name = n_to_frag_name(Tab, Num),
+     4..|  			  Node = val({Name, where_to_read}),
+     4..|  			  Storage = mnesia2_lib:storage_type_at_node(Node, Name),
+     4..|  			  mnesia2:lock(Tid, Opaque, {table, Name}, LockKind),
+     4..|  			  {Name, Node, Storage}
+        |  		  end,
+     2..|  	    [{FTab,Node,Type}|NameNodes] = lists:map(Fun, FragNumbers),
+     2..|  	    InitFun = fun(FixedSpec) -&gt; mnesia2:dirty_sel_init(Node,FTab,FixedSpec,Limit,Type) end,
+     2..|  	    Res = mnesia2:fun_select(Tid,Opaque,FTab,Pat,LockKind,FTab,InitFun,Limit,Node,Type),
+     2..|  	    frag_sel_cont(Res, NameNodes, {Pat,LockKind,Limit})
+        |      end.
+        |  
+<font color=red>     0..|  select_cont(_Tid,_,{frag_cont, '$end_of_table', [],_}) -&gt; '$end_of_table';</font>
+        |  select_cont(Tid,Ts,{frag_cont, '$end_of_table', [{Tab,Node,Type}|Rest],Args}) -&gt; 
+     2..|      {Spec,LockKind,Limit} = Args,
+     2..|      InitFun = fun(FixedSpec) -&gt; mnesia2:dirty_sel_init(Node,Tab,FixedSpec,Limit,Type) end,
+     2..|      Res = mnesia2:fun_select(Tid,Ts,Tab,Spec,LockKind,Tab,InitFun,Limit,Node,Type),
+     2..|      frag_sel_cont(Res, Rest, Args);
+        |  select_cont(Tid,Ts,{frag_cont, Cont, TabL, Args}) -&gt; 
+     2..|      frag_sel_cont(mnesia2:select_cont(Tid,Ts,Cont),TabL,Args);
+        |  select_cont(Tid,Ts,Else) -&gt;  %% Not a fragmented table
+<font color=red>     0..|      mnesia2:select_cont(Tid,Ts,Else).</font>
+        |  
+        |  frag_sel_cont('$end_of_table', [],_) -&gt;
+     2..|      '$end_of_table';
+        |  frag_sel_cont('$end_of_table', TabL,Args) -&gt; 
+     2..|      {[], {frag_cont, '$end_of_table', TabL,Args}};
+        |  frag_sel_cont({Recs,Cont}, TabL,Args) -&gt;
+     2..|      {Recs, {frag_cont, Cont, TabL,Args}}.
+        |  
+        |  do_select(ActivityId, Opaque, Tab, MatchSpec, LockKind) -&gt;
+    32..|      case ?catch_val({Tab, frag_hash}) of
+        |  	{'EXIT', _} -&gt;
+    32..|  	    mnesia2:select(ActivityId, Opaque, Tab, MatchSpec, LockKind);
+        |  	FH -&gt;
+<font color=red>     0..|  	    FragNumbers = verify_numbers(FH,MatchSpec), </font>
+<font color=red>     0..|  	    Fun = fun(Num) -&gt;</font>
+<font color=red>     0..|  			  Name = n_to_frag_name(Tab, Num),</font>
+<font color=red>     0..|  			  Node = val({Name, where_to_read}),</font>
+<font color=red>     0..|  			  mnesia2:lock(ActivityId, Opaque, {table, Name}, LockKind),</font>
+<font color=red>     0..|  			  {Name, Node}</font>
+        |  		  end,
+<font color=red>     0..|  	    NameNodes = lists:map(Fun, FragNumbers),</font>
+<font color=red>     0..|  	    SelectAllFun =</font>
+        |  		fun(PatchedMatchSpec) -&gt;
+<font color=red>     0..|  			Match = [mnesia2:dirty_select(Name, PatchedMatchSpec)</font>
+<font color=red>     0..|  				 || {Name, _Node} &lt;- NameNodes],</font>
+<font color=red>     0..|  			lists:append(Match)</font>
+        |  		end,
+<font color=red>     0..|  	    case [{Name, Node} || {Name, Node} &lt;- NameNodes, Node /= node()] of</font>
+        |  		[] -&gt;
+        |  		    %% All fragments are local
+<font color=red>     0..|  		    mnesia2:fun_select(ActivityId, Opaque, Tab, MatchSpec, none, '_', SelectAllFun);</font>
+        |  		RemoteNameNodes -&gt;
+<font color=red>     0..|  		    Type = val({Tab,setorbag}),</font>
+<font color=red>     0..|  		    SelectFun =</font>
+        |  			fun(PatchedMatchSpec) -&gt;
+<font color=red>     0..|  				Ref = make_ref(),</font>
+<font color=red>     0..|  				Args = [self(), Ref, RemoteNameNodes, PatchedMatchSpec],</font>
+<font color=red>     0..|  				Pid = spawn_link(?MODULE, local_select, Args),</font>
+<font color=red>     0..|  				LocalMatch0 = [mnesia2:dirty_select(Name, PatchedMatchSpec)</font>
+<font color=red>     0..|  					       || {Name, Node} &lt;- NameNodes, Node == node()],</font>
+<font color=red>     0..|  				LocalMatch = case Type of</font>
+<font color=red>     0..|  						 ordered_set -&gt; lists:merge(LocalMatch0);</font>
+<font color=red>     0..|  						 _ -&gt; lists:append(LocalMatch0)</font>
+        |  					     end,
+<font color=red>     0..|  				OldSelectFun = fun() -&gt; SelectAllFun(PatchedMatchSpec) end,</font>
+<font color=red>     0..|  				local_collect(Ref, Pid, Type, LocalMatch, OldSelectFun)</font>
+        |  			end,
+<font color=red>     0..|  		    mnesia2:fun_select(ActivityId, Opaque, Tab, MatchSpec, none, '_', SelectFun)</font>
+        |  	    end
+        |      end.
+        |  
+        |  verify_numbers(FH,MatchSpec) -&gt;
+     2..|      HashState = FH#frag_state.hash_state,
+     2..|      FragNumbers = 
+        |  	case FH#frag_state.hash_module of
+        |  	    HashMod when HashMod == ?DEFAULT_HASH_MOD -&gt;
+     2..|  		?DEFAULT_HASH_MOD:match_spec_to_frag_numbers(HashState, MatchSpec);
+        |  	    HashMod -&gt;
+<font color=red>     0..|  		HashMod:match_spec_to_frag_numbers(HashState, MatchSpec)</font>
+        |  	end,
+     2..|      N = FH#frag_state.n_fragments,
+     2..|      VerifyFun = fun(F) when is_integer(F), F &gt;= 1, F =&lt; N -&gt; false;
+<font color=red>     0..|  		   (_F) -&gt; true</font>
+        |  		end,
+     2..|      try
+     2..|  	Frags = lists:filter(VerifyFun, FragNumbers),
+     2..|  	Frags == [] orelse error(Frags),
+     2..|  	FragNumbers
+        |      catch error:BadFrags -&gt;
+<font color=red>     0..|  	    mnesia2:abort({"match_spec_to_frag_numbers: Fragment numbers out of range",</font>
+        |  			  BadFrags, {range, 1, N}})
+        |      end.
+        |  
+        |  local_select(ReplyTo, Ref, RemoteNameNodes, MatchSpec) -&gt;
+<font color=red>     0..|      RemoteNodes = mnesia2_lib:uniq([Node || {_Name, Node} &lt;- RemoteNameNodes]),</font>
+<font color=red>     0..|      Args = [ReplyTo, Ref, RemoteNameNodes, MatchSpec],</font>
+<font color=red>     0..|      {Replies, BadNodes} = rpc:multicall(RemoteNodes, ?MODULE, remote_select, Args),</font>
+<font color=red>     0..|      case mnesia2_lib:uniq(Replies) -- [ok] of</font>
+        |  	[] when BadNodes == [] -&gt;
+<font color=red>     0..|  	    ReplyTo ! {local_select, Ref, ok};</font>
+        |  	_ when BadNodes /= [] -&gt;
+<font color=red>     0..|  	    ReplyTo ! {local_select, Ref, {error, {node_not_running, hd(BadNodes)}}};</font>
+        |  	[{badrpc, {'EXIT', Reason}} | _] -&gt;
+<font color=red>     0..|  	    ReplyTo ! {local_select, Ref, {error, Reason}};</font>
+        |  	[Reason | _] -&gt;
+<font color=red>     0..|  	    ReplyTo ! {local_select, Ref, {error, Reason}}</font>
+        |      end,
+<font color=red>     0..|      unlink(ReplyTo),</font>
+<font color=red>     0..|      exit(normal).</font>
+        |      
+        |  remote_select(ReplyTo, Ref, NameNodes, MatchSpec) -&gt;
+<font color=red>     0..|      do_remote_select(ReplyTo, Ref, NameNodes, MatchSpec).</font>
+        |  
+        |  do_remote_select(ReplyTo, Ref, [{Name, Node} | NameNodes], MatchSpec) -&gt;
+<font color=red>     0..|      if</font>
+        |  	Node == node() -&gt;
+<font color=red>     0..|  	    Res = ?CATCH({ok, mnesia2:dirty_select(Name, MatchSpec)}),</font>
+<font color=red>     0..|  	    ReplyTo ! {remote_select, Ref, Node, Res},</font>
+<font color=red>     0..|  	    do_remote_select(ReplyTo, Ref, NameNodes, MatchSpec);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    do_remote_select(ReplyTo, Ref, NameNodes, MatchSpec)</font>
+        |      end;
+        |  do_remote_select(_ReplyTo, _Ref, [], _MatchSpec) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  local_collect(Ref, Pid, Type, LocalMatch, OldSelectFun) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{local_select, Ref, ok} -&gt;
+<font color=red>     0..|  	    remote_collect_ok(Ref, Type, LocalMatch, OldSelectFun);</font>
+        |  	{local_select, Ref, {error, Reason}} -&gt;
+<font color=red>     0..|  	    remote_collect_error(Ref, Type, Reason, OldSelectFun);</font>
+        |  	{'EXIT', Pid, Reason} -&gt;
+<font color=red>     0..|  	    remote_collect_error(Ref, Type, Reason, OldSelectFun)</font>
+        |      end.
+        |      
+        |  remote_collect_ok(Ref, Type, Acc, OldSelectFun) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{remote_select, Ref, Node, RemoteRes} -&gt;
+<font color=red>     0..|  	    case RemoteRes of</font>
+        |  		{ok, RemoteMatch} -&gt;
+<font color=red>     0..|  		    Matches = case Type of</font>
+<font color=red>     0..|  				  ordered_set -&gt; lists:merge(RemoteMatch, Acc);</font>
+<font color=red>     0..|  				  _ -&gt; RemoteMatch ++ Acc</font>
+        |  			      end,
+<font color=red>     0..|  		    remote_collect_ok(Ref, Type, Matches, OldSelectFun);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    Reason = {node_not_running, Node},</font>
+<font color=red>     0..|  		    remote_collect_error(Ref, Type, Reason, OldSelectFun)</font>
+        |  	    end
+        |      after 0 -&gt;
+<font color=red>     0..|  	    Acc</font>
+        |      end.
+        |  
+        |  remote_collect_error(Ref, Type, Reason, OldSelectFun) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{remote_select, Ref, _Node, _RemoteRes} -&gt;
+<font color=red>     0..|  	    remote_collect_error(Ref, Type, Reason, OldSelectFun)</font>
+        |      after 0 -&gt;
+<font color=red>     0..|  	    mnesia2:abort({error, Reason})</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Returns a list of cstructs
+        |  
+        |  expand_cstruct(Cs) -&gt;
+    12..|      expand_cstruct(Cs, create).
+        |      
+        |  expand_cstruct(Cs, Mode) -&gt;
+    14..|      Tab = Cs#cstruct.name,
+    14..|      Props = Cs#cstruct.frag_properties,
+    14..|      mnesia2_schema:verify({alt, [nil, list]}, mnesia2_lib:etype(Props),
+        |  			 {badarg, Tab, Props}), 
+        |      %% Verify keys
+    14..|      ValidKeys = [foreign_key, n_fragments, node_pool,
+        |  		 n_ram_copies, n_disc_copies, n_disc_only_copies,
+        |  		 hash_module, hash_state],
+    14..|      Keys = mnesia2_schema:check_keys(Tab, Props, ValidKeys),
+    14..|      mnesia2_schema:check_duplicates(Tab, Keys),
+        |  
+        |      %% Pick fragmentation props
+    14..|      ForeignKey = mnesia2_schema:pick(Tab, foreign_key, Props, undefined),
+    14..|      {ForeignKey2, N, Pool, DefaultNR, DefaultND, DefaultNDO} =
+        |  	pick_props(Tab, Cs, ForeignKey),
+        |  
+        |      %% Verify node_pool
+    14..|      BadPool = {bad_type, Tab, {node_pool, Pool}},
+    14..|      mnesia2_schema:verify(list, mnesia2_lib:etype(Pool), BadPool),
+    14..|      NotAtom = fun(A) when is_atom(A) -&gt; false;
+<font color=red>     0..|  		 (_A) -&gt; true</font>
+        |  	      end,
+    14..|      mnesia2_schema:verify([], [P || P &lt;- Pool, NotAtom(P)], BadPool),
+        |  
+    14..|      NR  = mnesia2_schema:pick(Tab, n_ram_copies, Props, 0),
+    14..|      ND  = mnesia2_schema:pick(Tab, n_disc_copies, Props, 0),
+    14..|      NDO = mnesia2_schema:pick(Tab, n_disc_only_copies, Props, 0),
+        |      
+    14..|      PosInt = fun(I) when is_integer(I), I &gt;= 0 -&gt; true;
+<font color=red>     0..|  		(_I) -&gt; false</font>
+        |  	     end,
+    14..|      mnesia2_schema:verify(true, PosInt(NR),
+        |  			 {bad_type, Tab, {n_ram_copies, NR}}),
+    14..|      mnesia2_schema:verify(true, PosInt(ND),
+        |  			 {bad_type, Tab, {n_disc_copies, ND}}),
+    14..|      mnesia2_schema:verify(true, PosInt(NDO),
+        |  			 {bad_type, Tab, {n_disc_only_copies, NDO}}),
+        |      
+        |      %% Verify n_fragments
+    14..|      Cs2 = verify_n_fragments(N, Cs, Mode),
+        |      
+        |      %% Verify hash callback
+    14..|      HashMod = mnesia2_schema:pick(Tab, hash_module, Props, ?DEFAULT_HASH_MOD),
+    14..|      HashState = mnesia2_schema:pick(Tab, hash_state, Props, undefined),
+    14..|      HashState2 = HashMod:init_state(Tab, HashState), %% BUGBUG: Catch?
+        |  
+    14..|      FH = #frag_state{foreign_key = ForeignKey2,
+        |  		     n_fragments = 1,
+        |  		     hash_module = HashMod,
+        |  		     hash_state  = HashState2},
+    14..|      if
+        |  	NR == 0, ND == 0, NDO == 0 -&gt;
+     2..|  	    do_expand_cstruct(Cs2, FH, N, Pool, DefaultNR, DefaultND, DefaultNDO, Mode);
+        |  	true -&gt;
+    12..|  	    do_expand_cstruct(Cs2, FH, N, Pool, NR, ND, NDO, Mode)
+        |      end.
+        |  	    
+        |  do_expand_cstruct(Cs, FH, N, Pool, NR, ND, NDO, Mode) -&gt;
+    14..|      Tab = Cs#cstruct.name,
+        |      
+    14..|      LC = Cs#cstruct.local_content,
+    14..|      mnesia2_schema:verify(false, LC,
+        |  			 {combine_error, Tab, {local_content, LC}}),
+        |  
+    14..|      Snmp = Cs#cstruct.snmp,
+    14..|      mnesia2_schema:verify([], Snmp,
+        |  			 {combine_error, Tab, {snmp, Snmp}}),
+        |  
+        |      %% Add empty fragments
+    14..|      CommonProps = [{base_table, Tab}],
+    14..|      Cs2 = Cs#cstruct{frag_properties = lists:sort(CommonProps)},
+    14..|      expand_frag_cstructs(N, NR, ND, NDO, Cs2, Pool, Pool, FH, Mode).
+        |  
+        |  verify_n_fragments(N, Cs, Mode) when is_integer(N), N &gt;= 1 -&gt;
+    14..|      case Mode of
+        |  	create -&gt;
+    12..|  	    Cs#cstruct{ram_copies = [],
+        |  		       disc_copies = [],
+        |  		       disc_only_copies = []};
+        |  	activate  -&gt;
+     2..|  	    Reason = {combine_error, Cs#cstruct.name, {n_fragments, N}},
+     2..|  	    mnesia2_schema:verify(1, N, Reason),
+     2..|  	    Cs
+        |      end;
+        |  verify_n_fragments(N, Cs, _Mode) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Cs#cstruct.name, {n_fragments, N}}).</font>
+        |  
+        |  pick_props(Tab, Cs, {ForeignTab, Attr}) -&gt;
+     9..|      mnesia2_schema:verify(true, ForeignTab /= Tab,
+        |  			 {combine_error, Tab, {ForeignTab, Attr}}),
+     9..|      Props = Cs#cstruct.frag_properties,
+     9..|      Attrs = Cs#cstruct.attributes,
+        |  
+     9..|      ForeignKey  = lookup_prop(ForeignTab, foreign_key),
+     9..|      ForeignN    = lookup_prop(ForeignTab, n_fragments),
+     9..|      ForeignPool = lookup_prop(ForeignTab, node_pool),
+     9..|      N           = mnesia2_schema:pick(Tab, n_fragments, Props,  ForeignN),
+     9..|      Pool        = mnesia2_schema:pick(Tab, node_pool, Props, ForeignPool),
+        |      
+     9..|      mnesia2_schema:verify(ForeignN, N, 
+        |  			 {combine_error, Tab, {n_fragments, N},
+        |  			  ForeignTab, {n_fragments, ForeignN}}),
+        |  
+     9..|      mnesia2_schema:verify(ForeignPool, Pool, 
+        |  			 {combine_error, Tab, {node_pool, Pool},
+        |  			  ForeignTab, {node_pool, ForeignPool}}),
+        |  
+     9..|      mnesia2_schema:verify(undefined, ForeignKey,
+        |  			 {combine_error, Tab,
+        |  			  "Multiple levels of foreign_key dependencies",
+        |  			  {ForeignTab, Attr}, ForeignKey}),
+        |  
+     9..|      Key = {ForeignTab, mnesia2_schema:attr_to_pos(Attr, Attrs)},
+     9..|      DefaultNR = length(val({ForeignTab, ram_copies})), 
+     9..|      DefaultND = length(val({ForeignTab, disc_copies})), 
+     9..|      DefaultNDO = length(val({ForeignTab, disc_only_copies})),
+     9..|      {Key, N, Pool, DefaultNR, DefaultND, DefaultNDO};
+        |  pick_props(Tab, Cs, undefined) -&gt;
+     5..|      Props = Cs#cstruct.frag_properties,
+     5..|      DefaultN = 1,
+     5..|      DefaultPool = mnesia2:system_info(db_nodes),
+     5..|      N    = mnesia2_schema:pick(Tab, n_fragments, Props,  DefaultN),
+     5..|      Pool = mnesia2_schema:pick(Tab, node_pool, Props, DefaultPool),
+     5..|      DefaultNR = 1,
+     5..|      DefaultND = 0,
+     5..|      DefaultNDO = 0,
+     5..|      {undefined, N, Pool, DefaultNR, DefaultND, DefaultNDO};
+        |  pick_props(Tab, _Cs, BadKey) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Tab, {foreign_key, BadKey}}).</font>
+        |  
+        |  expand_frag_cstructs(N, NR, ND, NDO, CommonCs, Dist, Pool, FH, Mode)
+        |    when N &gt; 1, Mode == create -&gt;
+    20..|      Frag = n_to_frag_name(CommonCs#cstruct.name, N),
+    20..|      Cs = CommonCs#cstruct{name = Frag},
+    20..|      {Cs2, RevModDist, RestDist} = set_frag_nodes(NR, ND, NDO, Cs, Dist, []),
+    20..|      ModDist = lists:reverse(RevModDist),
+    20..|      Dist2 = rearrange_dist(Cs, ModDist, RestDist, Pool),
+        |      %% Adjusts backwards, but it doesn't matter.
+    20..|      {FH2, _FromFrags, _AdditionalWriteFrags} = adjust_before_split(FH), 
+    20..|      CsList = expand_frag_cstructs(N - 1, NR, ND, NDO, CommonCs, Dist2, Pool, FH2, Mode),
+    20..|      [Cs2 | CsList];
+        |  expand_frag_cstructs(1, NR, ND, NDO, CommonCs, Dist, Pool, FH, Mode) -&gt;
+    14..|      BaseProps = CommonCs#cstruct.frag_properties ++  
+        |  	[{foreign_key, FH#frag_state.foreign_key},
+        |  	 {hash_module, FH#frag_state.hash_module},
+        |  	 {hash_state,  FH#frag_state.hash_state},
+        |  	 {n_fragments, FH#frag_state.n_fragments},
+        |  	 {node_pool, Pool}
+        |  	],
+    14..|      BaseCs = CommonCs#cstruct{frag_properties = lists:sort(BaseProps)},
+    14..|      case Mode of
+        |  	activate -&gt;
+     2..|  	    [BaseCs];
+        |  	create -&gt;
+    12..|  	    {BaseCs2, _, _} = set_frag_nodes(NR, ND, NDO, BaseCs, Dist, []),
+    12..|  	    [BaseCs2]
+        |      end.
+        |      
+        |  set_frag_nodes(NR, ND, NDO, Cs, [Head | Tail], Acc) when NR &gt; 0 -&gt;
+    54..|      Pos = #cstruct.ram_copies,
+    54..|      {Cs2, Head2} = set_frag_node(Cs, Pos, Head),
+    54..|      set_frag_nodes(NR - 1, ND, NDO, Cs2, Tail, [Head2 | Acc]); 
+        |  set_frag_nodes(NR, ND, NDO, Cs, [Head | Tail], Acc) when ND &gt; 0 -&gt;
+<font color=red>     0..|      Pos = #cstruct.disc_copies,</font>
+<font color=red>     0..|      {Cs2, Head2} = set_frag_node(Cs, Pos, Head),</font>
+<font color=red>     0..|      set_frag_nodes(NR, ND - 1, NDO, Cs2, Tail, [Head2 | Acc]); </font>
+        |  set_frag_nodes(NR, ND, NDO, Cs, [Head | Tail], Acc) when NDO &gt; 0 -&gt;
+<font color=red>     0..|      Pos = #cstruct.disc_only_copies,</font>
+<font color=red>     0..|      {Cs2, Head2} = set_frag_node(Cs, Pos, Head),</font>
+<font color=red>     0..|      set_frag_nodes(NR, ND, NDO - 1, Cs2, Tail, [Head2 | Acc]); </font>
+        |  set_frag_nodes(0, 0, 0, Cs, RestDist, ModDist) -&gt;
+    34..|      {Cs, ModDist, RestDist};
+        |  set_frag_nodes(_, _, _, Cs, [], _) -&gt;
+<font color=red>     0..|      mnesia2:abort({combine_error,  Cs#cstruct.name, "Too few nodes in node_pool"}).</font>
+        |  
+        |  set_frag_node(Cs, Pos, Head) -&gt;
+    54..|      Ns = element(Pos, Cs),
+    54..|      {Node, Count2} =  
+        |  	case Head of
+        |  	    {N, Count} when is_atom(N), is_integer(Count), Count &gt;= 0 -&gt;
+    34..|  		{N, Count + 1};
+        |  	    N when is_atom(N) -&gt;
+    20..|  		{N, 1};
+        |  	    BadNode -&gt;
+<font color=red>     0..|  		mnesia2:abort({bad_type, Cs#cstruct.name, BadNode})</font>
+        |  	end,
+    54..|      mnesia2_schema:verify(true, 
+        |   			 lists:member(Node, val({current,db_nodes})),
+        |   			 {not_active, Cs#cstruct.name, Node}),
+    54..|      Cs2 = setelement(Pos, Cs, [Node | Ns]),
+    54..|      {Cs2, {Node, Count2}}.
+        |  
+        |  rearrange_dist(Cs, [{Node, Count} | ModDist], Dist, Pool) -&gt;
+    32..|      Dist2 = insert_dist(Cs, Node, Count, Dist, Pool),
+    32..|      rearrange_dist(Cs, ModDist, Dist2, Pool);
+        |  rearrange_dist(_Cs, [], Dist, _) -&gt;
+    20..|      Dist.
+        |  
+        |  insert_dist(Cs, Node, Count, [Head | Tail], Pool) -&gt;
+    56..|      case Head of
+        |  	{Node2, Count2} when is_atom(Node2), is_integer(Count2), Count2 &gt;= 0 -&gt;
+    44..|  	    case node_diff(Node, Count, Node2, Count2, Pool) of
+        |  		less -&gt;
+<font color=red>     0..|  		    [{Node, Count}, Head | Tail];</font>
+        |  		greater -&gt;
+    44..|  		    [Head | insert_dist(Cs, Node, Count, Tail, Pool)]
+        |  	    end;
+        |  	Node2 when is_atom(Node2) -&gt; 
+    12..|  	    insert_dist(Cs, Node, Count, [{Node2, 0} | Tail], Pool);
+        |  	BadNode -&gt;
+<font color=red>     0..|  	    mnesia2:abort({bad_type, Cs#cstruct.name, BadNode})</font>
+        |      end;
+        |  insert_dist(_Cs, Node, Count, [], _Pool) -&gt;
+    32..|      [{Node, Count}];
+        |  insert_dist(_Cs, _Node, _Count, Dist, _Pool) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Dist}).</font>
+        |      
+        |  node_diff(_Node, Count, _Node2, Count2, _Pool) when Count &lt; Count2 -&gt;
+<font color=red>     0..|      less;</font>
+        |  node_diff(Node, Count, Node2, Count2, Pool) when Count == Count2 -&gt;
+    16..|      Pos = list_pos(Node, Pool, 1),
+    16..|      Pos2 = list_pos(Node2, Pool, 1),
+    16..|      if
+        |  	Pos &lt; Pos2 -&gt;
+<font color=red>     0..|  	    less;</font>
+        |  	Pos &gt; Pos2 -&gt;
+    16..|  	    greater
+        |      end;
+        |  node_diff(_Node, Count, _Node2, Count2, _Pool) when Count &gt; Count2 -&gt;
+    28..|      greater.
+        |  
+        |  %% Returns position of element in list
+        |  list_pos(H,  [H | _T], Pos) -&gt;
+    32..|      Pos;
+        |  list_pos(E,  [_H | T], Pos) -&gt;
+    24..|      list_pos(E,  T, Pos + 1).
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Switch function for changing of table fragmentation
+        |  %%
+        |  %% Returns a list of lists of schema ops 
+        |  
+        |  change_table_frag(Tab, {activate, FragProps}) -&gt;
+     2..|      make_activate(Tab, FragProps);
+        |  change_table_frag(Tab, deactivate) -&gt;
+<font color=red>     0..|      make_deactivate(Tab);</font>
+        |  change_table_frag(Tab,  {add_frag, SortedNodes}) -&gt;
+     2..|      make_multi_add_frag(Tab, SortedNodes);
+        |  change_table_frag(Tab,  del_frag) -&gt;
+<font color=red>     0..|      make_multi_del_frag(Tab);</font>
+        |  change_table_frag(Tab,  {add_node, Node}) -&gt;
+<font color=red>     0..|      make_multi_add_node(Tab, Node);</font>
+        |  change_table_frag(Tab,  {del_node, Node}) -&gt;
+<font color=red>     0..|      make_multi_del_node(Tab, Node);</font>
+        |  change_table_frag(Tab,  Change) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Tab, Change}).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Turn a normal table into a fragmented table
+        |  %% 
+        |  %% The storage type must be the same on all nodes
+        |  
+        |  make_activate(Tab, Props) -&gt;
+     2..|      Cs = mnesia2_schema:incr_version(val({Tab, cstruct})),
+     2..|      mnesia2_schema:ensure_active(Cs),
+     2..|      case Cs#cstruct.frag_properties of
+        |  	[] -&gt;
+     2..|  	    Cs2 = Cs#cstruct{frag_properties = Props},
+     2..|  	    [Cs3] = expand_cstruct(Cs2, activate),
+     2..|  	    TabDef = mnesia2_schema:vsn_cs2list(Cs3),
+     2..|  	    Op = {op, change_table_frag, activate, TabDef},
+     2..|  	    [[Op]];
+        |  	BadProps -&gt;
+<font color=red>     0..|  	    mnesia2:abort({already_exists, Tab, {frag_properties, BadProps}})</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Turn a table into a normal defragmented table
+        |  
+        |  make_deactivate(Tab) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:incr_version(val({Tab, cstruct})),</font>
+<font color=red>     0..|      mnesia2_schema:ensure_active(Cs),</font>
+<font color=red>     0..|      Foreigners = lookup_foreigners(Tab),</font>
+<font color=red>     0..|      BaseTab = lookup_prop(Tab, base_table),</font>
+<font color=red>     0..|      FH = lookup_frag_hash(Tab),</font>
+<font color=red>     0..|      if</font>
+        |  	BaseTab /= Tab -&gt;
+<font color=red>     0..|  	    mnesia2:abort({combine_error, Tab, "Not a base table"});</font>
+        |  	Foreigners /= [] -&gt;
+<font color=red>     0..|  	    mnesia2:abort({combine_error, Tab, "Too many foreigners", Foreigners});</font>
+        |  	FH#frag_state.n_fragments &gt; 1 -&gt;
+<font color=red>     0..|  	    mnesia2:abort({combine_error, Tab, "Too many fragments"});</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Cs2 = Cs#cstruct{frag_properties = []},</font>
+<font color=red>     0..|  	    TabDef = mnesia2_schema:vsn_cs2list(Cs2),</font>
+<font color=red>     0..|  	    Op = {op, change_table_frag, deactivate, TabDef},</font>
+<font color=red>     0..|  	    [[Op]]</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Add a fragment to a fragmented table  and fill it with half of
+        |  %% the records from one of the old fragments
+        |      
+        |  make_multi_add_frag(Tab, SortedNs) when is_list(SortedNs) -&gt;
+     2..|      verify_multi(Tab),
+     2..|      Ops = make_add_frag(Tab, SortedNs),
+        |  
+        |      %% Propagate to foreigners
+     2..|      MoreOps = [make_add_frag(T, SortedNs) || T &lt;- lookup_foreigners(Tab)],
+     2..|      [Ops | MoreOps]; 
+        |  make_multi_add_frag(Tab, SortedNs) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Tab, SortedNs}).</font>
+        |  
+        |  verify_multi(Tab) -&gt;
+     2..|      FH = lookup_frag_hash(Tab),
+     2..|      ForeignKey = FH#frag_state.foreign_key,
+     2..|      mnesia2_schema:verify(undefined, ForeignKey, 
+        |  			 {combine_error, Tab, 
+        |  			  "Op only allowed via foreign table",
+        |  			  {foreign_key, ForeignKey}}).
+        |  
+        |  make_frag_names_and_acquire_locks(Tab, N, FragIndecies, DoNotLockN) -&gt;
+     2..|      mnesia2_schema:get_tid_ts_and_lock(Tab, write),
+     2..|      Fun = fun(Index, FN) -&gt;
+     4..|  		  if
+        |  		      DoNotLockN == true, Index == N -&gt;
+     2..|  			  Name = n_to_frag_name(Tab, Index),
+     2..|  			  setelement(Index, FN, Name);
+        |  		      true -&gt;
+     2..|  			  Name = n_to_frag_name(Tab, Index),
+     2..|  			  mnesia2_schema:get_tid_ts_and_lock(Name, write),
+     2..|  			  setelement(Index , FN, Name)
+        |  		  end
+        |  	  end,
+     2..|      FragNames = erlang:make_tuple(N, undefined),
+     2..|      lists:foldl(Fun, FragNames, FragIndecies).
+        |      
+        |  make_add_frag(Tab, SortedNs) -&gt;
+     2..|      Cs = mnesia2_schema:incr_version(val({Tab, cstruct})),
+     2..|      mnesia2_schema:ensure_active(Cs),
+     2..|      FH = lookup_frag_hash(Tab),
+     2..|      {FH2, FromIndecies, WriteIndecies} = adjust_before_split(FH),
+     2..|      N = FH2#frag_state.n_fragments,
+     2..|      FragNames = make_frag_names_and_acquire_locks(Tab, N, WriteIndecies, true),
+     2..|      NewFrag = element(N, FragNames),
+        |  
+     2..|      NR = length(Cs#cstruct.ram_copies), 
+     2..|      ND = length(Cs#cstruct.disc_copies), 
+     2..|      NDO = length(Cs#cstruct.disc_only_copies),
+     2..|      NewCs = Cs#cstruct{name = NewFrag,
+        |  		       frag_properties = [{base_table, Tab}],
+        |  		       ram_copies = [],
+        |  		       disc_copies = [],
+        |  		       disc_only_copies = []},
+        |      
+     2..|      {NewCs2, _, _} = set_frag_nodes(NR, ND, NDO, NewCs, SortedNs, []),
+     2..|      [NewOp] = mnesia2_schema:make_create_table(NewCs2),
+        |  
+     2..|      SplitOps = split(Tab, FH2, FromIndecies, FragNames, []),
+        |  
+     2..|      Cs2 = replace_frag_hash(Cs, FH2),
+     2..|      TabDef = mnesia2_schema:vsn_cs2list(Cs2),
+     2..|      BaseOp = {op, change_table_frag, {add_frag, SortedNs}, TabDef},
+        |  
+     2..|      [BaseOp, NewOp | SplitOps].
+        |  
+        |  replace_frag_hash(Cs, FH) when is_record(FH, frag_state) -&gt;
+     2..|      Fun = fun(Prop) -&gt;
+    12..|  		  case Prop of
+        |  		      {n_fragments, _} -&gt;
+     2..|  			  {true, {n_fragments, FH#frag_state.n_fragments}};
+        |  		      {hash_module, _} -&gt;
+     2..|  			  {true, {hash_module, FH#frag_state.hash_module}};
+        |  		      {hash_state, _} -&gt;
+     2..|  			  {true, {hash_state, FH#frag_state.hash_state}};
+        |  		      {next_n_to_split, _} -&gt;
+<font color=red>     0..|  			  false;</font>
+        |  		      {n_doubles, _} -&gt;
+<font color=red>     0..|  			  false;</font>
+        |  		      _ -&gt;
+     6..|  			  true
+        |  		  end
+        |  	  end,
+     2..|      Props = lists:zf(Fun, Cs#cstruct.frag_properties),
+     2..|      Cs#cstruct{frag_properties = Props}.
+        |  
+        |  %% Adjust table info before split
+        |  adjust_before_split(FH) -&gt;
+    22..|      HashState = FH#frag_state.hash_state,
+    22..|      {HashState2, FromFrags, AdditionalWriteFrags} = 
+        |  	case FH#frag_state.hash_module of
+        |  	    HashMod when HashMod == ?DEFAULT_HASH_MOD -&gt;
+    22..|  		?DEFAULT_HASH_MOD:add_frag(HashState);
+        |  	    HashMod -&gt;
+<font color=red>     0..|  		HashMod:add_frag(HashState)</font>
+        |  	end,
+    22..|      N = FH#frag_state.n_fragments + 1,
+    22..|      VerifyFun = fun(F) when is_integer(F), F &gt;= 1, F =&lt; N -&gt; false;
+<font color=red>     0..|  		   (_F) -&gt; true</font>
+        |  		end,
+    22..|      try
+    22..|  	FromFrags2 = lists:sort(FromFrags),
+    22..|  	UnionFrags = lists:merge(FromFrags2, lists:sort(AdditionalWriteFrags)),
+        |  
+    22..|  	Frags = lists:filter(VerifyFun, UnionFrags),
+    22..|  	Frags == [] orelse error(Frags),
+    22..|  	FH2 = FH#frag_state{n_fragments = N,
+        |  			    hash_state  = HashState2},
+    22..|  	{FH2, FromFrags2, UnionFrags}
+        |      catch error:BadFrags -&gt;
+<font color=red>     0..|  	    mnesia2:abort({"add_frag: Fragment numbers out of range",</font>
+        |  			  BadFrags, {range, 1, N}})
+        |      end.
+        |  
+        |  split(Tab, FH, [SplitN | SplitNs], FragNames, Ops) -&gt;
+     2..|      SplitFrag = element(SplitN, FragNames),
+     2..|      Pat = mnesia2:table_info(SplitFrag, wild_pattern),
+     2..|      {_Mod, Tid, Ts} = mnesia2_schema:get_tid_ts_and_lock(Tab, none),
+     2..|      Recs = mnesia2:match_object(Tid, Ts, SplitFrag, Pat, read),
+     2..|      Ops2 = do_split(FH, SplitN, FragNames, Recs, Ops),
+     2..|      split(Tab, FH, SplitNs, FragNames, Ops2);
+        |  split(_Tab, _FH, [], _FragNames, Ops) -&gt;
+     2..|      Ops.
+        |  
+        |  %% Perform the split of the table
+        |  do_split(FH, OldN, FragNames, [Rec | Recs], Ops) -&gt;
+    20..|      Pos = key_pos(FH),
+    20..|      HashKey = element(Pos, Rec),
+    20..|      case key_to_n(FH, HashKey) of
+        |  	NewN when NewN == OldN -&gt;
+        |  	    %% Keep record in the same fragment. No need to move it.
+    13..|  	    do_split(FH, OldN, FragNames, Recs, Ops);
+        |  	NewN -&gt;
+     7..|  	    case element(NewN, FragNames) of
+        |  		NewFrag when NewFrag /= undefined -&gt;
+     7..|  		    OldFrag = element(OldN, FragNames),
+     7..|  		    Key = element(2, Rec),
+     7..|  		    NewOid = {NewFrag, Key},
+     7..|  		    OldOid = {OldFrag, Key},
+     7..|  		    Ops2 = [{op, rec, unknown, {NewOid, [Rec], write}}, 
+        |  			    {op, rec, unknown, {OldOid, [OldOid], delete}} | Ops],
+     7..|  		    do_split(FH, OldN, FragNames, Recs, Ops2);
+        |  		_NewFrag -&gt;
+        |  		    %% Tried to move record to fragment that not is locked
+<font color=red>     0..|  		    mnesia2:abort({"add_frag: Fragment not locked", NewN})</font>
+        |  	    end
+        |      end;
+        |  do_split(_FH, _OldN, _FragNames, [], Ops) -&gt;
+     2..|      Ops.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Delete a fragment from a fragmented table
+        |  %% and merge its records with another fragment
+        |      
+        |  make_multi_del_frag(Tab) -&gt;
+<font color=red>     0..|      verify_multi(Tab),</font>
+<font color=red>     0..|      Ops = make_del_frag(Tab),</font>
+        |  
+        |      %% Propagate to foreigners
+<font color=red>     0..|      MoreOps = [make_del_frag(T) || T &lt;- lookup_foreigners(Tab)],</font>
+<font color=red>     0..|      [Ops | MoreOps].</font>
+        |  
+        |  make_del_frag(Tab) -&gt;
+<font color=red>     0..|      FH = lookup_frag_hash(Tab),</font>
+<font color=red>     0..|      case FH#frag_state.n_fragments of</font>
+        |  	N when N &gt; 1 -&gt;
+<font color=red>     0..|  	    Cs = mnesia2_schema:incr_version(val({Tab, cstruct})),</font>
+<font color=red>     0..|  	    mnesia2_schema:ensure_active(Cs),</font>
+<font color=red>     0..|  	    {FH2, FromIndecies, WriteIndecies} = adjust_before_merge(FH),</font>
+<font color=red>     0..|  	    FragNames = make_frag_names_and_acquire_locks(Tab, N, WriteIndecies, false),</font>
+        |  
+<font color=red>     0..|  	    MergeOps = merge(Tab, FH2, FromIndecies, FragNames, []),</font>
+<font color=red>     0..|  	    LastFrag = element(N, FragNames),</font>
+<font color=red>     0..|  	    [LastOp] = mnesia2_schema:make_delete_table(LastFrag, single_frag),</font>
+<font color=red>     0..|  	    Cs2 = replace_frag_hash(Cs, FH2),</font>
+<font color=red>     0..|  	    TabDef = mnesia2_schema:vsn_cs2list(Cs2),</font>
+<font color=red>     0..|  	    BaseOp = {op, change_table_frag, del_frag, TabDef},</font>
+<font color=red>     0..|  	    [BaseOp, LastOp | MergeOps];</font>
+        |  	_ -&gt;
+        |  	    %% Cannot remove the last fragment
+<font color=red>     0..|  	    mnesia2:abort({no_exists, Tab})</font>
+        |      end.
+        |  
+        |  %% Adjust tab info before merge
+        |  adjust_before_merge(FH) -&gt;
+<font color=red>     0..|      HashState = FH#frag_state.hash_state,</font>
+<font color=red>     0..|      {HashState2, FromFrags, AdditionalWriteFrags} = </font>
+        |  	case FH#frag_state.hash_module of
+        |  	    HashMod when HashMod == ?DEFAULT_HASH_MOD -&gt;
+<font color=red>     0..|  		?DEFAULT_HASH_MOD:del_frag(HashState);</font>
+        |  	    HashMod -&gt;
+<font color=red>     0..|  		HashMod:del_frag(HashState)</font>
+        |  	end,
+<font color=red>     0..|      N = FH#frag_state.n_fragments,</font>
+<font color=red>     0..|      VerifyFun = fun(F) when is_integer(F), F &gt;= 1, F =&lt; N -&gt; false;</font>
+<font color=red>     0..|  		   (_F) -&gt; true</font>
+        |  		end,
+<font color=red>     0..|      try</font>
+<font color=red>     0..|  	FromFrags2 = lists:sort(FromFrags),</font>
+<font color=red>     0..|  	UnionFrags = lists:merge(FromFrags2, lists:sort(AdditionalWriteFrags)),</font>
+        |  
+<font color=red>     0..|  	Frags = lists:filter(VerifyFun, UnionFrags),</font>
+<font color=red>     0..|  	[] == Frags orelse error(Frags),</font>
+<font color=red>     0..|  	case lists:member(N, FromFrags2) of</font>
+        |  	    true -&gt;
+<font color=red>     0..|  		FH2 = FH#frag_state{n_fragments = N - 1,</font>
+        |  				    hash_state  = HashState2},
+<font color=red>     0..|  		{FH2, FromFrags2, UnionFrags};</font>
+        |  		false -&gt;
+<font color=red>     0..|  		mnesia2:abort({"del_frag: Last fragment number not included", N})</font>
+        |  	end
+        |      catch error:BadFrags -&gt;
+<font color=red>     0..|  	    mnesia2:abort({"del_frag: Fragment numbers out of range",</font>
+        |  			  BadFrags, {range, 1, N}})
+        |      end.
+        |  
+        |  merge(Tab, FH, [FromN | FromNs], FragNames, Ops) -&gt;
+<font color=red>     0..|      FromFrag = element(FromN, FragNames),</font>
+<font color=red>     0..|      Pat = mnesia2:table_info(FromFrag, wild_pattern),</font>
+<font color=red>     0..|      {_Mod, Tid, Ts} = mnesia2_schema:get_tid_ts_and_lock(Tab, none),</font>
+<font color=red>     0..|      Recs = mnesia2:match_object(Tid, Ts, FromFrag, Pat, read),</font>
+<font color=red>     0..|      Ops2 = do_merge(FH, FromN, FragNames, Recs, Ops),</font>
+<font color=red>     0..|      merge(Tab, FH, FromNs, FragNames, Ops2);</font>
+        |  merge(_Tab, _FH, [], _FragNames, Ops) -&gt;
+<font color=red>     0..|      Ops.</font>
+        |  
+        |  %% Perform the merge of the table
+        |  do_merge(FH, OldN, FragNames, [Rec | Recs], Ops) -&gt;
+<font color=red>     0..|      Pos = key_pos(FH),</font>
+<font color=red>     0..|      LastN = FH#frag_state.n_fragments + 1,</font>
+<font color=red>     0..|      HashKey = element(Pos, Rec),</font>
+<font color=red>     0..|      case key_to_n(FH, HashKey) of</font>
+        |  	NewN when NewN == LastN -&gt;
+        |  	    %% Tried to leave a record in the fragment that is to be deleted
+<font color=red>     0..|  	    mnesia2:abort({"del_frag: Fragment number out of range",</font>
+        |  			  NewN, {range, 1, LastN}});
+        |  	NewN when NewN == OldN -&gt;
+        |  	    %% Keep record in the same fragment. No need to move it.
+<font color=red>     0..|  	    do_merge(FH, OldN, FragNames, Recs, Ops);</font>
+        |  	NewN when OldN == LastN -&gt;
+        |  	    %% Move record from the fragment that is to be deleted
+        |  	    %% No need to create a delete op for each record.
+<font color=red>     0..|  	    case element(NewN, FragNames) of</font>
+        |  		NewFrag when NewFrag /= undefined -&gt;
+<font color=red>     0..|  		    Key = element(2, Rec),</font>
+<font color=red>     0..|  		    NewOid = {NewFrag, Key},</font>
+<font color=red>     0..|  		    Ops2 = [{op, rec, unknown, {NewOid, [Rec], write}} | Ops],</font>
+<font color=red>     0..|  		    do_merge(FH, OldN, FragNames, Recs, Ops2);</font>
+        |  		_NewFrag -&gt;
+        |  		    %% Tried to move record to fragment that not is locked
+<font color=red>     0..|  		    mnesia2:abort({"del_frag: Fragment not locked", NewN})</font>
+        |  	    end;
+        |  	NewN -&gt;
+<font color=red>     0..|  	    case element(NewN, FragNames) of</font>
+        |  		NewFrag when NewFrag /= undefined -&gt;
+<font color=red>     0..|  		    OldFrag = element(OldN, FragNames),</font>
+<font color=red>     0..|  		    Key = element(2, Rec),</font>
+<font color=red>     0..|  		    NewOid = {NewFrag, Key},</font>
+<font color=red>     0..|  		    OldOid = {OldFrag, Key},</font>
+<font color=red>     0..|  		    Ops2 = [{op, rec, unknown, {NewOid, [Rec], write}}, </font>
+        |  			    {op, rec, unknown, {OldOid, [OldOid], delete}} | Ops],
+<font color=red>     0..|  		    do_merge(FH, OldN, FragNames, Recs, Ops2);</font>
+        |  		_NewFrag -&gt;
+        |  		    %% Tried to move record to fragment that not is locked
+<font color=red>     0..|  		    mnesia2:abort({"del_frag: Fragment not locked", NewN})</font>
+        |  	    end
+        |      end;
+        |   do_merge(_FH, _OldN, _FragNames, [], Ops) -&gt;
+<font color=red>     0..|     Ops.</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Add a node to the node pool of a fragmented table
+        |      
+        |  make_multi_add_node(Tab, Node)  -&gt;
+<font color=red>     0..|      verify_multi(Tab),</font>
+<font color=red>     0..|      Ops = make_add_node(Tab, Node),</font>
+        |  
+        |      %% Propagate to foreigners
+<font color=red>     0..|      MoreOps = [make_add_node(T, Node) || T &lt;- lookup_foreigners(Tab)],</font>
+<font color=red>     0..|      [Ops | MoreOps].</font>
+        |      
+        |  make_add_node(Tab, Node) when is_atom(Node)  -&gt;
+<font color=red>     0..|      Pool = lookup_prop(Tab, node_pool),</font>
+<font color=red>     0..|      case lists:member(Node, Pool) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    Cs = mnesia2_schema:incr_version(val({Tab, cstruct})),</font>
+<font color=red>     0..|  	    Pool2 = Pool ++ [Node],</font>
+<font color=red>     0..|  	    Props = Cs#cstruct.frag_properties,</font>
+<font color=red>     0..|  	    Props2 = lists:keyreplace(node_pool, 1, Props, {node_pool, Pool2}),</font>
+<font color=red>     0..|  	    Cs2 = Cs#cstruct{frag_properties = Props2},</font>
+<font color=red>     0..|  	    TabDef = mnesia2_schema:vsn_cs2list(Cs2),</font>
+<font color=red>     0..|  	    Op = {op, change_table_frag, {add_node, Node}, TabDef},</font>
+<font color=red>     0..|  	    [Op];</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    mnesia2:abort({already_exists, Tab, Node})</font>
+        |      end;
+        |  make_add_node(Tab, Node) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Tab, Node}).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Delet a node from the node pool of a fragmented table
+        |  
+        |  make_multi_del_node(Tab, Node)  -&gt;
+<font color=red>     0..|      verify_multi(Tab),</font>
+<font color=red>     0..|      Ops = make_del_node(Tab, Node),</font>
+        |  
+        |      %% Propagate to foreigners
+<font color=red>     0..|      MoreOps = [make_del_node(T, Node) || T &lt;- lookup_foreigners(Tab)],</font>
+<font color=red>     0..|      [Ops | MoreOps].</font>
+        |      
+        |  make_del_node(Tab, Node) when is_atom(Node) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:incr_version(val({Tab, cstruct})),</font>
+<font color=red>     0..|      mnesia2_schema:ensure_active(Cs),</font>
+<font color=red>     0..|      Pool = lookup_prop(Tab, node_pool),</font>
+<font color=red>     0..|      case lists:member(Node, Pool) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Pool2 = Pool -- [Node],</font>
+<font color=red>     0..|  	    Props = lists:keyreplace(node_pool, 1, Cs#cstruct.frag_properties, {node_pool, Pool2}),</font>
+<font color=red>     0..|  	    Cs2 = Cs#cstruct{frag_properties = Props},</font>
+<font color=red>     0..|  	    TabDef = mnesia2_schema:vsn_cs2list(Cs2),</font>
+<font color=red>     0..|  	    Op = {op, change_table_frag, {del_node, Node}, TabDef},</font>
+<font color=red>     0..|  	    [Op];</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    mnesia2:abort({no_exists, Tab, Node})</font>
+        |      end;
+        |  make_del_node(Tab, Node) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Tab, Node}).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Special case used to remove all references to a node during 
+        |  %% mnesia2:del_table_copy(schema, Node)
+        |  
+        |  remove_node(Node, Cs) -&gt;
+     2..|      Tab = Cs#cstruct.name,
+     2..|      case ?catch_val({Tab, frag_hash}) of
+        |  	{'EXIT', _} -&gt;
+     2..|  	    {Cs, false};
+        |  	_ -&gt;
+<font color=red>     0..|  	    Pool = lookup_prop(Tab, node_pool),</font>
+<font color=red>     0..|  	    case lists:member(Node, Pool) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    Pool2 = Pool -- [Node],</font>
+<font color=red>     0..|  		    Props = lists:keyreplace(node_pool, 1, </font>
+        |  					     Cs#cstruct.frag_properties, 
+        |  					     {node_pool, Pool2}),
+<font color=red>     0..|  		    {Cs#cstruct{frag_properties = Props}, true};</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    {Cs, false}</font>
+        |  	    end
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Helpers
+        |  
+        |  val(Var) -&gt;
+ 28691..|      case ?catch_val(Var) of
+<font color=red>     0..|  	{'EXIT', _} -&gt; mnesia2_lib:other_val(Var);</font>
+ 28691..|  	Value -&gt; Value
+        |      end.
+        |  
+        |  set_frag_hash(Tab, Props) -&gt;
+   438..|      case props_to_frag_hash(Tab, Props) of
+        |  	FH when is_record(FH, frag_state) -&gt;
+    28..|  	    mnesia2_lib:set({Tab, frag_hash}, FH);
+        |  	no_hash -&gt;
+   410..|  	    mnesia2_lib:unset({Tab, frag_hash})
+        |      end.
+        |  
+        |  props_to_frag_hash(_Tab, []) -&gt;
+   366..|      no_hash;
+        |  props_to_frag_hash(Tab, Props) -&gt;
+    72..|      case mnesia2_schema:pick(Tab, base_table, Props, undefined) of
+        |  	T when T == Tab -&gt;
+    28..|  	    Foreign = mnesia2_schema:pick(Tab, foreign_key, Props, must),
+    28..|  	    N = mnesia2_schema:pick(Tab, n_fragments, Props, must),
+        |  	    
+    28..|  	    case mnesia2_schema:pick(Tab, hash_module, Props, undefined) of
+        |  		undefined -&gt;
+<font color=red>     0..|  		    Split = mnesia2_schema:pick(Tab, next_n_to_split, Props, must),</font>
+<font color=red>     0..|  		    Doubles = mnesia2_schema:pick(Tab, n_doubles, Props, must),</font>
+<font color=red>     0..|  		    FH = {frag_hash, Foreign, N, Split, Doubles},</font>
+<font color=red>     0..|  		    HashState = ?OLD_HASH_MOD:init_state(Tab, FH),</font>
+<font color=red>     0..|      		    #frag_state{foreign_key = Foreign,</font>
+        |  				n_fragments = N,
+        |  				hash_module = ?OLD_HASH_MOD,
+        |  				hash_state  = HashState};
+        |  		HashMod -&gt;
+    28..|  		    HashState = mnesia2_schema:pick(Tab, hash_state, Props, must),
+    28..|  		    #frag_state{foreign_key = Foreign,
+        |  				n_fragments = N,
+        |  				hash_module = HashMod,
+        |  				hash_state  = HashState}
+        |  		    %% Old style. Kept for backwards compatibility.
+        |  	    end;
+        |  	_ -&gt;
+    44..|  	    no_hash
+        |      end.
+        |  
+        |  lookup_prop(Tab, Prop) -&gt;
+    29..|      Props = val({Tab, frag_properties}),
+    29..|      case lists:keysearch(Prop, 1,  Props) of
+        |  	{value, {Prop, Val}} -&gt;
+    29..|  	    Val;
+        |  	false -&gt;
+<font color=red>     0..|  	    mnesia2:abort({no_exists, Tab, Prop, {frag_properties, Props}})</font>
+        |      end.
+        |  
+        |  lookup_frag_hash(Tab) -&gt;
+     4..|      case ?catch_val({Tab, frag_hash}) of
+        |  	FH when is_record(FH, frag_state) -&gt;
+     4..|  	    FH;
+        |  	{frag_hash, K, N, _S, _D} = FH -&gt;
+        |  	    %% Old style. Kept for backwards compatibility.
+<font color=red>     0..|  	    HashState = ?OLD_HASH_MOD:init_state(Tab, FH),</font>
+<font color=red>     0..|  	    #frag_state{foreign_key = K, </font>
+        |  			n_fragments = N, 
+        |  			hash_module = ?OLD_HASH_MOD,
+        |  			hash_state  = HashState};    
+        |  	{'EXIT', _} -&gt;
+<font color=red>     0..|  	    mnesia2:abort({no_exists, Tab, frag_properties, frag_hash})</font>
+        |      end.
+        |  
+        |  %% Returns a list of tables
+        |  lookup_foreigners(Tab) -&gt;
+        |      %% First field in HashPat is either frag_hash or frag_state
+     2..|      HashPat = {'_', {Tab, '_'}, '_', '_', '_'},
+     2..|      [T || [T] &lt;- ?ets_match(mnesia2_gvar, {{'$1', frag_hash}, HashPat})].
+        |  
+        |  %% Returns name of fragment table
+        |  record_to_frag_name(Tab, Rec) -&gt;
+ 78371..|      case ?catch_val({Tab, frag_hash}) of
+        |  	{'EXIT', _} -&gt;
+ 21256..|  	    Tab;
+        |  	FH -&gt;
+ 57115..|  	    Pos = key_pos(FH),
+ 57115..|  	    Key = element(Pos, Rec),
+ 57115..|  	    N = key_to_n(FH, Key),
+ 57115..|  	    n_to_frag_name(Tab, N)
+        |      end.
+        |  
+        |  key_pos(FH) -&gt;
+ 57135..|      case FH#frag_state.foreign_key of
+        |  	undefined -&gt;
+ 14272..|  	    2;
+        |  	{_ForeignTab, Pos} -&gt; 
+ 42863..|  	    Pos
+        |      end.
+        |      
+        |  %% Returns name of fragment table
+        |  key_to_frag_name({BaseTab, _} = Tab, Key) -&gt;
+ 28502..|      N = key_to_frag_number(Tab, Key),
+ 28502..|      n_to_frag_name(BaseTab, N);
+        |  key_to_frag_name(Tab, Key) -&gt;
+ 20776..|      N = key_to_frag_number(Tab, Key),
+ 20776..|      n_to_frag_name(Tab, N).
+        |  
+        |  %% Returns name of fragment table
+        |  n_to_frag_name(Tab, 1) -&gt;
+ 21772..|      Tab;
+        |  n_to_frag_name(Tab, N) when is_atom(Tab), is_integer(N) -&gt;
+ 84716..|      list_to_atom(atom_to_list(Tab) ++ "_frag" ++ integer_to_list(N));
+        |  n_to_frag_name(Tab, N) -&gt;
+<font color=red>     0..|      mnesia2:abort({bad_type, Tab, N}).</font>
+        |  
+        |  %% Returns name of fragment table
+        |  key_to_frag_number({Tab, ForeignKey}, _Key) -&gt;
+ 28502..|      FH = val({Tab, frag_hash}),
+ 28502..|      case FH#frag_state.foreign_key of
+        |  	{_ForeignTab, _Pos} -&gt;
+ 28502..|  	    key_to_n(FH, ForeignKey);
+        |  	undefined -&gt;
+<font color=red>     0..|  	    mnesia2:abort({combine_error, Tab, frag_properties,</font>
+        |  			  {foreign_key, undefined}})
+        |      end;
+        |  key_to_frag_number(Tab, Key) -&gt;
+ 20776..|      case ?catch_val({Tab, frag_hash}) of
+        |  	{'EXIT', _} -&gt;
+  6092..|  	    1;
+        |  	FH -&gt;
+ 14684..|  	    key_to_n(FH, Key)
+        |      end.
+        |  
+        |  %% Returns fragment number
+        |  key_to_n(FH, Key) -&gt;
+100321..|      HashState = FH#frag_state.hash_state,
+100321..|      N = 
+        |  	case FH#frag_state.hash_module of
+        |  	    HashMod when HashMod == ?DEFAULT_HASH_MOD -&gt;
+100321..|  		?DEFAULT_HASH_MOD:key_to_frag_number(HashState, Key);
+        |  	    HashMod -&gt;
+<font color=red>     0..|  		HashMod:key_to_frag_number(HashState, Key)</font>
+        |  	end,
+100321..|      if
+        |  	is_integer(N), N &gt;= 1, N =&lt; FH#frag_state.n_fragments -&gt;
+100321..|  	    N;
+        |  	true -&gt;
+<font color=red>     0..|  	    mnesia2:abort({"key_to_frag_number: Fragment number out of range",</font>
+        |  			  N, {range, 1, FH#frag_state.n_fragments}})
+        |      end.
+        |  
+        |  %% Returns a list of frament table names
+        |  frag_names(Tab) -&gt;
+   198..|      case ?catch_val({Tab, frag_hash}) of
+        |  	{'EXIT', _} -&gt;
+   155..|  	    [Tab];
+        |  	FH -&gt;
+    43..|  	    N = FH#frag_state.n_fragments,
+    43..|  	    frag_names(Tab, N, [])
+        |      end.
+        |  
+        |  frag_names(Tab, 1, Acc) -&gt;
+    43..|      [Tab | Acc];
+        |  frag_names(Tab, N, Acc) -&gt;
+    67..|      Frag = n_to_frag_name(Tab, N),
+    67..|      frag_names(Tab, N - 1, [Frag | Acc]).
+        |  
+        |  %% Returns a list of {Node, FragCount} tuples
+        |  %% sorted on FragCounts
+        |  frag_dist(Tab) -&gt;
+     2..|      Pool = lookup_prop(Tab, node_pool),
+     2..|      Dist = [{good, Node, 0} || Node &lt;- Pool],
+     2..|      Dist2 = count_frag(frag_names(Tab), Dist),
+     2..|      sort_dist(Dist2).
+        |  
+        |  count_frag([Frag | Frags], Dist) -&gt;
+     2..|      Dist2 =  incr_nodes(val({Frag, ram_copies}), Dist),
+     2..|      Dist3 =  incr_nodes(val({Frag, disc_copies}), Dist2),
+     2..|      Dist4 =  incr_nodes(val({Frag, disc_only_copies}), Dist3),
+     2..|      count_frag(Frags, Dist4);
+        |  count_frag([], Dist) -&gt;
+     2..|      Dist.
+        |  
+        |  incr_nodes([Node | Nodes], Dist) -&gt;
+     2..|      Dist2 = incr_node(Node, Dist),
+     2..|      incr_nodes(Nodes, Dist2);
+        |  incr_nodes([], Dist) -&gt;
+     6..|      Dist.
+        |  
+        |  incr_node(Node, [{Kind, Node, Count} | Tail]) -&gt;
+     2..|      [{Kind, Node, Count + 1} | Tail];
+        |  incr_node(Node, [Head | Tail]) -&gt;
+     1..|      [Head | incr_node(Node, Tail)];
+        |  incr_node(Node, []) -&gt;
+<font color=red>     0..|      [{bad, Node, 1}].</font>
+        |  
+        |  %% Sorts dist according in decreasing count order
+        |  sort_dist(Dist) -&gt; 
+     2..|      Dist2 = deep_dist(Dist, []),
+     2..|      Dist3 = lists:keysort(1, Dist2),
+     2..|      shallow_dist(Dist3).
+        |  
+        |  deep_dist([Head | Tail], Deep) -&gt;
+     4..|      {Kind, _Node, Count} = Head,
+     4..|      {Tag, Same, Other} = pick_count(Kind, Count, [Head | Tail]),
+     4..|      deep_dist(Other, [{Tag, Same} | Deep]);
+        |  deep_dist([], Deep) -&gt;
+     2..|      Deep.
+        |  
+        |  pick_count(Kind, Count, [{Kind2, Node2, Count2} | Tail]) -&gt;
+     6..|      Head = {Node2, Count2},
+     6..|      {_, Same, Other} = pick_count(Kind, Count, Tail),
+     6..|      if
+        |  	Kind == bad -&gt;
+<font color=red>     0..|  	    {bad, [Head | Same], Other};</font>
+        |  	Kind2 == bad -&gt;
+<font color=red>     0..|  	    {Count, Same, [{Kind2, Node2, Count2} | Other]};</font>
+        |  	Count == Count2 -&gt;
+     4..|  	    {Count, [Head | Same], Other};
+        |  	true -&gt;
+     2..|  	    {Count, Same, [{Kind2, Node2, Count2} | Other]}
+        |      end;
+        |  pick_count(_Kind, Count, []) -&gt;
+     4..|      {Count, [], []}.
+        |  
+        |  shallow_dist([{_Tag, Shallow} | Deep]) -&gt;
+     4..|      Shallow ++ shallow_dist(Deep);
+        |  shallow_dist([]) -&gt;
+     2..|      [].
+</pre>
+</body>
+</html>
