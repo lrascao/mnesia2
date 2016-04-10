@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_config_test:dynamic_bad result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+<a name="top"></a><pre>
+=== Test case: <a href="mnesia2_config_test.src.html#dynamic_bad-1">mnesia2_config_test:dynamic_bad/1</a> (click for source code)
+
+=== Config value:
+
+    [{watchdog,<0.6310.0>},
+     {tc_logfile,"/home/travis/build/lrascao/mnesia2/logs/ct_run.test7517@testing-worker-linux-docker-c74eb140-3365-linux-12.2016-04-10_22.34.24/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.34.46/mnesia2_config_test.dynamic_bad.html"},
+     {tc_group_properties,[{name,dynamic_connect}]},
+     {tc_group_path,[[{name,schema_config}],
+                     [{suite,mnesia2_config_test}],
+                     [{name,config}],
+                     [{name,registry}],
+                     [{name,registry}],
+                     [{name,qlc}],
+                     [{name,qlc}],
+                     [{name,nice}],
+                     [{name,nice}],
+                     [{name,install}],
+                     [{name,install}],
+                     [{name,extra_light}]]},
+     {data_dir,"/home/travis/build/lrascao/mnesia2/test/mnesia2_config_test_data/"},
+     {priv_dir,"/home/travis/build/lrascao/mnesia2/logs/ct_run.test7517@testing-worker-linux-docker-c74eb140-3365-linux-12.2016-04-10_22.34.24/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.34.46/log_private/"},
+     {nodenames,['d546599o546625n546623@testing-worker-linux-docker-c74eb140-3365-linux-12',
+                 'd546613o546619n546617@testing-worker-linux-docker-c74eb140-3365-linux-12']}]
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test7517@testing-worker-linux-docker-c74eb140-3365-linux-12.2016-04-10_22.34.24"
+
+=== Started at 2016-04-10 22:36:42
+
+<br />
+We expect a mnesia2 crash here
+
+Mnesia2('test7517@testing-worker-linux-docker-c74eb140-3365-linux-12'): ** ERROR ** (core dumped to file: "/home/travis/build/lrascao/mnesia2/logs/ct_run.test7517@testing-worker-linux-docker-c74eb140-3365-linux-12.2016-04-10_22.34.24/Mnesia2Core.test7517@testing-worker-linux-docker-c74eb140-3365-linux-12_1460_327802_846784")
+ ** FATAL ** Failed to merge schema: Bad cookie in table definition tab1: 'test7517@testing-worker-linux-docker-c74eb140-3365-linux-12' = {cstruct,tab1,set,['d546599o546625n546623@testing-worker-linux-docker-c74eb140-3365-linux-12','d546613o546619n546617@testing-worker-linux-docker-c74eb140-3365-linux-12'],['test7517@testing-worker-linux-docker-c74eb140-3365-linux-12'],[],0,read_write,false,[],[],false,tab1,[key,val],[],[],[],{{1460327802703609542,-576460752303405886,1},'test7517@testing-worker-linux-docker-c74eb140-3365-linux-12'},{{2,0},[]}}, 'd546599o546625n546623@testing-worker-linux-docker-c74eb140-3365-linux-12' = {cstruct,tab1,set,['d546613o546619n546617@testing-worker-linux-docker-c74eb140-3365-linux-12'],[],[],0,read_write,false,[],[],false,tab1,[key,val],[],[],[],{{1460327802828900856,-576460752303421311,1},'d546613o546619n546617@testing-worker-linux-docker-c74eb140-3365-linux-12'},{{2,0},[]}}
+
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 22:36:52
+=== successfully completed test case
+=== Returned value: ok
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 22:36:42<!/date><br />
+</div>
+</center>
+</body>
+</html>
