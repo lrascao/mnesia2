@@ -1,0 +1,1285 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2.2016-04-10_22.52.44/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.53.10/mnesia2_locker.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_locker.erl by COVER 2016-04-10 at 22:54:09
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1996-2014. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_locker).
+        |  
+        |  -export([
+        |  	 get_held_locks/0,
+        |  	 get_lock_queue/0,
+        |  	 global_lock/5,
+        |  	 ixrlock/5,
+        |  	 init/1,
+        |  	 release_tid/1,
+        |  	 mnesia2_down/2,
+        |  	 async_release_tid/2,
+        |  	 send_release_tid/2,
+        |  	 receive_release_tid_acc/2,
+        |  	 rlock/3,
+        |  	 rlock_table/3,
+        |  	 rwlock/3,
+        |  	 sticky_rwlock/3,
+        |  	 start/0,
+        |  	 sticky_wlock/3,
+        |  	 sticky_wlock_table/3,
+        |  	 wlock/3,
+        |  	 wlock_no_exist/4,
+        |  	 wlock_table/3,
+        |  	 load_lock_table/3
+        |  	]).
+        |  
+        |  %% sys callback functions
+        |  -export([system_continue/3,
+        |  	 system_terminate/4,
+        |  	 system_code_change/4
+        |  	]).
+        |  
+        |  -compile({no_auto_import,[error/2]}).
+        |  
+        |  -include("mnesia2.hrl").
+        |  -import(mnesia2_lib, [dbg_out/2, error/2, verbose/2]).
+        |  
+        |  -define(dbg(S,V), ok).
+        |  %-define(dbg(S,V), dbg_out("~p:~p: " ++ S, [?MODULE, ?LINE] ++ V)).
+        |  
+        |  -define(ALL, '______WHOLETABLE_____').
+        |  -define(STICK, '______STICK_____').
+        |  -define(GLOBAL, '______GLOBAL_____').
+        |  
+        |  -record(state, {supervisor}).
+        |  
+        |  -record(queue, {oid, tid, op, pid, lucky}).
+        |  
+        |  %% mnesia2_held_locks: contain       {Oid, MaxLock, [{Op, Tid}]} entries
+        |  -define(match_oid_held_locks(Oid),  {Oid, '_', '_'}).
+        |  %% mnesia2_tid_locks: contain        {Tid, Oid, Op} entries  (bag)
+        |  -define(match_oid_tid_locks(Tid),   {Tid, '_', '_'}).
+        |  %% mnesia2_sticky_locks: contain     {Oid, Node} entries and {Tab, Node} entries (set)
+        |  -define(match_oid_sticky_locks(Oid),{Oid, '_'}).
+        |  %% mnesia2_lock_queue: contain       {queue, Oid, Tid, Op, ReplyTo, WaitForTid} entries (bag)
+        |  -define(match_oid_lock_queue(Oid),  #queue{oid=Oid, tid='_', op = '_', pid = '_', lucky = '_'}).
+        |  %% mnesia2_lock_counter:             {{write, Tab}, Number} &amp;&amp;
+        |  %%                                  {{read, Tab}, Number} entries  (set)
+        |  
+        |  start() -&gt;
+<font color=red>     0..|      mnesia2_monitor:start_proc(?MODULE, ?MODULE, init, [self()]).</font>
+        |  
+        |  init(Parent) -&gt;
+<font color=red>     0..|      register(?MODULE, self()),</font>
+<font color=red>     0..|      process_flag(trap_exit, true),</font>
+<font color=red>     0..|      ?ets_new_table(mnesia2_held_locks, [ordered_set, private, named_table]),</font>
+<font color=red>     0..|      ?ets_new_table(mnesia2_tid_locks, [ordered_set, private, named_table]),</font>
+<font color=red>     0..|      ?ets_new_table(mnesia2_sticky_locks, [set, private, named_table]),</font>
+<font color=red>     0..|      ?ets_new_table(mnesia2_lock_queue, [bag, private, named_table, {keypos, 2}]),</font>
+        |  
+<font color=red>     0..|      proc_lib:init_ack(Parent, {ok, self()}),</font>
+<font color=red>     0..|      case ?catch_val(pid_sort_order) of</font>
+<font color=red>     0..|  	r9b_plain -&gt; put(pid_sort_order, r9b_plain);</font>
+<font color=red>     0..|  	standard -&gt;  put(pid_sort_order, standard);</font>
+<font color=red>     0..|  	_ -&gt; ignore</font>
+        |      end,
+<font color=red>     0..|      loop(#state{supervisor = Parent}).</font>
+        |  
+        |  val(Var) -&gt;
+<font color=red>     0..|      case ?catch_val(Var) of</font>
+<font color=red>     0..|  	{'EXIT', _} -&gt; mnesia2_lib:other_val(Var);</font>
+<font color=red>     0..|  	_VaLuE_ -&gt; _VaLuE_</font>
+        |      end.
+        |  
+        |  reply(From, R) -&gt;
+<font color=red>     0..|      From ! {?MODULE, node(), R},</font>
+<font color=red>     0..|      true. %% Quiets dialyzer</font>
+        |  
+        |  l_request(Node, X, Store) -&gt;
+<font color=red>     0..|      {?MODULE, Node} ! {self(), X},</font>
+<font color=red>     0..|      l_req_rec(Node, Store).</font>
+        |  
+        |  l_req_rec(Node, Store) -&gt;
+<font color=red>     0..|      ?ets_insert(Store, {nodes, Node}),</font>
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, Node, Reply} -&gt;
+<font color=red>     0..|  	    Reply;</font>
+        |  	{mnesia2_down, Node} -&gt;
+<font color=red>     0..|  	    {not_granted, {node_not_running, Node}}</font>
+        |      end.
+        |  
+        |  release_tid(Tid) -&gt;
+<font color=red>     0..|      ?MODULE ! {release_tid, Tid}.</font>
+        |  
+        |  async_release_tid(Nodes, Tid) -&gt;
+<font color=red>     0..|      rpc:abcast(Nodes, ?MODULE, {release_tid, Tid}).</font>
+        |  
+        |  send_release_tid(Nodes, Tid) -&gt;
+<font color=red>     0..|      rpc:abcast(Nodes, ?MODULE, {self(), {sync_release_tid, Tid}}).</font>
+        |  
+        |  receive_release_tid_acc([Node | Nodes], Tid) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, Node, {tid_released, Tid}} -&gt;
+<font color=red>     0..|  	    receive_release_tid_acc(Nodes, Tid)</font>
+        |      after 0 -&gt;
+<font color=red>     0..|  	    receive</font>
+        |  		{?MODULE, Node, {tid_released, Tid}} -&gt;
+<font color=red>     0..|  		    receive_release_tid_acc(Nodes, Tid);</font>
+        |  		{mnesia2_down, Node} -&gt;
+<font color=red>     0..|  		    receive_release_tid_acc(Nodes, Tid)</font>
+        |  	    end
+        |      end;
+        |  receive_release_tid_acc([], _Tid) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  mnesia2_down(Node, Pending) -&gt;
+<font color=red>     0..|      case whereis(?MODULE) of</font>
+<font color=red>     0..|  	undefined -&gt; {error, node_not_running};</font>
+        |  	Pid -&gt;
+<font color=red>     0..|  	    Ref = make_ref(),</font>
+<font color=red>     0..|  	    Pid ! {{self(), Ref}, {release_remote_non_pending, Node, Pending}},</font>
+<font color=red>     0..|  	    receive   %% No need to wait for anything else if process dies we die soon</font>
+<font color=red>     0..|  		{Ref,ok} -&gt; ok</font>
+        |  	    end
+        |      end.
+        |  
+        |  loop(State) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{From, {write, Tid, Oid}} -&gt;
+<font color=red>     0..|  	    try_sticky_lock(Tid, write, From, Oid),</font>
+<font color=red>     0..|  	    loop(State);</font>
+        |  
+        |  	%% If Key == ?ALL it's a request to lock the entire table
+        |  	%%
+        |  
+        |  	{From, {read, Tid, Oid}} -&gt;
+<font color=red>     0..|  	    try_sticky_lock(Tid, read, From, Oid),</font>
+<font color=red>     0..|  	    loop(State);</font>
+        |  
+        |  	%% Really do a  read, but get hold of a write lock
+        |  	%% used by mnesia2:wread(Oid).
+        |  
+        |  	{From, {read_write, Tid, Oid}} -&gt;
+<font color=red>     0..|  	    try_sticky_lock(Tid, read_write, From, Oid),</font>
+<font color=red>     0..|  	    loop(State);</font>
+        |  
+        |  	%% Tid has somehow terminated, clear up everything
+        |  	%% and pass locks on to queued processes.
+        |  	%% This is the purpose of the mnesia2_tid_locks table
+        |  
+        |  	{release_tid, Tid} -&gt;
+<font color=red>     0..|  	    do_release_tid(Tid),</font>
+<font color=red>     0..|  	    loop(State);</font>
+        |  
+        |  	%% stick lock, first tries this to the where_to_read Node
+        |  	{From, {test_set_sticky, Tid, {Tab, _} = Oid, Lock}} -&gt;
+<font color=red>     0..|  	    case ?ets_lookup(mnesia2_sticky_locks, Tab) of</font>
+        |  		[] -&gt;
+<font color=red>     0..|  		    reply(From, not_stuck),</font>
+<font color=red>     0..|  		    loop(State);</font>
+        |  		[{_,Node}] when Node == node() -&gt;
+        |  		    %% Lock is stuck here, see now if we can just set
+        |  		    %% a regular write lock
+<font color=red>     0..|  		    try_lock(Tid, Lock, From, Oid),</font>
+<font color=red>     0..|  		    loop(State);</font>
+        |  		[{_,Node}] -&gt;
+<font color=red>     0..|  		    reply(From, {stuck_elsewhere, Node}),</font>
+<font color=red>     0..|  		    loop(State)</font>
+        |  	    end;
+        |  
+        |  	%% If test_set_sticky fails, we send this to all nodes
+        |  	%% after aquiring a real write lock on Oid
+        |  
+        |  	{stick, {Tab, _}, N} -&gt;
+<font color=red>     0..|  	    ?ets_insert(mnesia2_sticky_locks, {Tab, N}),</font>
+<font color=red>     0..|  	    loop(State);</font>
+        |  
+        |  	%% The caller which sends this message, must have first
+        |  	%% aquired a write lock on the entire table
+        |  	{unstick, Tab} -&gt;
+<font color=red>     0..|  	    ?ets_delete(mnesia2_sticky_locks, Tab),</font>
+<font color=red>     0..|  	    loop(State);</font>
+        |  
+        |  	{From, {ix_read, Tid, Tab, IxKey, Pos}} -&gt;
+<font color=red>     0..|  	    case ?ets_lookup(mnesia2_sticky_locks, Tab) of</font>
+        |  		[] -&gt;
+<font color=red>     0..|  		    set_read_lock_on_all_keys(Tid,From,Tab,IxKey,Pos),</font>
+<font color=red>     0..|  		    loop(State);</font>
+        |  		[{_,N}] when N == node() -&gt;
+<font color=red>     0..|  		    set_read_lock_on_all_keys(Tid,From,Tab,IxKey,Pos),</font>
+<font color=red>     0..|  		    loop(State);</font>
+        |  		[{_,N}] -&gt;
+<font color=red>     0..|  		    Req = {From, {ix_read, Tid, Tab, IxKey, Pos}},</font>
+<font color=red>     0..|  		    From ! {?MODULE, node(), {switch, N, Req}},</font>
+<font color=red>     0..|  		    loop(State)</font>
+        |  	    end;
+        |  
+        |  	{From, {sync_release_tid, Tid}} -&gt;
+<font color=red>     0..|  	    do_release_tid(Tid),</font>
+<font color=red>     0..|  	    reply(From, {tid_released, Tid}),</font>
+<font color=red>     0..|  	    loop(State);</font>
+        |  
+        |  	{{From, Ref},{release_remote_non_pending, Node, Pending}} -&gt;
+<font color=red>     0..|  	    release_remote_non_pending(Node, Pending),</font>
+<font color=red>     0..|  	    From ! {Ref, ok},</font>
+<font color=red>     0..|  	    loop(State);</font>
+        |  
+        |  	{'EXIT', Pid, _} when Pid == State#state.supervisor -&gt;
+<font color=red>     0..|  	    do_stop();</font>
+        |  
+        |  	{system, From, Msg} -&gt;
+<font color=red>     0..|  	    verbose("~p got {system, ~p, ~p}~n", [?MODULE, From, Msg]),</font>
+<font color=red>     0..|  	    Parent = State#state.supervisor,</font>
+<font color=red>     0..|  	    sys:handle_system_msg(Msg, From, Parent, ?MODULE, [], State);</font>
+        |  
+        |  	{get_table, From, LockTable} -&gt;
+<font color=red>     0..|  	    From ! {LockTable, ?ets_match_object(LockTable, '_')},</font>
+<font color=red>     0..|  	    loop(State);</font>
+        |  
+        |  	Msg -&gt;
+<font color=red>     0..|  	    error("~p got unexpected message: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|  	    loop(State)</font>
+        |      end.
+        |  
+        |  set_lock(Tid, Oid, Op, []) -&gt;
+<font color=red>     0..|      ?ets_insert(mnesia2_tid_locks, {{Tid, Oid, Op}}),</font>
+<font color=red>     0..|      ?ets_insert(mnesia2_held_locks, {Oid, Op, [{Op, Tid}]});</font>
+        |  set_lock(Tid, Oid, read, [{Oid, Prev, Items}]) -&gt;
+<font color=red>     0..|      ?ets_insert(mnesia2_tid_locks, {{Tid, Oid, read}}),</font>
+<font color=red>     0..|      ?ets_insert(mnesia2_held_locks, {Oid, Prev, [{read, Tid}|Items]});</font>
+        |  set_lock(Tid, Oid, write, [{Oid, _Prev, Items}]) -&gt;
+<font color=red>     0..|      ?ets_insert(mnesia2_tid_locks, {{Tid, Oid, write}}),</font>
+<font color=red>     0..|      ?ets_insert(mnesia2_held_locks, {Oid, write, [{write, Tid}|Items]});</font>
+        |  set_lock(Tid, Oid, Op, undefined) -&gt;
+<font color=red>     0..|      set_lock(Tid, Oid, Op, ?ets_lookup(mnesia2_held_locks, Oid)).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Acquire locks
+        |  
+        |  try_sticky_lock(Tid, Op, Pid, {Tab, _} = Oid) -&gt;
+<font color=red>     0..|      case ?ets_lookup(mnesia2_sticky_locks, Tab) of</font>
+        |  	[] -&gt;
+<font color=red>     0..|  	    try_lock(Tid, Op, Pid, Oid);</font>
+        |  	[{_,N}] when N == node() -&gt;
+<font color=red>     0..|  	    try_lock(Tid, Op, Pid, Oid);</font>
+        |  	[{_,N}] -&gt;
+<font color=red>     0..|  	    Req = {Pid, {Op, Tid, Oid}},</font>
+<font color=red>     0..|  	    Pid ! {?MODULE, node(), {switch, N, Req}},</font>
+<font color=red>     0..|  	    true</font>
+        |      end.
+        |  
+        |  try_lock(Tid, read_write, Pid, Oid) -&gt;
+<font color=red>     0..|      try_lock(Tid, read_write, read, write, Pid, Oid);</font>
+        |  try_lock(Tid, Op, Pid, Oid) -&gt;
+<font color=red>     0..|      try_lock(Tid, Op, Op, Op, Pid, Oid).</font>
+        |  
+        |  try_lock(Tid, Op, SimpleOp, Lock, Pid, Oid) -&gt;
+<font color=red>     0..|      case can_lock(Tid, Lock, Oid, {no, bad_luck}) of</font>
+        |  	{yes, Default} -&gt;
+<font color=red>     0..|  	    Reply = grant_lock(Tid, SimpleOp, Lock, Oid, Default),</font>
+<font color=red>     0..|  	    reply(Pid, Reply);</font>
+        |  	{{no, Lucky},_} -&gt;
+<font color=red>     0..|  	    C = #cyclic{op = SimpleOp, lock = Lock, oid = Oid, lucky = Lucky},</font>
+<font color=red>     0..|  	    ?dbg("Rejected ~p ~p ~p ~p ~n", [Tid, Oid, Lock, Lucky]),</font>
+<font color=red>     0..|  	    reply(Pid, {not_granted, C});</font>
+        |  	{{queue, Lucky},_} -&gt;
+<font color=red>     0..|  	    ?dbg("Queued ~p ~p ~p ~p ~n", [Tid, Oid, Lock, Lucky]),</font>
+        |  	    %% Append to queue: Nice place for trace output
+<font color=red>     0..|  	    ?ets_insert(mnesia2_lock_queue,</font>
+        |  			#queue{oid = Oid, tid = Tid, op = Op,
+        |  			       pid = Pid, lucky = Lucky}),
+<font color=red>     0..|  	    ?ets_insert(mnesia2_tid_locks, {{Tid, Oid, {queued, Op}}})</font>
+        |      end.
+        |  
+        |  grant_lock(Tid, read, Lock, Oid = {Tab, Key}, Default)
+        |    when Key /= ?ALL, Tab /= ?GLOBAL -&gt;
+<font color=red>     0..|      case node(Tid#tid.pid) == node() of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    set_lock(Tid, Oid, Lock, Default),</font>
+<font color=red>     0..|  	    {granted, lookup_in_client};</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    try</font>
+<font color=red>     0..|  		Val = mnesia2_lib:db_get(Tab, Key), %% lookup as well</font>
+<font color=red>     0..|  		set_lock(Tid, Oid, Lock, Default),</font>
+<font color=red>     0..|  		{granted, Val}</font>
+        |  	    catch _:_Reason -&gt;
+        |  		    %% Table has been deleted from this node,
+        |  		    %% restart the transaction.
+<font color=red>     0..|  		    C = #cyclic{op = read, lock = Lock, oid = Oid,</font>
+        |  				lucky = nowhere},
+<font color=red>     0..|  		    {not_granted, C}</font>
+        |  	    end
+        |      end;
+        |  grant_lock(Tid, {ix_read,IxKey,Pos}, Lock, Oid = {Tab, _}, Default) -&gt;
+<font color=red>     0..|      try</font>
+<font color=red>     0..|  	Res = ix_read_res(Tab, IxKey,Pos),</font>
+<font color=red>     0..|  	set_lock(Tid, Oid, Lock, Default),</font>
+<font color=red>     0..|  	{granted, Res, [?ALL]}</font>
+        |      catch _:_ -&gt;
+<font color=red>     0..|  	    {not_granted, {no_exists, Tab, {index, [Pos]}}}</font>
+        |      end;
+        |  grant_lock(Tid, read, Lock, Oid, Default) -&gt;
+<font color=red>     0..|      set_lock(Tid, Oid, Lock, Default),</font>
+<font color=red>     0..|      {granted, ok};</font>
+        |  grant_lock(Tid, write, Lock, Oid, Default) -&gt;
+<font color=red>     0..|      set_lock(Tid, Oid, Lock, Default),</font>
+<font color=red>     0..|      granted.</font>
+        |  
+        |  %% 1) Impose an ordering on all transactions favour old (low tid) transactions
+        |  %%    newer (higher tid) transactions may never wait on older ones,
+        |  %% 2) When releasing the tids from the queue always begin with youngest (high tid)
+        |  %%    because of 1) it will avoid the deadlocks.
+        |  %% 3) TabLocks is the problem :-) They should not starve and not deadlock
+        |  %%    handle tablocks in queue as they had locks on unlocked records.
+        |  
+        |  can_lock(Tid, read, Oid = {Tab, Key}, AlreadyQ) when Key /= ?ALL -&gt;
+<font color=red>     0..|      ObjLocks = ?ets_lookup(mnesia2_held_locks, Oid),</font>
+<font color=red>     0..|      TabLocks = ?ets_lookup(mnesia2_held_locks, {Tab, ?ALL}),</font>
+<font color=red>     0..|      {check_lock(Tid, Oid,</font>
+        |  		filter_write(ObjLocks),
+        |  		filter_write(TabLocks),
+        |  		yes, AlreadyQ, read),
+        |       ObjLocks};
+        |  
+        |  can_lock(Tid, read, Oid, AlreadyQ) -&gt; % Whole tab
+<font color=red>     0..|      Tab = element(1, Oid),</font>
+<font color=red>     0..|      ObjLocks = ?ets_match_object(mnesia2_held_locks, {{Tab, '_'}, write, '_'}),</font>
+<font color=red>     0..|      {check_lock(Tid, Oid, ObjLocks, [], yes, AlreadyQ, read), undefined};</font>
+        |  
+        |  can_lock(Tid, write, Oid = {Tab, Key}, AlreadyQ) when Key /= ?ALL -&gt;
+<font color=red>     0..|      ObjLocks = ?ets_lookup(mnesia2_held_locks, Oid),</font>
+<font color=red>     0..|      TabLocks = ?ets_lookup(mnesia2_held_locks, {Tab, ?ALL}),</font>
+<font color=red>     0..|      {check_lock(Tid, Oid, ObjLocks, TabLocks, yes, AlreadyQ, write), ObjLocks};</font>
+        |  
+        |  can_lock(Tid, write, Oid, AlreadyQ) -&gt; % Whole tab
+<font color=red>     0..|      Tab = element(1, Oid),</font>
+<font color=red>     0..|      ObjLocks = ?ets_match_object(mnesia2_held_locks, ?match_oid_held_locks({Tab, '_'})),</font>
+<font color=red>     0..|      {check_lock(Tid, Oid, ObjLocks, [], yes, AlreadyQ, write), undefined}.</font>
+        |  
+<font color=red>     0..|  filter_write([{_, read, _}]) -&gt; [];</font>
+<font color=red>     0..|  filter_write(Res) -&gt; Res.</font>
+        |  
+        |  %% Check held locks for conflicting locks
+        |  check_lock(Tid, Oid, [{_, _, Lock} | Locks], TabLocks, _X, AlreadyQ, Type) -&gt;
+<font color=red>     0..|      case can_queue(Lock, Tid, Oid, _X) of</font>
+        |  	{no, _} = Res -&gt;
+<font color=red>     0..|  	    Res;</font>
+        |  	Res -&gt;
+<font color=red>     0..|  	    check_lock(Tid, Oid, Locks, TabLocks, Res, AlreadyQ, Type)</font>
+        |      end;
+        |  
+        |  check_lock(_, _, [], [], X, {queue, bad_luck}, _) -&gt;
+<font color=red>     0..|      X;  %% The queue should be correct already no need to check it again</font>
+        |  
+        |  check_lock(_, _, [], [], X = {queue, _Tid}, _AlreadyQ, _) -&gt;
+<font color=red>     0..|      X;</font>
+        |  
+        |  check_lock(Tid, Oid = {Tab, Key}, [], [], X, AlreadyQ, Type) -&gt;
+<font color=red>     0..|      if</font>
+        |  	Type == write -&gt;
+<font color=red>     0..|  	    check_queue(Tid, Tab, X, AlreadyQ);</font>
+        |  	Key == ?ALL -&gt;
+        |  	    %% hmm should be solvable by a clever select expr but not today...
+<font color=red>     0..|  	    check_queue(Tid, Tab, X, AlreadyQ);</font>
+        |  	true -&gt;
+        |  	    %% If there is a queue on that object, read_lock shouldn't be granted
+<font color=red>     0..|  	    ObjLocks = ets:lookup(mnesia2_lock_queue, Oid),</font>
+<font color=red>     0..|  	    case max(ObjLocks) of</font>
+        |  		empty -&gt;
+<font color=red>     0..|  		    check_queue(Tid, Tab, X, AlreadyQ);</font>
+        |  		ObjL -&gt;
+<font color=red>     0..|  		    case allowed_to_be_queued(ObjL,Tid) of</font>
+        |  			false -&gt;
+        |  			    %% Starvation Preemption (write waits for read)
+<font color=red>     0..|  			    {no, ObjL};</font>
+        |  			true -&gt;
+<font color=red>     0..|  			    check_queue(Tid, Tab, {queue, ObjL}, AlreadyQ)</font>
+        |  		    end
+        |  	    end
+        |      end;
+        |  
+        |  check_lock(Tid, Oid, [], TabLocks, X, AlreadyQ, Type) -&gt;
+<font color=red>     0..|      check_lock(Tid, Oid, TabLocks, [], X, AlreadyQ, Type).</font>
+        |  
+        |  can_queue([{_Op, Tid}|Locks], Tid, Oid, Res) -&gt;
+<font color=red>     0..|      can_queue(Locks, Tid, Oid, Res);</font>
+        |  can_queue([{Op, WaitForTid}|Locks], Tid, Oid = {Tab, _}, _) -&gt;
+<font color=red>     0..|      case allowed_to_be_queued(WaitForTid,Tid) of</font>
+        |  	true when Tid#tid.pid == WaitForTid#tid.pid -&gt;
+<font color=red>     0..|  	    dbg_out("Spurious lock conflict ~w ~w: ~w -&gt; ~w~n",</font>
+        |  		    [Oid, Op, Tid, WaitForTid]),
+<font color=red>     0..|  	    HaveQ = (ets:lookup(mnesia2_lock_queue, Oid) /= [])</font>
+<font color=red>     0..|  		orelse (ets:lookup(mnesia2_lock_queue,{Tab,?ALL}) /= []),</font>
+<font color=red>     0..|  	    case HaveQ of</font>
+<font color=red>     0..|  		true -&gt; {no, WaitForTid};</font>
+<font color=red>     0..|  		false -&gt;  can_queue(Locks, Tid, Oid, {queue, WaitForTid})</font>
+        |  	    end;
+        |  	true -&gt;
+<font color=red>     0..|  	    can_queue(Locks, Tid, Oid, {queue, WaitForTid});</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    {no, WaitForTid}</font>
+        |      end;
+<font color=red>     0..|  can_queue([], _, _, Res) -&gt; Res.</font>
+        |  
+        |  %% True if  WaitForTid &gt; Tid -&gt; % Important order
+        |  allowed_to_be_queued(WaitForTid, Tid) -&gt;
+<font color=red>     0..|      case get(pid_sort_order) of</font>
+<font color=red>     0..|  	undefined -&gt; WaitForTid &gt; Tid;</font>
+        |  	r9b_plain -&gt;
+<font color=red>     0..|  	    cmp_tid(true, WaitForTid, Tid) =:= 1;</font>
+        |  	standard  -&gt;
+<font color=red>     0..|  	    cmp_tid(false, WaitForTid, Tid) =:= 1</font>
+        |      end.
+        |  
+        |  %% Check queue for conflicting locks
+        |  %% Assume that all queued locks belongs to other tid's
+        |  
+        |  check_queue(Tid, Tab, X, AlreadyQ) -&gt;
+<font color=red>     0..|      TabLocks = ets:lookup(mnesia2_lock_queue, {Tab,?ALL}),</font>
+<font color=red>     0..|      Greatest = max(TabLocks),</font>
+<font color=red>     0..|      case Greatest of</font>
+<font color=red>     0..|  	empty -&gt;  X;</font>
+<font color=red>     0..|  	Tid -&gt;    X;</font>
+        |  	WaitForTid -&gt;
+<font color=red>     0..|  	    case allowed_to_be_queued(WaitForTid,Tid) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    {queue, WaitForTid};</font>
+        |  		false when AlreadyQ =:= {no, bad_luck} -&gt;
+<font color=red>     0..|  		    {no, WaitForTid}</font>
+        |  	    end
+        |      end.
+        |  
+        |  sort_queue(QL) -&gt;
+<font color=red>     0..|      case get(pid_sort_order) of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    lists:reverse(lists:keysort(#queue.tid, QL));</font>
+        |  	r9b_plain -&gt;
+<font color=red>     0..|  	    lists:sort(fun(#queue{tid=X},#queue{tid=Y}) -&gt;</font>
+<font color=red>     0..|  			       cmp_tid(true, X, Y) == 1</font>
+        |  		       end, QL);
+        |  	standard  -&gt;
+<font color=red>     0..|  	    lists:sort(fun(#queue{tid=X},#queue{tid=Y}) -&gt;</font>
+<font color=red>     0..|  			       cmp_tid(false, X, Y) == 1</font>
+        |  		       end, QL)
+        |      end.
+        |  
+<font color=red>     0..|  max([]) -&gt;                 empty;</font>
+<font color=red>     0..|  max([#queue{tid=Max}]) -&gt;  Max;</font>
+        |  max(L) -&gt;
+<font color=red>     0..|      [#queue{tid=Max}|_] = sort_queue(L),</font>
+<font color=red>     0..|      Max.</font>
+        |  
+        |  set_read_lock_on_all_keys(Tid, From, Tab, IxKey, Pos) -&gt;
+<font color=red>     0..|      Oid = {Tab,?ALL},</font>
+<font color=red>     0..|      Op = {ix_read,IxKey, Pos},</font>
+<font color=red>     0..|      Lock = read,</font>
+<font color=red>     0..|      case can_lock(Tid, Lock, Oid, {no, bad_luck}) of</font>
+        |  	{yes, Default} -&gt;
+<font color=red>     0..|  	    Reply = grant_lock(Tid, Op, Lock, Oid, Default),</font>
+<font color=red>     0..|  	    reply(From, Reply);</font>
+        |  	{{no, Lucky},_} -&gt;
+<font color=red>     0..|  	    C = #cyclic{op = Op, lock = Lock, oid = Oid, lucky = Lucky},</font>
+<font color=red>     0..|  	    ?dbg("Rejected ~p ~p ~p ~p ~n", [Tid, Oid, Lock, Lucky]),</font>
+<font color=red>     0..|  	    reply(From, {not_granted, C});</font>
+        |  	{{queue, Lucky},_} -&gt;
+<font color=red>     0..|  	    ?dbg("Queued ~p ~p ~p ~p ~n", [Tid, Oid, Lock, Lucky]),</font>
+        |  	    %% Append to queue: Nice place for trace output
+<font color=red>     0..|  	    ?ets_insert(mnesia2_lock_queue,</font>
+        |  			#queue{oid = Oid, tid = Tid, op = Op,
+        |  			       pid = From, lucky = Lucky}),
+<font color=red>     0..|  	    ?ets_insert(mnesia2_tid_locks, {{Tid, Oid, {queued, Op}}})</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Release of locks
+        |  
+        |  %% Release remote non-pending nodes
+        |  release_remote_non_pending(Node, Pending) -&gt;
+        |      %% Clear the mnesia2_sticky_locks table first, to avoid
+        |      %% unnecessary requests to the failing node
+<font color=red>     0..|      ?ets_match_delete(mnesia2_sticky_locks, {'_' , Node}),</font>
+        |  
+        |      %% Then we have to release all locks held by processes
+        |      %% running at the failed node and also simply remove all
+        |      %% queue'd requests back to the failed node
+        |  
+<font color=red>     0..|      AllTids0 = ?ets_match(mnesia2_tid_locks, {{'$1', '_', '_'}}),</font>
+<font color=red>     0..|      AllTids  = lists:usort(AllTids0),</font>
+<font color=red>     0..|      Tids = [T || [T] &lt;- AllTids, Node == node(T#tid.pid), not lists:member(T, Pending)],</font>
+<font color=red>     0..|      do_release_tids(Tids).</font>
+        |  
+        |  do_release_tids([Tid | Tids]) -&gt;
+<font color=red>     0..|      do_release_tid(Tid),</font>
+<font color=red>     0..|      do_release_tids(Tids);</font>
+        |  do_release_tids([]) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  do_release_tid(Tid) -&gt;
+<font color=red>     0..|      Objects = ets:select(mnesia2_tid_locks, [{{{Tid, '_', '_'}}, [], ['$_']}]),</font>
+<font color=red>     0..|      Locks = lists:map(fun({L}) -&gt; L end, Objects),</font>
+<font color=red>     0..|      ?dbg("Release ~p ~p ~n", [Tid, Locks]),</font>
+<font color=red>     0..|      [?ets_delete(mnesia2_tid_locks, L) || L &lt;- Locks],</font>
+<font color=red>     0..|      release_locks(Locks),</font>
+        |      %% Removed queued locks which has had locks
+<font color=red>     0..|      UniqueLocks = keyunique(lists:sort(Locks),[]),</font>
+<font color=red>     0..|      rearrange_queue(UniqueLocks).</font>
+        |  
+        |  keyunique([{_Tid, Oid, _Op}|R], Acc = [{_, Oid, _}|_]) -&gt;
+<font color=red>     0..|      keyunique(R, Acc);</font>
+        |  keyunique([H|R], Acc) -&gt;
+<font color=red>     0..|      keyunique(R, [H|Acc]);</font>
+        |  keyunique([], Acc) -&gt;
+<font color=red>     0..|      Acc.</font>
+        |  
+        |  release_locks([Lock | Locks]) -&gt;
+<font color=red>     0..|      release_lock(Lock),</font>
+<font color=red>     0..|      release_locks(Locks);</font>
+        |  release_locks([]) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  release_lock({Tid, Oid, {queued, _}}) -&gt;
+<font color=red>     0..|      ?ets_match_delete(mnesia2_lock_queue, #queue{oid=Oid, tid = Tid, op = '_',</font>
+        |  						pid = '_', lucky = '_'});
+        |  release_lock({_Tid, Oid, write}) -&gt;
+<font color=red>     0..|      ?ets_delete(mnesia2_held_locks, Oid);</font>
+        |  release_lock({Tid, Oid, read}) -&gt;
+<font color=red>     0..|      case ?ets_lookup(mnesia2_held_locks, Oid) of</font>
+        |  	[{Oid, Prev, Locks0}] -&gt;
+<font color=red>     0..|  	    case remove_tid(Locks0, Tid, []) of</font>
+<font color=red>     0..|  		[] -&gt; ?ets_delete(mnesia2_held_locks, Oid);</font>
+<font color=red>     0..|  		Locks -&gt; ?ets_insert(mnesia2_held_locks, {Oid, Prev, Locks})</font>
+        |  	    end;
+<font color=red>     0..|  	[] -&gt; ok</font>
+        |      end.
+        |  
+        |  remove_tid([{_Op, Tid}|Ls], Tid, Acc) -&gt;
+<font color=red>     0..|      remove_tid(Ls,Tid, Acc);</font>
+        |  remove_tid([Keep|Ls], Tid, Acc) -&gt;
+<font color=red>     0..|      remove_tid(Ls,Tid, [Keep|Acc]);</font>
+<font color=red>     0..|  remove_tid([], _, Acc) -&gt; Acc.</font>
+        |  
+        |  rearrange_queue([{_Tid, {Tab, Key}, _} | Locks]) -&gt;
+<font color=red>     0..|      if</font>
+        |  	Key /= ?ALL-&gt;
+<font color=red>     0..|  	    Queue =</font>
+        |  		ets:lookup(mnesia2_lock_queue, {Tab, ?ALL}) ++
+        |  		ets:lookup(mnesia2_lock_queue, {Tab, Key}),
+<font color=red>     0..|  	    case Queue of</font>
+        |  		[] -&gt;
+<font color=red>     0..|  		    ok;</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    Sorted = sort_queue(Queue),</font>
+<font color=red>     0..|  		    try_waiters_obj(Sorted)</font>
+        |  	    end;
+        |  	true -&gt;
+<font color=red>     0..|  	    Pat = ?match_oid_lock_queue({Tab, '_'}),</font>
+<font color=red>     0..|  	    Queue = ?ets_match_object(mnesia2_lock_queue, Pat),</font>
+<font color=red>     0..|  	    Sorted = sort_queue(Queue),</font>
+<font color=red>     0..|  	    try_waiters_tab(Sorted)</font>
+        |      end,
+<font color=red>     0..|      ?dbg("RearrQ ~p~n", [Queue]),</font>
+<font color=red>     0..|      rearrange_queue(Locks);</font>
+        |  rearrange_queue([]) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  try_waiters_obj([W | Waiters]) -&gt;
+<font color=red>     0..|      case try_waiter(W) of</font>
+        |  	queued -&gt;
+<font color=red>     0..|  	    no;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    try_waiters_obj(Waiters)</font>
+        |      end;
+        |  try_waiters_obj([]) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  try_waiters_tab([W | Waiters]) -&gt;
+<font color=red>     0..|      case W#queue.oid of</font>
+        |  	{_Tab, ?ALL} -&gt;
+<font color=red>     0..|  	    case try_waiter(W) of</font>
+        |  		queued -&gt;
+<font color=red>     0..|  		    no;</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    try_waiters_tab(Waiters)</font>
+        |  	    end;
+        |  	Oid -&gt;
+<font color=red>     0..|  	    case try_waiter(W) of</font>
+        |  		queued -&gt;
+<font color=red>     0..|  		    Rest = key_delete_all(Oid, #queue.oid, Waiters),</font>
+<font color=red>     0..|  		    try_waiters_tab(Rest);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    try_waiters_tab(Waiters)</font>
+        |  	    end
+        |      end;
+        |  try_waiters_tab([]) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  try_waiter({queue, Oid, Tid, read_write, ReplyTo, _}) -&gt;
+<font color=red>     0..|      try_waiter(Oid, read_write, read, write, ReplyTo, Tid);</font>
+        |  try_waiter({queue, Oid, Tid, IXR = {ix_read,_,_}, ReplyTo, _}) -&gt;
+<font color=red>     0..|      try_waiter(Oid, IXR, IXR, read, ReplyTo, Tid);</font>
+        |  try_waiter({queue, Oid, Tid, Op, ReplyTo, _}) -&gt;
+<font color=red>     0..|      try_waiter(Oid, Op, Op, Op, ReplyTo, Tid).</font>
+        |  
+        |  try_waiter(Oid, Op, SimpleOp, Lock, ReplyTo, Tid) -&gt;
+<font color=red>     0..|      case can_lock(Tid, Lock, Oid, {queue, bad_luck}) of</font>
+        |  	{yes, Default} -&gt;
+        |  	    %% Delete from queue: Nice place for trace output
+<font color=red>     0..|  	    ?ets_match_delete(mnesia2_lock_queue,</font>
+        |  			      #queue{oid=Oid, tid = Tid, op = Op,
+        |  				     pid = ReplyTo, lucky = '_'}),
+<font color=red>     0..|  	    Reply = grant_lock(Tid, SimpleOp, Lock, Oid, Default),</font>
+<font color=red>     0..|  	    reply(ReplyTo,Reply),</font>
+<font color=red>     0..|  	    locked;</font>
+        |  	{{queue, _Why}, _} -&gt;
+<font color=red>     0..|  	    ?dbg("Keep ~p ~p ~p ~p~n", [Tid, Oid, Lock, _Why]),</font>
+<font color=red>     0..|  	    queued; % Keep waiter in queue</font>
+        |  	{{no, Lucky}, _} -&gt;
+<font color=red>     0..|  	    C = #cyclic{op = SimpleOp, lock = Lock, oid = Oid, lucky = Lucky},</font>
+<font color=red>     0..|  	    verbose("** WARNING ** Restarted transaction, possible deadlock in lock queue ~w: cyclic = ~w~n",</font>
+        |  		    [Tid, C]),
+<font color=red>     0..|  	    ?ets_match_delete(mnesia2_lock_queue,</font>
+        |  			      #queue{oid=Oid, tid = Tid, op = Op,
+        |  				     pid = ReplyTo, lucky = '_'}),
+<font color=red>     0..|  	    Reply = {not_granted, C},</font>
+<font color=red>     0..|  	    reply(ReplyTo,Reply),</font>
+<font color=red>     0..|  	    removed</font>
+        |      end.
+        |  
+        |  key_delete_all(Key, Pos, TupleList) -&gt;
+<font color=red>     0..|      key_delete_all(Key, Pos, TupleList, []).</font>
+        |  key_delete_all(Key, Pos, [H|T], Ack) when element(Pos, H) == Key -&gt;
+<font color=red>     0..|      key_delete_all(Key, Pos, T, Ack);</font>
+        |  key_delete_all(Key, Pos, [H|T], Ack) -&gt;
+<font color=red>     0..|      key_delete_all(Key, Pos, T, [H|Ack]);</font>
+        |  key_delete_all(_, _, [], Ack) -&gt;
+<font color=red>     0..|      lists:reverse(Ack).</font>
+        |  
+        |  ix_read_res(Tab,IxKey,Pos) -&gt;
+<font color=red>     0..|      Index = mnesia2_index:get_index_table(Tab, Pos),</font>
+<font color=red>     0..|      Rks = mnesia2_lib:elems(2,mnesia2_index:db_get(Index, IxKey)),</font>
+<font color=red>     0..|      lists:append(lists:map(fun(Real) -&gt; mnesia2_lib:db_get(Tab, Real) end, Rks)).</font>
+        |  
+        |  %% ********************* end server code ********************
+        |  %% The following code executes at the client side of a transactions
+        |  
+        |  %% Aquire a write lock, but do a read, used by
+        |  %% mnesia2:wread/1
+        |  
+        |  rwlock(Tid, Store, Oid) -&gt;
+<font color=red>     0..|      {Tab, Key} = Oid,</font>
+<font color=red>     0..|      case val({Tab, where_to_read}) of</font>
+        |  	nowhere -&gt;
+<font color=red>     0..|  	    mnesia2:abort({no_exists, Tab});</font>
+        |  	Node -&gt;
+<font color=red>     0..|  	    Lock = write,</font>
+<font color=red>     0..|  	    case need_lock(Store, Tab, Key, Lock)  of</font>
+        |  		yes -&gt;
+<font color=red>     0..|  		    {Ns0, Majority} = w_nodes(Tab),</font>
+<font color=red>     0..|  		    Ns = [Node|lists:delete(Node,Ns0)],</font>
+<font color=red>     0..|  		    check_majority(Majority, Tab, Ns),</font>
+<font color=red>     0..|  		    Res = get_rwlocks_on_nodes(Ns, make_ref(), Store, Tid, Oid),</font>
+<font color=red>     0..|  		    ?ets_insert(Store, {{locks, Tab, Key}, Lock}),</font>
+<font color=red>     0..|  		    Res;</font>
+        |  		no -&gt;
+<font color=red>     0..|  		    if</font>
+        |  			Key == ?ALL -&gt;
+<font color=red>     0..|  			    element(2, w_nodes(Tab));</font>
+        |  			Tab == ?GLOBAL -&gt;
+<font color=red>     0..|  			    element(2, w_nodes(Tab));</font>
+        |  			true -&gt;
+<font color=red>     0..|  			    dirty_rpc(Node, Tab, Key, Lock)</font>
+        |  		    end
+        |  	    end
+        |      end.
+        |  
+        |  %% Return a list of nodes or abort transaction
+        |  %% WE also insert any additional where_to_write nodes
+        |  %% in the local store under the key == nodes
+        |  
+        |  w_nodes(Tab) -&gt;
+<font color=red>     0..|      case ?catch_val({Tab, where_to_wlock}) of</font>
+<font color=red>     0..|  	{[_ | _], _} = Where -&gt; Where;</font>
+<font color=red>     0..|  	_ -&gt;  mnesia2:abort({no_exists, Tab})</font>
+        |      end.
+        |  
+        |  %% If the table has the 'majority' flag set, we can
+        |  %% only take a write lock if we see a majority of the
+        |  %% nodes.
+        |  
+        |  
+        |  check_majority(true, Tab, HaveNs) -&gt;
+<font color=red>     0..|      check_majority(Tab, HaveNs);</font>
+        |  check_majority(false, _, _) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  check_majority(Tab, HaveNs) -&gt;
+<font color=red>     0..|      case ?catch_val({Tab, majority}) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    case mnesia2_lib:have_majority(Tab, HaveNs) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    ok;</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    mnesia2:abort({no_majority, Tab})</font>
+        |  	    end;
+        |  	_ -&gt;
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  %% aquire a sticky wlock, a sticky lock is a lock
+        |  %% which remains at this node after the termination of the
+        |  %% transaction.
+        |  
+        |  sticky_wlock(Tid, Store, Oid) -&gt;
+<font color=red>     0..|      sticky_lock(Tid, Store, Oid, write).</font>
+        |  
+        |  sticky_rwlock(Tid, Store, Oid) -&gt;
+<font color=red>     0..|      sticky_lock(Tid, Store, Oid, read_write).</font>
+        |  
+        |  sticky_lock(Tid, Store, {Tab, Key} = Oid, Lock) -&gt;
+<font color=red>     0..|      N = val({Tab, where_to_read}),</font>
+<font color=red>     0..|      if</font>
+        |  	node() == N -&gt;
+<font color=red>     0..|  	    case need_lock(Store, Tab, Key, write) of</font>
+        |  	    	yes -&gt;
+<font color=red>     0..|  		    do_sticky_lock(Tid, Store, Oid, Lock);</font>
+        |  		no -&gt;
+<font color=red>     0..|  		    dirty_sticky_lock(Tab, Key, [N], Lock)</font>
+        |  	    end;
+        |  	true -&gt;
+<font color=red>     0..|  	    mnesia2:abort({not_local, Tab})</font>
+        |      end.
+        |  
+        |  do_sticky_lock(Tid, Store, {Tab, Key} = Oid, Lock) -&gt;
+<font color=red>     0..|      {WNodes, Majority} = w_nodes(Tab),</font>
+<font color=red>     0..|      sticky_check_majority(Lock, Tab, Majority, WNodes),</font>
+<font color=red>     0..|      ?MODULE ! {self(), {test_set_sticky, Tid, Oid, Lock}},</font>
+<font color=red>     0..|      N = node(),</font>
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, N, granted} -&gt;
+<font color=red>     0..|  	    ?ets_insert(Store, {{locks, Tab, Key}, write}),</font>
+<font color=red>     0..|  	    [?ets_insert(Store, {nodes, Node}) || Node &lt;- WNodes],</font>
+<font color=red>     0..|  	    granted;</font>
+        |  	{?MODULE, N, {granted, Val}} -&gt; %% for rwlocks
+<font color=red>     0..|  	    case opt_lookup_in_client(Val, Oid, write) of</font>
+        |  		C = #cyclic{} -&gt;
+<font color=red>     0..|  		    exit({aborted, C});</font>
+        |  		Val2 -&gt;
+<font color=red>     0..|  		    ?ets_insert(Store, {{locks, Tab, Key}, write}),</font>
+<font color=red>     0..|  		    [?ets_insert(Store, {nodes, Node}) || Node &lt;- WNodes],</font>
+<font color=red>     0..|  		    Val2</font>
+        |  	    end;
+        |  	{?MODULE, N, {not_granted, Reason}} -&gt;
+<font color=red>     0..|  	    exit({aborted, Reason});</font>
+        |  	{?MODULE, N, not_stuck} -&gt;
+<font color=red>     0..|  	    not_stuck(Tid, Store, Tab, Key, Oid, Lock, N),</font>
+<font color=red>     0..|  	    dirty_sticky_lock(Tab, Key, [N], Lock);</font>
+        |  	{mnesia2_down, Node} -&gt;
+<font color=red>     0..|  	    EMsg = {aborted, {node_not_running, Node}},</font>
+<font color=red>     0..|  	    flush_remaining([N], Node, EMsg);</font>
+        |  	{?MODULE, N, {stuck_elsewhere, _N2}} -&gt;
+<font color=red>     0..|  	    stuck_elsewhere(Tid, Store, Tab, Key, Oid, Lock),</font>
+<font color=red>     0..|  	    dirty_sticky_lock(Tab, Key, [N], Lock)</font>
+        |      end.
+        |  
+        |  sticky_check_majority(W, Tab, true, WNodes) when W==write; W==read_write -&gt;
+<font color=red>     0..|      case mnesia2_lib:have_majority(Tab, WNodes) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    mnesia2:abort({no_majority, Tab})</font>
+        |      end;
+        |  sticky_check_majority(_, _, _, _) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  not_stuck(Tid, Store, Tab, _Key, Oid, _Lock, N) -&gt;
+<font color=red>     0..|      rlock(Tid, Store, {Tab, ?ALL}),   %% needed?</font>
+<font color=red>     0..|      wlock(Tid, Store, Oid),           %% perfect sync</font>
+<font color=red>     0..|      wlock(Tid, Store, {Tab, ?STICK}), %% max one sticker/table</font>
+<font color=red>     0..|      Ns = val({Tab, where_to_write}),</font>
+<font color=red>     0..|      rpc:abcast(Ns, ?MODULE, {stick, Oid, N}).</font>
+        |  
+        |  stuck_elsewhere(Tid, Store, Tab, _Key, Oid, _Lock) -&gt;
+<font color=red>     0..|      rlock(Tid, Store, {Tab, ?ALL}),   %% needed?</font>
+<font color=red>     0..|      wlock(Tid, Store, Oid),           %% perfect sync</font>
+<font color=red>     0..|      wlock(Tid, Store, {Tab, ?STICK}), %% max one sticker/table</font>
+<font color=red>     0..|      Ns = val({Tab, where_to_write}),</font>
+<font color=red>     0..|      rpc:abcast(Ns, ?MODULE, {unstick, Tab}).</font>
+        |  
+        |  dirty_sticky_lock(Tab, Key, Nodes, Lock) -&gt;
+<font color=red>     0..|      if</font>
+        |  	Lock == read_write -&gt;
+<font color=red>     0..|  	    mnesia2_lib:db_get(Tab, Key);</font>
+        |  	Key == ?ALL -&gt;
+<font color=red>     0..|  	    Nodes;</font>
+        |  	Tab == ?GLOBAL -&gt;
+<font color=red>     0..|  	    Nodes;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  sticky_wlock_table(Tid, Store, Tab) -&gt;
+<font color=red>     0..|      sticky_lock(Tid, Store, {Tab, ?ALL}, write).</font>
+        |  
+        |  %% aquire a wlock on Oid
+        |  %% We store a {Tabname, write, Tid} in all locktables
+        |  %% on all nodes containing a copy of Tabname
+        |  %% We also store an item {{locks, Tab, Key}, write} in the
+        |  %% local store when we have aquired the lock.
+        |  %%
+        |  wlock(Tid, Store, Oid) -&gt;
+<font color=red>     0..|      wlock(Tid, Store, Oid, _CheckMajority = true).</font>
+        |  
+        |  wlock(Tid, Store, Oid, CheckMajority) -&gt;
+<font color=red>     0..|      {Tab, Key} = Oid,</font>
+<font color=red>     0..|      case need_lock(Store, Tab, Key, write) of</font>
+        |  	yes -&gt;
+<font color=red>     0..|  	    {Ns, Majority} = w_nodes(Tab),</font>
+<font color=red>     0..|  	    if CheckMajority -&gt;</font>
+<font color=red>     0..|  		    check_majority(Majority, Tab, Ns);</font>
+        |  	       true -&gt;
+<font color=red>     0..|  		    ignore</font>
+        |  	    end,
+<font color=red>     0..|  	    Op = {self(), {write, Tid, Oid}},</font>
+<font color=red>     0..|  	    ?ets_insert(Store, {{locks, Tab, Key}, write}),</font>
+<font color=red>     0..|  	    get_wlocks_on_nodes(Ns, Ns, Store, Op, Oid);</font>
+        |  	no when Key /= ?ALL, Tab /= ?GLOBAL -&gt;
+<font color=red>     0..|  	    [];</font>
+        |  	no -&gt;
+<font color=red>     0..|  	    element(2, w_nodes(Tab))</font>
+        |      end.
+        |  
+        |  wlock_table(Tid, Store, Tab) -&gt;
+<font color=red>     0..|      wlock(Tid, Store, {Tab, ?ALL}).</font>
+        |  
+        |  load_lock_table(Tid, Store, Tab) -&gt;
+<font color=red>     0..|      wlock(Tid, Store, {Tab, ?ALL}, _CheckMajority = false).</font>
+        |  
+        |  %% Write lock even if the table does not exist
+        |  
+        |  wlock_no_exist(Tid, Store, Tab, Ns) -&gt;
+<font color=red>     0..|      Oid = {Tab, ?ALL},</font>
+<font color=red>     0..|      Op = {self(), {write, Tid, Oid}},</font>
+<font color=red>     0..|      get_wlocks_on_nodes(Ns, Ns, Store, Op, Oid).</font>
+        |  
+        |  need_lock(Store, Tab, Key, LockPattern) -&gt;
+<font color=red>     0..|      TabL = ?ets_match_object(Store, {{locks, Tab, ?ALL}, LockPattern}),</font>
+<font color=red>     0..|      if</font>
+        |  	TabL == [] -&gt;
+<font color=red>     0..|  	    KeyL = ?ets_match_object(Store, {{locks, Tab, Key}, LockPattern}),</font>
+<font color=red>     0..|  	    if</font>
+        |  		KeyL == [] -&gt;
+<font color=red>     0..|  		    yes;</font>
+        |  		true  -&gt;
+<font color=red>     0..|  		    no</font>
+        |  	    end;
+        |  	true -&gt;
+<font color=red>     0..|  	    no</font>
+        |      end.
+        |  
+        |  add_debug(Nodes) -&gt;  % Use process dictionary for debug info
+<font color=red>     0..|      put(mnesia2_wlock_nodes, Nodes).</font>
+        |  
+        |  del_debug() -&gt;
+<font color=red>     0..|      erase(mnesia2_wlock_nodes).</font>
+        |  
+        |  %% We first send lock request to the local node if it is part of the lockers
+        |  %% then the first sorted node then to the rest of the lockmanagers on all
+        |  %% nodes holding a copy of the table
+        |  
+        |  get_wlocks_on_nodes([Node | Tail], Orig, Store, Request, Oid) -&gt;
+<font color=red>     0..|      {?MODULE, Node} ! Request,</font>
+<font color=red>     0..|      ?ets_insert(Store, {nodes, Node}),</font>
+<font color=red>     0..|      receive_wlocks([Node], undefined, Store, Oid),</font>
+<font color=red>     0..|      case node() of</font>
+        |  	Node -&gt; %% Local done try one more
+<font color=red>     0..|  	    get_wlocks_on_nodes(Tail, Orig, Store, Request, Oid);</font>
+        |  	_ -&gt;    %% The first succeded cont with the rest
+<font color=red>     0..|  	    get_wlocks_on_nodes(Tail, Store, Request),</font>
+<font color=red>     0..|  	    receive_wlocks(Tail, Orig, Store, Oid)</font>
+        |      end;
+        |  get_wlocks_on_nodes([], Orig, _Store, _Request, _Oid) -&gt;
+<font color=red>     0..|      Orig.</font>
+        |  
+        |  get_wlocks_on_nodes([Node | Tail], Store, Request) -&gt;
+<font color=red>     0..|      {?MODULE, Node} ! Request,</font>
+<font color=red>     0..|      ?ets_insert(Store,{nodes, Node}),</font>
+<font color=red>     0..|      get_wlocks_on_nodes(Tail, Store, Request);</font>
+        |  get_wlocks_on_nodes([], _, _) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  get_rwlocks_on_nodes([ReadNode|Tail], Ref, Store, Tid, Oid) -&gt;
+<font color=red>     0..|      Op = {self(), {read_write, Tid, Oid}},</font>
+<font color=red>     0..|      {?MODULE, ReadNode} ! Op,</font>
+<font color=red>     0..|      ?ets_insert(Store, {nodes, ReadNode}),</font>
+<font color=red>     0..|      case receive_wlocks([ReadNode], Ref, Store, Oid) of</font>
+        |  	Ref -&gt;
+<font color=red>     0..|  	    get_rwlocks_on_nodes(Tail, Ref, Store, Tid, Oid);</font>
+        |  	Res -&gt;
+<font color=red>     0..|  	    get_wlocks_on_nodes(Tail, Res, Store, {self(), {write, Tid, Oid}}, Oid)</font>
+        |      end;
+        |  get_rwlocks_on_nodes([],Res,_,_,_) -&gt;
+<font color=red>     0..|      Res.</font>
+        |  
+        |  receive_wlocks([], Res, _Store, _Oid) -&gt;
+<font color=red>     0..|      del_debug(),</font>
+<font color=red>     0..|      Res;</font>
+        |  receive_wlocks(Nodes = [This|Ns], Res, Store, Oid) -&gt;
+<font color=red>     0..|      add_debug(Nodes),</font>
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, Node, granted} -&gt;
+<font color=red>     0..|  	    receive_wlocks(lists:delete(Node,Nodes), Res, Store, Oid);</font>
+        |  	{?MODULE, Node, {granted, Val}} -&gt; %% for rwlocks
+<font color=red>     0..|  	    case opt_lookup_in_client(Val, Oid, write) of</font>
+        |  		C = #cyclic{} -&gt;
+<font color=red>     0..|  		    flush_remaining(Nodes, Node, {aborted, C});</font>
+        |  		Val2 -&gt;
+<font color=red>     0..|  		    receive_wlocks(lists:delete(Node,Nodes), Val2, Store, Oid)</font>
+        |  	    end;
+        |  	{?MODULE, Node, {not_granted, Reason}} -&gt;
+<font color=red>     0..|  	    Reason1 = {aborted, Reason},</font>
+<font color=red>     0..|  	    flush_remaining(Nodes,Node,Reason1);</font>
+        |  	{?MODULE, Node, {switch, Sticky, _Req}} -&gt; %% for rwlocks
+<font color=red>     0..|  	    Tail = lists:delete(Node,Nodes),</font>
+<font color=red>     0..|  	    Nonstuck = lists:delete(Sticky,Tail),</font>
+<font color=red>     0..|  	    [?ets_insert(Store, {nodes, NSNode}) || NSNode &lt;- Nonstuck],</font>
+<font color=red>     0..|  	    case lists:member(Sticky,Tail) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    sticky_flush(Nonstuck,Store),</font>
+<font color=red>     0..|  		    receive_wlocks([Sticky], Res, Store, Oid);</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    sticky_flush(Nonstuck,Store),</font>
+<font color=red>     0..|  		    Res</font>
+        |  	    end;
+        |  	{mnesia2_down, This} -&gt;  % Only look for down from Nodes in list
+<font color=red>     0..|  	    Reason1 = {aborted, {node_not_running, This}},</font>
+<font color=red>     0..|  	    flush_remaining(Ns, This, Reason1)</font>
+        |      end.
+        |  
+        |  sticky_flush([], _) -&gt;
+<font color=red>     0..|      del_debug(),</font>
+<font color=red>     0..|      ok;</font>
+        |  sticky_flush(Ns=[Node | Tail], Store) -&gt;
+<font color=red>     0..|      add_debug(Ns),</font>
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, Node, _} -&gt;
+<font color=red>     0..|  	    sticky_flush(Tail, Store);</font>
+        |  	{mnesia2_down, Node} -&gt;
+<font color=red>     0..|  	    Reason1 = {aborted, {node_not_running, Node}},</font>
+<font color=red>     0..|  	    flush_remaining(Tail, Node, Reason1)</font>
+        |      end.
+        |  
+        |  flush_remaining([], _SkipNode, Res) -&gt;
+<font color=red>     0..|      del_debug(),</font>
+<font color=red>     0..|      exit(Res);</font>
+        |  flush_remaining(Ns=[SkipNode | Tail ], SkipNode, Res) -&gt;
+<font color=red>     0..|      add_debug(Ns),</font>
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, SkipNode, _} -&gt;
+<font color=red>     0..|  	    flush_remaining(Tail, SkipNode, Res)</font>
+        |      after 0 -&gt;
+<font color=red>     0..|  	    flush_remaining(Tail, SkipNode, Res)</font>
+        |      end;
+        |  flush_remaining(Ns=[Node | Tail], SkipNode, Res) -&gt;
+<font color=red>     0..|      add_debug(Ns),</font>
+<font color=red>     0..|      receive</font>
+        |  	{?MODULE, Node, _} -&gt;
+<font color=red>     0..|  	    flush_remaining(Tail, SkipNode, Res);</font>
+        |  	{mnesia2_down, Node} -&gt;
+<font color=red>     0..|  	    flush_remaining(Tail, SkipNode, {aborted, {node_not_running, Node}})</font>
+        |      end.
+        |  
+        |  opt_lookup_in_client(lookup_in_client, Oid, Lock) -&gt;
+<font color=red>     0..|      {Tab, Key} = Oid,</font>
+<font color=red>     0..|      try mnesia2_lib:db_get(Tab, Key)</font>
+        |      catch error:_ -&gt;
+        |  	    %% Table has been deleted from this node,
+        |  	    %% restart the transaction.
+<font color=red>     0..|  	    #cyclic{op = read, lock = Lock, oid = Oid, lucky = nowhere}</font>
+        |      end;
+        |  opt_lookup_in_client(Val, _Oid, _Lock) -&gt;
+<font color=red>     0..|      Val.</font>
+        |  
+<font color=red>     0..|  return_granted_or_nodes({_, ?ALL}   , Nodes) -&gt; Nodes;</font>
+<font color=red>     0..|  return_granted_or_nodes({?GLOBAL, _}, Nodes) -&gt; Nodes;</font>
+<font color=red>     0..|  return_granted_or_nodes(_           , _Nodes) -&gt; granted.</font>
+        |  
+        |  %% We store a {Tab, read, From} item in the
+        |  %% locks table on the node where we actually do pick up the object
+        |  %% and we also store an item {lock, Oid, read} in our local store
+        |  %% so that we can release any locks we hold when we commit.
+        |  %% This function not only aquires a read lock, but also reads the object
+        |  
+        |  %% Oid's are always {Tab, Key} tuples
+        |  rlock(Tid, Store, Oid) -&gt;
+<font color=red>     0..|      {Tab, Key} = Oid,</font>
+<font color=red>     0..|      case val({Tab, where_to_read}) of</font>
+        |  	nowhere -&gt;
+<font color=red>     0..|  	    mnesia2:abort({no_exists, Tab});</font>
+        |  	Node -&gt;
+<font color=red>     0..|  	    case need_lock(Store, Tab, Key, '_') of</font>
+        |  		yes -&gt;
+<font color=red>     0..|  		    R = l_request(Node, {read, Tid, Oid}, Store),</font>
+<font color=red>     0..|  		    rlock_get_reply(Node, Store, Oid, R);</font>
+        |  		no -&gt;
+<font color=red>     0..|  		    if</font>
+        |  			Key == ?ALL -&gt;
+<font color=red>     0..|  			    [Node];</font>
+        |  			Tab == ?GLOBAL -&gt;
+<font color=red>     0..|  			    [Node];</font>
+        |  			true -&gt;
+<font color=red>     0..|  			    dirty_rpc(Node, Tab, Key, read)</font>
+        |  		    end
+        |  	    end
+        |      end.
+        |  
+        |  dirty_rpc(nowhere, Tab, Key, _Lock) -&gt;
+<font color=red>     0..|      mnesia2:abort({no_exists, {Tab, Key}});</font>
+        |  dirty_rpc(Node, _Tab, ?ALL, _Lock) -&gt;
+<font color=red>     0..|      [Node];</font>
+        |  dirty_rpc(Node, ?GLOBAL, _Key, _Lock) -&gt;
+<font color=red>     0..|      [Node];</font>
+        |  dirty_rpc(Node, Tab, Key, Lock) -&gt;
+<font color=red>     0..|      Args = [Tab, Key],</font>
+<font color=red>     0..|      case rpc:call(Node, mnesia2_lib, db_get, Args) of</font>
+        |  	{badrpc, Reason} -&gt;
+<font color=red>     0..|  	    case val({Tab, where_to_read}) of</font>
+        |  		Node -&gt;
+<font color=red>     0..|  		    ErrorTag = mnesia2_lib:dirty_rpc_error_tag(Reason),</font>
+<font color=red>     0..|  		    mnesia2:abort({ErrorTag, Args});</font>
+        |  		_NewNode -&gt;
+        |  		    %% Table has been deleted from the node,
+        |  		    %% restart the transaction.
+<font color=red>     0..|  		    C = #cyclic{op = read, lock = Lock, oid = {Tab, Key}, lucky = nowhere},</font>
+<font color=red>     0..|  		    exit({aborted, C})</font>
+        |  	    end;
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end.
+        |  
+        |  rlock_get_reply(Node, Store, Oid, {granted, V}) -&gt;
+<font color=red>     0..|      {Tab, Key} = Oid,</font>
+<font color=red>     0..|      ?ets_insert(Store, {{locks, Tab, Key}, read}),</font>
+<font color=red>     0..|      ?ets_insert(Store, {nodes, Node}),</font>
+<font color=red>     0..|      case opt_lookup_in_client(V, Oid, read) of</font>
+        |  	C = #cyclic{} -&gt;
+<font color=red>     0..|  	    mnesia2:abort(C);</font>
+        |  	Val -&gt;
+<font color=red>     0..|  	    Val</font>
+        |      end;
+        |  rlock_get_reply(Node, Store, Oid, granted) -&gt;
+<font color=red>     0..|      {Tab, Key} = Oid,</font>
+<font color=red>     0..|      ?ets_insert(Store, {{locks, Tab, Key}, read}),</font>
+<font color=red>     0..|      ?ets_insert(Store, {nodes, Node}),</font>
+<font color=red>     0..|      return_granted_or_nodes(Oid, [Node]);</font>
+        |  rlock_get_reply(Node, Store, Tab, {granted, V, RealKeys}) -&gt;
+        |      %% Kept for backwards compatibility, keep until no old nodes
+        |      %% are available
+<font color=red>     0..|      L = fun(K) -&gt; ?ets_insert(Store, {{locks, Tab, K}, read}) end,</font>
+<font color=red>     0..|      lists:foreach(L, RealKeys),</font>
+<font color=red>     0..|      ?ets_insert(Store, {nodes, Node}),</font>
+<font color=red>     0..|      V;</font>
+        |  rlock_get_reply(_Node, _Store, _Oid, {not_granted, Reason}) -&gt;
+<font color=red>     0..|      exit({aborted, Reason});</font>
+        |  
+        |  rlock_get_reply(_Node, Store, Oid, {switch, N2, Req}) -&gt;
+<font color=red>     0..|      ?ets_insert(Store, {nodes, N2}),</font>
+<font color=red>     0..|      {?MODULE, N2} ! Req,</font>
+<font color=red>     0..|      rlock_get_reply(N2, Store, Oid, l_req_rec(N2, Store)).</font>
+        |  
+        |  rlock_table(Tid, Store, Tab) -&gt;
+<font color=red>     0..|      rlock(Tid, Store, {Tab, ?ALL}).</font>
+        |  
+        |  ixrlock(Tid, Store, Tab, IxKey, Pos) -&gt;
+<font color=red>     0..|      case val({Tab, where_to_read}) of</font>
+        |  	nowhere -&gt;
+<font color=red>     0..|  	    mnesia2:abort({no_exists, Tab});</font>
+        |  	Node -&gt;
+        |  	    %%% Old code
+        |  	    %% R = l_request(Node, {ix_read, Tid, Tab, IxKey, Pos}, Store),
+        |  	    %% rlock_get_reply(Node, Store, Tab, R)
+        |  
+<font color=red>     0..|  	    case need_lock(Store, Tab, ?ALL, read) of</font>
+        |  		no when Node =:= node() -&gt;
+<font color=red>     0..|  		    ix_read_res(Tab,IxKey,Pos);</font>
+        |  		_ -&gt; %% yes or need to get the result from other node
+<font color=red>     0..|  		    R = l_request(Node, {ix_read, Tid, Tab, IxKey, Pos}, Store),</font>
+<font color=red>     0..|  		    rlock_get_reply(Node, Store, Tab, R)</font>
+        |  	    end
+        |      end.
+        |  
+        |  %% Grabs the locks or exits
+        |  global_lock(Tid, Store, Item, write, Ns) -&gt;
+<font color=red>     0..|      Oid = {?GLOBAL, Item},</font>
+<font color=red>     0..|      Op = {self(), {write, Tid, Oid}},</font>
+<font color=red>     0..|      get_wlocks_on_nodes(Ns, Ns, Store, Op, Oid);</font>
+        |  global_lock(Tid, Store, Item, read, Ns) -&gt;
+<font color=red>     0..|      Oid = {?GLOBAL, Item},</font>
+<font color=red>     0..|      send_requests(Ns, {read, Tid, Oid}),</font>
+<font color=red>     0..|      rec_requests(Ns, Oid, Store),</font>
+<font color=red>     0..|      Ns.</font>
+        |  
+        |  send_requests([Node | Nodes], X) -&gt;
+<font color=red>     0..|      {?MODULE, Node} ! {self(), X},</font>
+<font color=red>     0..|      send_requests(Nodes, X);</font>
+        |  send_requests([], _X) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  rec_requests([Node | Nodes], Oid, Store) -&gt;
+<font color=red>     0..|      Res = l_req_rec(Node, Store),</font>
+<font color=red>     0..|      try rlock_get_reply(Node, Store, Oid, Res) of</font>
+<font color=red>     0..|  	_ -&gt; rec_requests(Nodes, Oid, Store)</font>
+        |      catch _:Reason -&gt;
+<font color=red>     0..|  	    flush_remaining(Nodes, Node, Reason)</font>
+        |      end;
+        |  rec_requests([], _Oid, _Store) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  get_held_locks() -&gt;
+<font color=red>     0..|      ?MODULE ! {get_table, self(), mnesia2_held_locks},</font>
+<font color=red>     0..|      Locks = receive {mnesia2_held_locks, Ls} -&gt; Ls after 5000 -&gt; [] end,</font>
+<font color=red>     0..|      rewrite_locks(Locks, []).</font>
+        |  
+        |  rewrite_locks([{Oid, _, Ls}|Locks], Acc0) -&gt;
+<font color=red>     0..|      Acc = rewrite_locks(Ls, Oid, Acc0),</font>
+<font color=red>     0..|      rewrite_locks(Locks, Acc);</font>
+        |  rewrite_locks([], Acc) -&gt;
+<font color=red>     0..|      lists:reverse(Acc).</font>
+        |  
+        |  rewrite_locks([{Op, Tid}|Ls], Oid, Acc) -&gt;
+<font color=red>     0..|      rewrite_locks(Ls, Oid, [{Oid, Op, Tid}|Acc]);</font>
+        |  rewrite_locks([], _, Acc) -&gt;
+<font color=red>     0..|      Acc.</font>
+        |  
+        |  get_lock_queue() -&gt;
+<font color=red>     0..|      ?MODULE ! {get_table, self(), mnesia2_lock_queue},</font>
+<font color=red>     0..|      Q = receive {mnesia2_lock_queue, Locks} -&gt; Locks after 5000 -&gt; [] end,</font>
+<font color=red>     0..|      [{Oid, Op, Pid, Tid, WFT} || {queue, Oid, Tid, Op, Pid, WFT} &lt;- Q].</font>
+        |  
+        |  do_stop() -&gt;
+<font color=red>     0..|      exit(shutdown).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% System upgrade
+        |  
+        |  system_continue(_Parent, _Debug, State) -&gt;
+<font color=red>     0..|      loop(State).</font>
+        |  
+        |  -spec system_terminate(_, _, _, _) -&gt; no_return().
+        |  system_terminate(_Reason, _Parent, _Debug, _State) -&gt;
+<font color=red>     0..|      do_stop().</font>
+        |  
+        |  system_code_change(State, _Module, _OldVsn, _Extra) -&gt;
+<font color=red>     0..|      {ok, State}.</font>
+        |  
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% AXD301 patch sort pids according to R9B sort order
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  %% Om R9B == true, the comparison is done as in R9B plain.
+        |  %% Om R9B == false, the comparison is done as in any other release.
+        |  %% cmp_tid(T1, T2) returns -1 if T1 &lt; T2, 0 if T1 = T2 and 1 if T1 &gt; T2.
+        |  
+        |  -define(VERSION_MAGIC,       131).
+        |  -define(ATOM_EXT,            100).
+        |  -define(PID_EXT,             103).
+        |  
+        |  -record(pid_info, {serial, number, nodename, creation}).
+        |  
+        |  cmp_tid(R9B,
+        |  	#tid{} = T,
+        |  	#tid{} = T) when R9B == true; R9B == false -&gt;
+<font color=red>     0..|      0;</font>
+        |  cmp_tid(R9B,
+        |  	#tid{counter = C, pid = Pid1},
+        |  	#tid{counter = C, pid = Pid2}) when R9B == true; R9B == false -&gt;
+<font color=red>     0..|      cmp_pid_info(R9B, pid_to_pid_info(Pid1), pid_to_pid_info(Pid2));</font>
+        |  cmp_tid(R9B,
+        |  	#tid{counter = C1},
+        |  	#tid{counter = C2}) when R9B == true; R9B == false -&gt;
+<font color=red>     0..|      cmp(C1, C2).</font>
+        |  
+        |  cmp_pid_info(_, #pid_info{} = PI, #pid_info{} = PI) -&gt;
+<font color=red>     0..|      0;</font>
+        |  cmp_pid_info(false,
+        |  	     #pid_info{serial = S, number = N, nodename = NN, creation = C1},
+        |  	     #pid_info{serial = S, number = N, nodename = NN, creation = C2}) -&gt;
+<font color=red>     0..|      cmp(C1, C2);</font>
+        |  cmp_pid_info(false,
+        |  	     #pid_info{serial = S, number = N, nodename = NN1},
+        |  	     #pid_info{serial = S, number = N, nodename = NN2}) -&gt;
+<font color=red>     0..|      cmp(NN1, NN2);</font>
+        |  cmp_pid_info(false,
+        |  	     #pid_info{serial = S, number = N1},
+        |  	     #pid_info{serial = S, number = N2}) -&gt;
+<font color=red>     0..|      cmp(N1, N2);</font>
+        |  cmp_pid_info(false, #pid_info{serial = S1}, #pid_info{serial = S2}) -&gt;
+<font color=red>     0..|      cmp(S1, S2);</font>
+        |  cmp_pid_info(true,
+        |  	     #pid_info{nodename = NN, creation = C, serial = S, number = N1},
+        |  	     #pid_info{nodename = NN, creation = C, serial = S, number = N2}) -&gt;
+<font color=red>     0..|      cmp(N1, N2);</font>
+        |  cmp_pid_info(true,
+        |  	     #pid_info{nodename = NN, creation = C, serial = S1},
+        |  	     #pid_info{nodename = NN, creation = C, serial = S2}) -&gt;
+<font color=red>     0..|      cmp(S1, S2);</font>
+        |  cmp_pid_info(true,
+        |  	     #pid_info{nodename = NN, creation = C1},
+        |  	     #pid_info{nodename = NN, creation = C2}) -&gt;
+<font color=red>     0..|      cmp(C1, C2);</font>
+        |  cmp_pid_info(true, #pid_info{nodename = NN1}, #pid_info{nodename = NN2}) -&gt;
+<font color=red>     0..|      cmp(NN1, NN2).</font>
+        |  
+<font color=red>     0..|  cmp(X, X) -&gt; 0;</font>
+<font color=red>     0..|  cmp(X1, X2) when X1 &lt; X2 -&gt; -1;</font>
+<font color=red>     0..|  cmp(_X1, _X2) -&gt; 1.</font>
+        |  
+        |  pid_to_pid_info(Pid) when is_pid(Pid) -&gt;
+        |      [?VERSION_MAGIC, ?PID_EXT, ?ATOM_EXT, NNL1, NNL0 | Rest]
+<font color=red>     0..|  	= binary_to_list(term_to_binary(Pid)),</font>
+<font color=red>     0..|      [N3, N2, N1, N0, S3, S2, S1, S0, Creation] = drop(bytes2int(NNL1, NNL0),</font>
+        |  						      Rest),
+<font color=red>     0..|      #pid_info{serial = bytes2int(S3, S2, S1, S0),</font>
+        |  	      number = bytes2int(N3, N2, N1, N0),
+        |  	      nodename = node(Pid),
+        |  	      creation = Creation}.
+        |  
+<font color=red>     0..|  drop(0, L) -&gt; L;</font>
+<font color=red>     0..|  drop(N, [_|L]) when is_integer(N), N &gt; 0 -&gt; drop(N-1, L);</font>
+<font color=red>     0..|  drop(N, []) when is_integer(N), N &gt; 0 -&gt; [].</font>
+        |  
+        |  bytes2int(N1, N0) when 0 =&lt; N1, N1 =&lt; 255,
+        |  		       0 =&lt; N0, N0 =&lt; 255 -&gt;
+<font color=red>     0..|      (N1 bsl 8) bor N0.</font>
+        |  bytes2int(N3, N2, N1, N0) when 0 =&lt; N3, N3 =&lt; 255,
+        |  			       0 =&lt; N2, N2 =&lt; 255,
+        |  			       0 =&lt; N1, N1 =&lt; 255,
+        |  			       0 =&lt; N0, N0 =&lt; 255 -&gt;
+<font color=red>     0..|      (N3 bsl 24) bor (N2 bsl 16) bor (N1 bsl 8) bor N0.</font>
+        |  
+</pre>
+</body>
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2.2016-04-10_22.52.44/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.53.10/mnesia2_subscr.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_subscr.erl by COVER 2016-04-10 at 22:54:07
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1997-2013. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_subscr).
+        |  
+        |  -behaviour(gen_server).
+        |  
+        |  -export([start/0,
+        |  	 set_debug_level/1,
+        |  	 subscribe/2,
+        |  	 unsubscribe/2,
+        |  	 unsubscribe_table/1,
+        |  	 subscribers/0,
+        |  	 report_table_event/4,
+        |  	 report_table_event/5, 
+        |  	 report_table_event/6,
+        |  	 report_activity/1
+        |  	]).
+        |  
+        |  %% gen_server callbacks
+        |  -export([init/1,
+        |  	 handle_call/3,
+        |  	 handle_cast/2,
+        |  	 handle_info/2,
+        |  	 terminate/2,
+        |  	 code_change/3
+        |  	]).
+        |  
+        |  -compile({no_auto_import,[error/2]}).
+        |  
+        |  -include("mnesia2.hrl").
+        |  
+        |  -import(mnesia2_lib, [error/2]).
+        |  -record(state, {supervisor, pid_tab}).
+        |  
+        |  start() -&gt;
+<font color=red>     0..|      gen_server:start_link({local, ?MODULE}, ?MODULE, [self()],</font>
+        |  			  [{timeout, infinity}]).
+        |  
+        |  set_debug_level(Level) -&gt;
+<font color=red>     0..|      OldEnv = application:get_env(mnesia2, debug),</font>
+<font color=red>     0..|      case mnesia2_monitor:patch_env(debug, Level) of</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason};</font>
+        |  	NewLevel -&gt;
+<font color=red>     0..|  	    set_debug_level(NewLevel, OldEnv)</font>
+        |      end.
+        |  
+        |  set_debug_level(Level, OldEnv) -&gt;
+<font color=red>     0..|      case mnesia2:system_info(is_running) of</font>
+        |  	no when OldEnv == undefined -&gt;
+<font color=red>     0..|  	    none;</font>
+        |  	no -&gt;
+<font color=red>     0..|  	    {ok, E} = OldEnv,</font>
+<font color=red>     0..|  	    E;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    Old = mnesia2_lib:val(debug),</font>
+<font color=red>     0..|  	    Local = mnesia2:system_info(local_tables),</font>
+<font color=red>     0..|  	    E = whereis(mnesia2_event),</font>
+<font color=red>     0..|  	    Sub = fun(Tab) -&gt; subscribe(E, {table, Tab}) end,</font>
+<font color=red>     0..|  	    UnSub = fun(Tab) -&gt; unsubscribe(E, {table, Tab}) end,</font>
+        |  	
+<font color=red>     0..|  	    case Level of</font>
+        |  		none -&gt;
+<font color=red>     0..|  		    lists:foreach(UnSub, Local);</font>
+        |  		verbose -&gt;
+<font color=red>     0..|  		    lists:foreach(UnSub, Local);</font>
+        |  		debug -&gt;
+<font color=red>     0..|  		    lists:foreach(UnSub, Local -- [schema]),</font>
+<font color=red>     0..|  		    Sub(schema);</font>
+        |  		trace -&gt;
+<font color=red>     0..|  		    lists:foreach(Sub, Local)</font>
+        |  	    end,
+<font color=red>     0..|  	    mnesia2_lib:set(debug, Level),</font>
+<font color=red>     0..|  	    Old</font>
+        |      end.
+        |  
+        |  subscribe(ClientPid, system) -&gt;
+<font color=red>     0..|      change_subscr(activate, ClientPid, system);</font>
+        |  subscribe(ClientPid, activity) -&gt;
+<font color=red>     0..|      change_subscr(activate, ClientPid, activity);</font>
+        |  subscribe(ClientPid, {table, Tab}) -&gt;
+<font color=red>     0..|      change_subscr(activate, ClientPid, {table, Tab, simple});</font>
+        |  subscribe(ClientPid, {table, Tab, simple}) -&gt;
+<font color=red>     0..|      change_subscr(activate, ClientPid, {table, Tab, simple});</font>
+        |  subscribe(ClientPid, {table, Tab, detailed}) -&gt;
+<font color=red>     0..|      change_subscr(activate, ClientPid, {table, Tab, detailed});</font>
+        |  subscribe(_ClientPid, What) -&gt;
+<font color=red>     0..|      {error, {badarg, What}}.</font>
+        |  
+        |  unsubscribe(ClientPid, system) -&gt;
+<font color=red>     0..|      change_subscr(deactivate, ClientPid, system);</font>
+        |  unsubscribe(ClientPid, activity) -&gt;
+<font color=red>     0..|      change_subscr(deactivate, ClientPid, activity);</font>
+        |  unsubscribe(ClientPid, {table, Tab}) -&gt;
+<font color=red>     0..|      change_subscr(deactivate, ClientPid, {table, Tab, simple});</font>
+        |  unsubscribe(ClientPid, {table, Tab, simple}) -&gt;
+<font color=red>     0..|      change_subscr(deactivate, ClientPid, {table, Tab, simple});</font>
+        |  unsubscribe(ClientPid, {table, Tab, detailed}) -&gt;
+<font color=red>     0..|      change_subscr(deactivate, ClientPid, {table, Tab, detailed});</font>
+        |  unsubscribe(_ClientPid, What) -&gt;
+<font color=red>     0..|      {error, {badarg, What}}.</font>
+        |  
+        |  unsubscribe_table(Tab) -&gt;
+<font color=red>     0..|      call({change, {deactivate_table, Tab}}).</font>
+        |  
+        |  change_subscr(Kind, ClientPid, What) -&gt;
+<font color=red>     0..|      call({change, {Kind, ClientPid, What}}).</font>
+        |  
+        |  subscribers() -&gt;
+<font color=red>     0..|      [whereis(mnesia2_event) | mnesia2_lib:val(subscribers)].</font>
+        |  
+        |  report_activity({dirty, _pid}) -&gt; 
+<font color=red>     0..|      ok;</font>
+        |  report_activity(Tid) -&gt;
+<font color=red>     0..|      case ?catch_val(activity_subscribers) of</font>
+<font color=red>     0..|  	{'EXIT', _} -&gt; ok;</font>
+        |  	Subscribers -&gt;
+<font color=red>     0..|  	    deliver(Subscribers, {mnesia2_activity_event, {complete, Tid}})</font>
+        |  	end.
+        |  
+        |  report_table_event(Tab, Tid, Obj, Op) -&gt;   
+<font color=red>     0..|      case ?catch_val({Tab, commit_work}) of</font>
+<font color=red>     0..|  	{'EXIT', _} -&gt; ok;</font>
+        |  	Commit -&gt;
+<font color=red>     0..|  	    case lists:keysearch(subscribers, 1, Commit) of</font>
+<font color=red>     0..|  		false -&gt; ok;</font>
+        |  		{value, Subs} -&gt; 
+<font color=red>     0..|  		    report_table_event(Subs, Tab, Tid, Obj, Op, undefined)</font>
+        |  	    end
+        |      end.
+        |  
+        |  %% Backwards compatible for the moment when mnesia2_tm get's updated!
+        |  report_table_event(Subscr, Tab, Tid, Obj, Op) -&gt;
+<font color=red>     0..|      report_table_event(Subscr, Tab, Tid, Obj, Op, undefined).</font>
+        |  
+        |  report_table_event({subscribers, S1, S2}, Tab, Tid, _Obj, clear_table, _Old) -&gt;
+<font color=red>     0..|      What   = {delete, {schema, Tab}, Tid},</font>
+<font color=red>     0..|      deliver(S1, {mnesia2_table_event, What}),</font>
+<font color=red>     0..|      TabDef = mnesia2_schema:cs2list(?catch_val({Tab, cstruct})),</font>
+<font color=red>     0..|      What2  = {write, {schema, Tab, TabDef}, Tid},</font>
+<font color=red>     0..|      deliver(S1, {mnesia2_table_event, What2}),</font>
+<font color=red>     0..|      What3  = {delete, schema, {schema, Tab}, [{schema, Tab, TabDef}], Tid},</font>
+<font color=red>     0..|      deliver(S2, {mnesia2_table_event, What3}),</font>
+<font color=red>     0..|      What4  = {write, schema,  {schema, Tab, TabDef}, [], Tid},</font>
+<font color=red>     0..|      deliver(S2, {mnesia2_table_event, What4});</font>
+        |  
+        |  report_table_event({subscribers, Subscr, []}, Tab, Tid, Obj, Op, _Old) -&gt;
+<font color=red>     0..|      What = {Op, patch_record(Tab, Obj), Tid},</font>
+<font color=red>     0..|      deliver(Subscr, {mnesia2_table_event, What});</font>
+        |  
+        |  report_table_event({subscribers, S1, S2}, Tab, Tid, Obj, Op, Old) -&gt;
+<font color=red>     0..|      Standard = {Op, patch_record(Tab, Obj), Tid},</font>
+<font color=red>     0..|      deliver(S1, {mnesia2_table_event, Standard}), </font>
+<font color=red>     0..|      Extended = what(Tab, Tid, Obj, Op, Old), </font>
+<font color=red>     0..|      deliver(S2, Extended);</font>
+        |  
+        |  %% Backwards compatible for the moment when mnesia2_tm get's updated!
+        |  report_table_event({subscribers, Subscr}, Tab, Tid, Obj, Op, Old) -&gt;    
+<font color=red>     0..|      report_table_event({subscribers, Subscr, []}, Tab, Tid, Obj, Op, Old).</font>
+        |  
+        |  
+        |  patch_record(Tab, Obj) -&gt;
+<font color=red>     0..|      case Tab == element(1, Obj) of</font>
+        |  	true -&gt; 
+<font color=red>     0..|  	    Obj;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    setelement(1, Obj, Tab)</font>
+        |      end.
+        |  
+        |  what(Tab, Tid, {RecName, Key}, delete, undefined) -&gt;
+<font color=red>     0..|      try mnesia2_lib:db_get(Tab, Key) of</font>
+        |  	Old -&gt; %% Op only allowed for set table.
+<font color=red>     0..|  	    {mnesia2_table_event, {delete, Tab, {RecName, Key}, Old, Tid}}</font>
+        |      catch error:_ -&gt;
+        |  	    %% Record just deleted by a dirty_op or
+        |  	    %% the whole table has been deleted
+<font color=red>     0..|  	    ignore</font>
+        |      end;
+        |  what(Tab, Tid, Obj, delete, Old) -&gt;
+<font color=red>     0..|      {mnesia2_table_event, {delete, Tab, Obj, Old, Tid}};</font>
+        |  what(Tab, Tid, Obj, delete_object, _Old) -&gt;
+<font color=red>     0..|      {mnesia2_table_event, {delete, Tab, Obj, [Obj], Tid}};</font>
+        |  what(Tab, Tid, Obj, write, undefined) -&gt;
+<font color=red>     0..|      try	mnesia2_lib:db_get(Tab, element(2, Obj)) of</font>
+        |  	Old -&gt;
+<font color=red>     0..|  	    {mnesia2_table_event, {write, Tab, Obj, Old, Tid}}</font>
+        |      catch error:_ -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end;
+        |  what(Tab, Tid, Obj, write, Old) -&gt;
+<font color=red>     0..|      {mnesia2_table_event, {write, Tab, Obj, Old, Tid}}.</font>
+        |  
+        |  deliver(_, ignore) -&gt; 
+<font color=red>     0..|      ok;</font>
+        |  deliver([Pid | Pids], Msg) -&gt;
+<font color=red>     0..|      Pid ! Msg,</font>
+<font color=red>     0..|      deliver(Pids, Msg);</font>
+        |  deliver([], _Msg) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  call(Msg) -&gt;
+<font color=red>     0..|      Pid = whereis(?MODULE),</font>
+<font color=red>     0..|      case Pid of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    {error, {node_not_running, node()}};</font>
+        |  	Pid -&gt;
+<font color=red>     0..|  	    Res = gen_server:call(Pid, Msg, infinity),</font>
+        |              %% We get an exit signal if server dies
+<font color=red>     0..|              receive</font>
+        |                  {'EXIT', Pid, _Reason} -&gt;
+<font color=red>     0..|                      {error, {node_not_running, node()}}</font>
+        |              after 0 -&gt;
+<font color=red>     0..|                      Res</font>
+        |              end
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %%% Callback functions from gen_server
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: init/1
+        |  %% Returns: {ok, State}          |
+        |  %%          {ok, State, Timeout} |
+        |  %%          {stop, Reason}
+        |  %%----------------------------------------------------------------------
+        |  init([Parent]) -&gt;
+<font color=red>     0..|      process_flag(trap_exit, true),</font>
+<font color=red>     0..|      ClientPid = whereis(mnesia2_event),</font>
+<font color=red>     0..|      link(ClientPid),</font>
+<font color=red>     0..|      mnesia2_lib:verbose("~p starting: ~p~n", [?MODULE, self()]),</font>
+<font color=red>     0..|      Tab = ?ets_new_table(mnesia2_subscr, [duplicate_bag, private]),</font>
+<font color=red>     0..|      ?ets_insert(Tab, {ClientPid, system}),</font>
+<font color=red>     0..|      {ok, #state{supervisor = Parent, pid_tab = Tab}}.</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: handle_call/3
+        |  %% Returns: {reply, Reply, State}          |
+        |  %%          {reply, Reply, State, Timeout} |
+        |  %%          {noreply, State}               |
+        |  %%          {noreply, State, Timeout}      |
+        |  %%          {stop, Reason, Reply, State}   | (terminate/2 is called)
+        |  %%----------------------------------------------------------------------
+        |  handle_call({change, How}, _From, State) -&gt;
+<font color=red>     0..|      Reply = do_change(How, State#state.pid_tab),</font>
+<font color=red>     0..|      {reply, Reply, State};</font>
+        |  
+        |  handle_call(Msg, _From, State) -&gt;
+<font color=red>     0..|      error("~p got unexpected call: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|      {noreply, State}.</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: handle_cast/2
+        |  %% Returns: {noreply, State}          |
+        |  %%          {noreply, State, Timeout} |
+        |  %%          {stop, Reason, State}            (terminate/2 is called)
+        |  %%----------------------------------------------------------------------
+        |  handle_cast(Msg, State) -&gt;
+<font color=red>     0..|      error("~p got unexpected cast: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|      {noreply, State}.</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: handle_info/2
+        |  %% Returns: {noreply, State}          |
+        |  %%          {noreply, State, Timeout} |
+        |  %%          {stop, Reason, State}            (terminate/2 is called)
+        |  %%----------------------------------------------------------------------
+        |  
+        |  handle_info({'EXIT', Pid, _R}, State) when Pid == State#state.supervisor -&gt;
+<font color=red>     0..|      {stop, shutdown, State};</font>
+        |  
+        |  handle_info({'EXIT', Pid, _Reason}, State) -&gt;
+<font color=red>     0..|      handle_exit(Pid, State#state.pid_tab),</font>
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_info(Msg, State) -&gt;
+<font color=red>     0..|      error("~p got unexpected info: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|      {noreply, State}.</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: terminate/2
+        |  %% Purpose: Shutdown the server
+        |  %% Returns: any (ignored by gen_server)
+        |  %%----------------------------------------------------------------------
+        |  terminate(Reason, State) -&gt;
+<font color=red>     0..|      prepare_stop(State#state.pid_tab),</font>
+<font color=red>     0..|      mnesia2_monitor:terminate_proc(?MODULE, Reason, State).</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: code_change/3
+        |  %% Purpose: Upgrade process when its code is to be changed
+        |  %% Returns: {ok, NewState}
+        |  %%----------------------------------------------------------------------
+        |  code_change(_OldVsn, State, _Extra) -&gt;
+<font color=red>     0..|      {ok, State}.</font>
+        |  
+        |  %%%----------------------------------------------------------------------
+        |  %%% Internal functions
+        |  %%%----------------------------------------------------------------------
+        |  
+        |  do_change({activate, ClientPid, system}, SubscrTab) when is_pid(ClientPid) -&gt;
+<font color=red>     0..|      Var = subscribers,</font>
+<font color=red>     0..|      activate(ClientPid, system, Var, subscribers(), SubscrTab);</font>
+        |  do_change({activate, ClientPid, activity}, SubscrTab) when is_pid(ClientPid) -&gt;
+<font color=red>     0..|      Var = activity_subscribers,</font>
+<font color=red>     0..|      activate(ClientPid, activity, Var, mnesia2_lib:val(Var), SubscrTab);</font>
+        |  do_change({activate, ClientPid, {table, Tab, How}}, SubscrTab) when is_pid(ClientPid) -&gt;
+<font color=red>     0..|      case ?catch_val({Tab, where_to_read}) of</font>
+        |  	Node when Node == node() -&gt;
+<font color=red>     0..|  	    Var = {Tab, commit_work},</font>
+<font color=red>     0..|  	    activate(ClientPid, {table, Tab, How}, Var, mnesia2_lib:val(Var), SubscrTab);</font>
+        |  	{'EXIT', _} -&gt;
+<font color=red>     0..|  	    {error, {no_exists, Tab}};</font>
+        |  	_Node -&gt;
+<font color=red>     0..|  	    {error, {not_active_local, Tab}}</font>
+        |      end;
+        |  do_change({deactivate, ClientPid, system}, SubscrTab) -&gt;
+<font color=red>     0..|      Var = subscribers,</font>
+<font color=red>     0..|      deactivate(ClientPid, system, Var, SubscrTab);</font>
+        |  do_change({deactivate, ClientPid, activity}, SubscrTab) -&gt;
+<font color=red>     0..|      Var = activity_subscribers,</font>
+<font color=red>     0..|      deactivate(ClientPid, activity, Var, SubscrTab);</font>
+        |  do_change({deactivate, ClientPid, {table, Tab, How}}, SubscrTab) -&gt;
+<font color=red>     0..|      Var = {Tab, commit_work},</font>
+<font color=red>     0..|      deactivate(ClientPid, {table, Tab, How}, Var, SubscrTab);</font>
+        |  do_change({deactivate_table, Tab}, SubscrTab) -&gt;
+<font color=red>     0..|      Var = {Tab, commit_work},</font>
+<font color=red>     0..|      case ?catch_val(Var) of</font>
+        |  	{'EXIT', _} -&gt;
+<font color=red>     0..|  	    {error, {no_exists, Tab}};</font>
+        |  	CommitWork -&gt;
+<font color=red>     0..|  	    case lists:keysearch(subscribers, 1, CommitWork) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    ok;</font>
+        |  		{value, Subs} -&gt; 
+<font color=red>     0..|  		    Simple   = {table, Tab, simple}, </font>
+<font color=red>     0..|  		    Detailed = {table, Tab, detailed}, </font>
+<font color=red>     0..|  		    Fs = fun(C) -&gt; deactivate(C, Simple, Var, SubscrTab) end,</font>
+<font color=red>     0..|  		    Fd = fun(C) -&gt; deactivate(C, Detailed, Var, SubscrTab) end,</font>
+<font color=red>     0..|  		    case Subs of</font>
+        |  			{subscribers, L1, L2} -&gt; 
+<font color=red>     0..|  			    lists:foreach(Fs, L1),</font>
+<font color=red>     0..|  			    lists:foreach(Fd, L2);</font>
+        |  			{subscribers, L1} -&gt;
+<font color=red>     0..|  			    lists:foreach(Fs, L1)</font>
+        |  		    end
+        |  	    end,
+<font color=red>     0..|  	    {ok, node()}</font>
+        |      end;
+        |  do_change(_, _) -&gt;
+<font color=red>     0..|      {error, badarg}.</font>
+        |  
+        |  activate(ClientPid, What, Var, OldSubscribers, SubscrTab) -&gt;
+<font color=red>     0..|      Old = </font>
+        |  	if Var == subscribers orelse Var == activity_subscribers -&gt;
+<font color=red>     0..|  		OldSubscribers;</font>
+        |  	   true -&gt; 
+<font color=red>     0..|  		case lists:keysearch(subscribers, 1, OldSubscribers) of</font>
+<font color=red>     0..|  		    false -&gt; [];</font>
+        |  		{value, Subs} -&gt; 
+<font color=red>     0..|  			case Subs of</font>
+        |  			    {subscribers, L1, L2} -&gt; 
+<font color=red>     0..|  				L1 ++ L2;</font>
+        |  			    {subscribers, L1} -&gt;
+<font color=red>     0..|  				L1</font>
+        |  			end
+        |  		end
+        |  	end,
+<font color=red>     0..|      case lists:member(ClientPid, Old) of</font>
+        |  	false -&gt;
+        |  	    %% Don't care about checking old links
+<font color=red>     0..|  	    try link(ClientPid) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    ?ets_insert(SubscrTab, {ClientPid, What}),</font>
+<font color=red>     0..|  		    add_subscr(Var, What, ClientPid),</font>
+<font color=red>     0..|  		    {ok, node()}</font>
+        |  	    catch error:_ -&gt;
+<font color=red>     0..|  		    {error, {no_exists, ClientPid}}</font>
+        |  	    end;
+        |  	true -&gt;
+<font color=red>     0..|  	    {error, {already_exists, What}}</font>
+        |      end.
+        |  
+        |  %%-record(subscribers, {pids = []}).  Old subscriber record removed
+        |  %% To solve backward compatibility, this code is a cludge.. 
+        |  add_subscr(subscribers, _What, Pid) -&gt;
+<font color=red>     0..|      mnesia2_lib:add(subscribers, Pid),</font>
+<font color=red>     0..|      {ok, node()};</font>
+        |  add_subscr(activity_subscribers, _What, Pid) -&gt;
+<font color=red>     0..|      mnesia2_lib:add(activity_subscribers, Pid),</font>
+<font color=red>     0..|      {ok, node()};</font>
+        |  add_subscr({Tab, commit_work}, What, Pid) -&gt;
+<font color=red>     0..|      Commit = mnesia2_lib:val({Tab, commit_work}),</font>
+<font color=red>     0..|      case lists:keysearch(subscribers, 1, Commit) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    Subscr = </font>
+        |  		case What of 
+        |  		    {table, _, simple} -&gt; 
+<font color=red>     0..|  			{subscribers, [Pid], []};</font>
+        |  		    {table, _, detailed} -&gt;
+<font color=red>     0..|  			{subscribers, [], [Pid]}</font>
+        |  		end,
+<font color=red>     0..|  	    mnesia2_lib:add({Tab, subscribers}, Pid),</font>
+<font color=red>     0..|  	    mnesia2_lib:set({Tab, commit_work}, </font>
+        |  			   mnesia2_lib:sort_commit([Subscr | Commit]));
+        |  	{value, Old} -&gt;
+<font color=red>     0..|  	    {L1, L2} = </font>
+        |  		case Old of
+        |  		    {subscribers, L} -&gt;  %% Old Way
+<font color=red>     0..|  			{L, []};</font>
+        |  		    {subscribers, SL1, SL2} -&gt; 
+<font color=red>     0..|  			{SL1, SL2}</font>
+        |  		end,
+<font color=red>     0..|  	    Subscr = </font>
+        |  		case What of 
+        |  		    {table, _, simple} -&gt; 
+<font color=red>     0..|  			{subscribers, [Pid | L1], L2};</font>
+        |  		    {table, _, detailed} -&gt;  
+<font color=red>     0..|  			{subscribers, L1, [Pid | L2]}</font>
+        |  		end,
+<font color=red>     0..|  	    NewC  = lists:keyreplace(subscribers, 1, Commit, Subscr),</font>
+<font color=red>     0..|  	    mnesia2_lib:set({Tab, commit_work}, </font>
+        |  			   mnesia2_lib:sort_commit(NewC)),
+<font color=red>     0..|  	    mnesia2_lib:add({Tab, subscribers}, Pid)</font>
+        |      end.
+        |  
+        |  deactivate(ClientPid, What, Var, SubscrTab) -&gt;
+<font color=red>     0..|      ?ets_match_delete(SubscrTab, {ClientPid, What}),</font>
+<font color=red>     0..|      try</font>
+<font color=red>     0..|  	?ets_lookup_element(SubscrTab, ClientPid, 1),</font>
+<font color=red>     0..|  	ignore</font>
+<font color=red>     0..|      catch error:_ -&gt; unlink(ClientPid)</font>
+        |      end,
+<font color=red>     0..|      try</font>
+<font color=red>     0..|  	del_subscr(Var, What, ClientPid),</font>
+<font color=red>     0..|  	{ok, node()}</font>
+        |      catch _:_ -&gt;
+<font color=red>     0..|  	    {error, badarg}</font>
+        |      end.
+        |  
+        |  del_subscr(subscribers, _What, Pid) -&gt;
+<font color=red>     0..|      mnesia2_lib:del(subscribers, Pid);</font>
+        |  del_subscr(activity_subscribers, _What, Pid) -&gt;
+<font color=red>     0..|      mnesia2_lib:del(activity_subscribers, Pid);</font>
+        |  del_subscr({Tab, commit_work}, What, Pid) -&gt;
+<font color=red>     0..|      Commit = mnesia2_lib:val({Tab, commit_work}),</font>
+<font color=red>     0..|      case lists:keysearch(subscribers, 1, Commit) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    false;</font>
+        |  	{value, Old} -&gt;
+<font color=red>     0..|  	    {L1, L2} = </font>
+        |  		case Old of
+        |  		    {subscribers, L} -&gt;  %% Old Way
+<font color=red>     0..|  			{L, []};</font>
+        |  		    {subscribers, SL1, SL2} -&gt; 
+<font color=red>     0..|  			{SL1, SL2}</font>
+        |  		end,
+<font color=red>     0..|  	    Subscr = </font>
+        |  		case What of %% Ignore user error delete subscr from any list
+        |  		    {table, _, simple} -&gt; 
+<font color=red>     0..|  			NewL1 = lists:delete(Pid, L1),</font>
+<font color=red>     0..|  			NewL2 = lists:delete(Pid, L2),</font>
+<font color=red>     0..|  			{subscribers, NewL1, NewL2};</font>
+        |  		    {table, _, detailed} -&gt;
+<font color=red>     0..|  			NewL1 = lists:delete(Pid, L1),</font>
+<font color=red>     0..|  			NewL2 = lists:delete(Pid, L2),</font>
+<font color=red>     0..|  			{subscribers, NewL1, NewL2}</font>
+        |  		end,
+<font color=red>     0..|  	    case Subscr of</font>
+        |  		{subscribers, [], []} -&gt;
+<font color=red>     0..|  		    NewC = lists:keydelete(subscribers, 1, Commit),</font>
+<font color=red>     0..|  		    mnesia2_lib:del({Tab, subscribers}, Pid),</font>
+<font color=red>     0..|  		    mnesia2_lib:set({Tab, commit_work}, </font>
+        |  				   mnesia2_lib:sort_commit(NewC));
+        |  		_ -&gt;
+<font color=red>     0..|  		    NewC = lists:keyreplace(subscribers, 1, Commit, Subscr),</font>
+<font color=red>     0..|  		    mnesia2_lib:del({Tab, subscribers}, Pid),</font>
+<font color=red>     0..|  		    mnesia2_lib:set({Tab, commit_work}, </font>
+        |  				   mnesia2_lib:sort_commit(NewC))
+        |  	    end
+        |      end.
+        |  
+        |  handle_exit(ClientPid, SubscrTab) -&gt;
+<font color=red>     0..|      do_handle_exit(?ets_lookup(SubscrTab, ClientPid)),</font>
+<font color=red>     0..|      ?ets_delete(SubscrTab, ClientPid).</font>
+        |  
+        |  do_handle_exit([{ClientPid, What} | Tail]) -&gt;
+<font color=red>     0..|      case What of</font>
+        |  	system -&gt;
+<font color=red>     0..|  	    del_subscr(subscribers, What, ClientPid);</font>
+        |  	activity -&gt;
+<font color=red>     0..|  	    del_subscr(activity_subscribers, What, ClientPid);</font>
+        |  	{_, Tab, _Level} -&gt;
+<font color=red>     0..|  	    del_subscr({Tab, commit_work}, What, ClientPid)    </font>
+        |      end,
+<font color=red>     0..|      do_handle_exit(Tail);</font>
+        |  do_handle_exit([]) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  prepare_stop(SubscrTab) -&gt;
+<font color=red>     0..|      mnesia2_lib:report_system_event({mnesia2_down, node()}),</font>
+<font color=red>     0..|      do_prepare_stop(?ets_first(SubscrTab), SubscrTab).</font>
+        |  
+        |  do_prepare_stop('$end_of_table', _SubscrTab) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  do_prepare_stop(ClientPid, SubscrTab) -&gt;
+<font color=red>     0..|      Next = ?ets_next(SubscrTab, ClientPid),</font>
+<font color=red>     0..|      handle_exit(ClientPid, SubscrTab),</font>
+<font color=red>     0..|      unlink(ClientPid),</font>
+<font color=red>     0..|      do_prepare_stop(Next, SubscrTab).</font>
+        |  
+</pre>
+</body>
+</html>

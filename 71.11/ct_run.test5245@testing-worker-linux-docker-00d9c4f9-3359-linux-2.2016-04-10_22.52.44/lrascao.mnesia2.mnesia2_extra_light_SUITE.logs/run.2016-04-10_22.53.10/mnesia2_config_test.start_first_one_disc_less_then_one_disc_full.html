@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_config_test:start_first_one_disc_less_then_one_disc_full result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_config_test.src.html#start_first_one_disc_less_then_one_disc_full-1">source code for mnesia2_config_test:start_first_one_disc_less_then_one_disc_full/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_config_test:start_first_one_disc_less_then_one_disc_full([{watchdog,
+                                                                   <0.1098.0>},
+                                                                  {tc_logfile,
+                                                                   "/home/travis/build/lrascao/mnesia2/logs/ct_run.test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2.2016-04-10_22.52.44/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.53.10/mnesia2_config_test.start_first_one_disc_less_then_one_disc_full.html"},
+                                                                  {tc_group_properties,
+                                                                   [{name,
+                                                                     schema_config}]},
+                                                                  {tc_group_path,
+                                                                   [[{suite,
+                                                                      mnesia2_config_test}],
+                                                                    [{name,
+                                                                      config}],
+                                                                    [{name,
+                                                                      registry}],
+                                                                    [{name,
+                                                                      registry}],
+                                                                    [{name,
+                                                                      qlc}],
+                                                                    [{name,
+                                                                      qlc}],
+                                                                    [{name,
+                                                                      nice}],
+                                                                    [{name,
+                                                                      nice}],
+                                                                    [{name,
+                                                                      install}],
+                                                                    [{name,
+                                                                      install}],
+                                                                    [{name,
+                                                                      extra_light}]]},
+                                                                  {data_dir,
+                                                                   "/home/travis/build/lrascao/mnesia2/test/mnesia2_config_test_data/"},
+                                                                  {priv_dir,
+                                                                   "/home/travis/build/lrascao/mnesia2/logs/ct_run.test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2.2016-04-10_22.52.44/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.53.10/log_private/"},
+                                                                  {nodenames,
+                                                                   ['d606729o606751n606749@testing-worker-linux-docker-00d9c4f9-3359-linux-2',
+                                                                    'd606736o606744n606613@testing-worker-linux-docker-00d9c4f9-3359-linux-2']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2.2016-04-10_22.52.44"
+
+=== Started at 2016-04-10 22:53:49
+
+<br />
+[2016-04-10 22:53:50] mnesia2_config_test.erl(789): <>ERROR<>
+Not Matching Actual result was:
+ [{badrpc,mnesia2,
+      {'EXIT',
+          {undef,
+              [{application,ensure_all_started,[mnesia2,temporary],[]},
+               {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+               {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+               {mnesia2_test_lib,remote_start,3,
+                   [{file,"mnesia2_test_lib.erl"},{line,828}]},
+               {rpc,'-handle_call_call/6-fun-0-',5,
+                   [{file,"rpc.erl"},{line,205}]}]}}}]
+
+[2016-04-10 22:53:50] mnesia2_config_test.erl(791): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2'}}
+
+[2016-04-10 22:53:50] mnesia2_config_test.erl(793): <>ERROR<>
+Not Matching Actual result was:
+ {badrpc,{'EXIT',{undef,[{application,ensure_all_started,
+                                      [mnesia2,temporary],
+                                      []},
+                         {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                         {mnesia2,start,0,
+                                  [{file,"src/mnesia2.erl"},{line,200}]},
+                         {rpc,'-handle_call_call/6-fun-0-',5,
+                              [{file,"rpc.erl"},{line,205}]}]}}}
+
+[2016-04-10 22:53:52] mnesia2_config_test.erl(800): <>ERROR<>
+Not Matching Actual result was:
+ [{badrpc,mnesia2,
+      {'EXIT',
+          {undef,
+              [{application,ensure_all_started,[mnesia2,temporary],[]},
+               {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+               {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+               {mnesia2_test_lib,remote_start,3,
+                   [{file,"mnesia2_test_lib.erl"},{line,828}]},
+               {rpc,'-handle_call_call/6-fun-0-',5,
+                   [{file,"rpc.erl"},{line,205}]}]}}},
+  {badrpc,mnesia2,
+      {'EXIT',
+          {undef,
+              [{application,ensure_all_started,[mnesia2,temporary],[]},
+               {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+               {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+               {mnesia2_test_lib,remote_start,3,
+                   [{file,"mnesia2_test_lib.erl"},{line,828}]},
+               {rpc,'-handle_call_call/6-fun-0-',5,
+                   [{file,"rpc.erl"},{line,205}]}]}}}]
+
+[2016-04-10 22:53:52] mnesia2_config_test.erl(805): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2'}}
+
+[2016-04-10 22:53:52] mnesia2_config_test.erl(814): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'d606729o606751n606749@testing-worker-linux-docker-00d9c4f9-3359-linux-2'}}
+
+[2016-04-10 22:53:52] mnesia2_config_test.erl(825): <>ERROR<>
+Not Matching Actual result was:
+ {[{error,{node_not_running,'test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2'}},
+   {error,{node_not_running,'d606729o606751n606749@testing-worker-linux-docker-00d9c4f9-3359-linux-2'}}],
+  []}
+
+[2016-04-10 22:53:52] mnesia2_config_test.erl(831): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2'}}
+
+[2016-04-10 22:53:52] mnesia2_config_test.erl(836): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'d606729o606751n606749@testing-worker-linux-docker-00d9c4f9-3359-linux-2'}}
+
+[2016-04-10 22:53:52] mnesia2_config_test.erl(842): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'d606729o606751n606749@testing-worker-linux-docker-00d9c4f9-3359-linux-2'}}
+
+[2016-04-10 22:53:52] mnesia2_config_test.erl(848): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2'}}
+
+[2016-04-10 22:53:52] mnesia2_config_test.erl(852): <>ERROR<>
+Mnesia2 is not running as expected: ['test5245@testing-worker-linux-docker-00d9c4f9-3359-linux-2',
+                                     'd606729o606751n606749@testing-worker-linux-docker-00d9c4f9-3359-linux-2']
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 22:53:53
+=== location {mnesia2_config_test,start_first_one_disc_less_then_one_disc_full}
+=== reason = [{"mnesia2_config_test.erl",852},
+                  {"mnesia2_config_test.erl",848},
+                  {"mnesia2_config_test.erl",842},
+                  {"mnesia2_config_test.erl",836},
+                  {"mnesia2_config_test.erl",831},
+                  {"mnesia2_config_test.erl",825},
+                  {"mnesia2_config_test.erl",814},
+                  {"mnesia2_config_test.erl",805},
+                  {"mnesia2_config_test.erl",800},
+                  {"mnesia2_config_test.erl",793},
+                  {"mnesia2_config_test.erl",791},
+                  {"mnesia2_config_test.erl",789}]
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 22:53:49<!/date><br />
+</div>
+</center>
+</body>
+</html>
