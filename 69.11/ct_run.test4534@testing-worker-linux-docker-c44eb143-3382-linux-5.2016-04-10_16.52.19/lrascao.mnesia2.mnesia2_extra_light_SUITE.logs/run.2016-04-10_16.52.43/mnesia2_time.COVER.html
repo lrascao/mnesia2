@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test4534@testing-worker-linux-docker-c44eb143-3382-linux-5.2016-04-10_16.52.19/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_16.52.43/mnesia2_time.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_time.erl by COVER 2016-04-10 at 16:53:39
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 2014-2015. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  %% If your code need to be able to execute on ERTS versions both
+        |  %% earlier and later than 7.0, the best approach is to use the new
+        |  %% time API introduced in ERTS 7.0 and implement a fallback
+        |  %% solution using the old primitives to be used on old ERTS
+        |  %% versions. This way your code can automatically take advantage
+        |  %% of the improvements in the API when available. This is an
+        |  %% example of how to implement such an API, but it can be used
+        |  %% as is if you want to. Just add (a preferrably renamed version of)
+        |  %% this module to your project, and call the API via this module
+        |  %% instead of calling the BIFs directly.
+        |  %%
+        |  
+        |  -module(mnesia2_time).
+        |  
+        |  -export([monotonic_time/0,
+        |           time_offset/0,
+        |           timestamp/0,
+        |           unique_integer/0,
+        |           unique_integer/1,
+        |           system_time/0]).
+        |  
+        |  -ifdef(post_otp_18).
+        |  monotonic_time() -&gt;
+        |      erlang:monotonic_time().
+        |  -endif.
+        |  -ifdef(pre_otp_18).
+        |  monotonic_time() -&gt;
+        |      %% Use Erlang system time as monotonic time
+   126..|      erlang_system_time_fallback().
+        |  -endif.
+        |  
+        |  -ifdef(post_otp_18).
+        |  time_offset() -&gt;
+        |      erlang:time_offset().
+        |  -endif.
+        |  -ifdef(pre_otp_18).
+        |  time_offset() -&gt;
+        |      %% Erlang system time and Erlang monotonic
+        |      %% time are always aligned
+   126..|      0.
+        |  -endif.
+        |  
+        |  -ifdef(post_otp_18).
+        |  timestamp() -&gt;
+        |      erlang:timestamp().
+        |  -endif.
+        |  -ifdef(pre_otp_18).
+        |  timestamp() -&gt;
+   168..|      os:timestamp().
+        |  -endif.
+        |  
+        |  unique_integer() -&gt;
+   126..|      unique_integer([]).
+        |  
+        |  -ifdef(post_otp_18).
+        |  unique_integer(Modifiers) -&gt;
+        |      erlang:unique_integer(Modifiers).
+        |  -endif.
+        |  -ifdef(pre_otp_18).
+        |  unique_integer(_Modifiers) -&gt;
+        |      %% now() converted to an integer
+        |      %% fullfill the requirements of
+        |      %% all modifiers: unique, positive,
+        |      %% and monotonic...
+   168..|      erlang_system_time_fallback().
+        |  -endif.
+        |  
+        |  -ifdef(post_otp_18).
+        |  system_time() -&gt;
+        |      erlang:system_time().
+        |  -endif.
+        |  -ifdef(pre_otp_18).
+        |  system_time() -&gt;
+<font color=red>     0..|      erlang_system_time_fallback().</font>
+        |  -endif.
+        |  
+        |  %%
+        |  %% Internal functions
+        |  %%
+        |  
+        |  -ifdef(pre_otp_18).
+        |  erlang_system_time_fallback() -&gt;
+   294..|      {MS, S, US} = os:timestamp(),
+   294..|      (MS*1000000+S)*1000000+US.
+        |  -endif.
+</pre>
+</body>
+</html>
