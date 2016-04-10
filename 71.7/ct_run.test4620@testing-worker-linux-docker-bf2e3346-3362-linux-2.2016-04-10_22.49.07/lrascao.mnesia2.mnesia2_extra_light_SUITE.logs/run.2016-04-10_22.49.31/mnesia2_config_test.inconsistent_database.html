@@ -1,0 +1,260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_config_test:inconsistent_database result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_config_test.src.html#inconsistent_database-1">source code for mnesia2_config_test:inconsistent_database/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_config_test:inconsistent_database([{watchdog,<0.2945.0>},
+                                           {tc_logfile,
+                                            "/home/travis/build/lrascao/mnesia2/logs/ct_run.test4620@testing-worker-linux-docker-bf2e3346-3362-linux-2.2016-04-10_22.49.07/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.49.31/mnesia2_config_test.inconsistent_database.html"},
+                                           {tc_group_properties,
+                                            [{suite,mnesia2_config_test}]},
+                                           {tc_group_path,
+                                            [[{name,config}],
+                                             [{name,registry}],
+                                             [{name,registry}],
+                                             [{name,qlc}],
+                                             [{name,qlc}],
+                                             [{name,nice}],
+                                             [{name,nice}],
+                                             [{name,install}],
+                                             [{name,install}],
+                                             [{name,extra_light}]]},
+                                           {data_dir,
+                                            "/home/travis/build/lrascao/mnesia2/test/mnesia2_config_test_data/"},
+                                           {priv_dir,
+                                            "/home/travis/build/lrascao/mnesia2/logs/ct_run.test4620@testing-worker-linux-docker-bf2e3346-3362-linux-2.2016-04-10_22.49.07/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.49.31/log_private/"},
+                                           {nodenames,
+                                            ['d1131508o1131500n1131500@testing-worker-linux-docker-bf2e3346-3362-linux-2',
+                                             'd1131514o1131462n1131462@testing-worker-linux-docker-bf2e3346-3362-linux-2']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test4620@testing-worker-linux-docker-bf2e3346-3362-linux-2.2016-04-10_22.49.07"
+
+=== Started at 2016-04-10 22:50:38
+
+<br />
+A fun apply costs 0 micro seconds. Record size is 60 bytes.
+
+Run 24 meters with table config: [{ram_copies,['test4620@testing-worker-linux-docker-bf2e3346-3362-linux-2']}]
+
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+Run 24 meters with table config: [{ram_copies,['d1131508o1131500n1131500@testing-worker-linux-docker-bf2e3346-3362-linux-2','test4620@testing-worker-linux-docker-bf2e3346-3362-linux-2']}]
+
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+.
+! ---------------------------------------------------------------------------------------------------------------------------------------------------------
+ ! ----------
+ ! ----------
+ !
+
+! ram_copies on ['test4620@testing-worker-linux-docker-bf2e3346-3362-linux-2','d1131508o1131500n1131500@testing-worker-linux-docker-bf2e3346-3362-linux-2']
+ !          1
+ !          2
+ !
+
+! ---------------------------------------------------------------------------------------------------------------------------------------------------------
+ ! ----------
+ ! ----------
+ !
+
+! transaction update two records with read and write                                                                                                       
+ !        332
+ !        932
+ !
+
+! transaction update two records with wread and write                                                                                                      
+ !        276
+ !        849
+ !
+
+! transaction update two records with read and s_write                                                                                                     
+ !        326
+ !        515
+ !
+
+! sync_dirty  update two records with read and write                                                                                                       
+ !         80
+ !        377
+ !
+
+! async_dirty update two records with read and write                                                                                                       
+ !         82
+ !        143
+ !
+
+! plain fun   update two records with dirty_read and dirty_write                                                                                           
+ !         71
+ !        201
+ !
+
+! ets         update two records with read and write (local only)                                                                                          
+ !         12
+ !    skipped
+ !
+
+! plain fun   update two records with ets:lookup and ets:insert (local only)                                                                               
+ !          0
+ !    skipped
+ !
+
+! plain fun   update two records with dets:lookup and dets:insert (local only)                                                                             
+ !    skipped
+ !    skipped
+ !
+
+! transaction write two records with write                                                                                                                 
+ !        246
+ !        675
+ !
+
+! transaction write two records with s_write                                                                                                               
+ !        237
+ !        426
+ !
+
+! sync_dirty  write two records with write                                                                                                                 
+ !         65
+ !        370
+ !
+
+! async_dirty write two records with write                                                                                                                 
+ !         68
+ !        214
+ !
+
+! plain fun   write two records with dirty_write                                                                                                           
+ !         68
+ !        184
+ !
+
+! ets         write two records with write (local only)                                                                                                    
+ !          8
+ !    skipped
+ !
+
+! plain fun   write two records with ets:insert (local only)                                                                                               
+ !          0
+ !    skipped
+ !
+
+! plain fun   write two records with dets:insert (local only)                                                                                              
+ !    skipped
+ !    skipped
+ !
+
+! transaction read two records with read                                                                                                                   
+ !        174
+ !        176
+ !
+
+! sync_dirty  read two records with read                                                                                                                   
+ !         15
+ !         25
+ !
+
+! async_dirty read two records with read                                                                                                                   
+ !         15
+ !         26
+ !
+
+! plain fun   read two records with dirty_read                                                                                                             
+ !          8
+ !          8
+ !
+
+! ets         read two records with read                                                                                                                   
+ !          7
+ !    skipped
+ !
+
+! plain fun   read two records with ets:lookup                                                                                                             
+ !          0
+ !    skipped
+ !
+
+! plain fun   read two records with dets:lookup                                                                                                            
+ !    skipped
+ !    skipped
+ !
+
+! ---------------------------------------------------------------------------------------------------------------------------------------------------------
+ ! ----------
+ ! ----------
+ !
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 22:50:57
+=== successfully completed test case
+=== returned value = ok
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 22:50:38<!/date><br />
+</div>
+</center>
+</body>
+</html>

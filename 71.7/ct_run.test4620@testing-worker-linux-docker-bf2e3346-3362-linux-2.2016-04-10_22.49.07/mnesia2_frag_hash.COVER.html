@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test4620@testing-worker-linux-docker-bf2e3346-3362-linux-2.2016-04-10_22.49.07/mnesia2_frag_hash.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_frag_hash.erl by COVER 2016-04-10 at 22:52:53
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 2002-2011. All Rights Reserved.
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  %%%----------------------------------------------------------------------
+        |  %%% Purpose : Implements hashing functionality for fragmented tables
+        |  %%%----------------------------------------------------------------------
+        |  
+        |  %header_doc_include
+        |  -module(mnesia2_frag_hash).
+        |  
+        |  %% Fragmented Table Hashing callback functions
+        |  -export([
+        |  	 init_state/2,
+        |  	 add_frag/1,
+        |  	 del_frag/1,
+        |  	 key_to_frag_number/2,
+        |  	 match_spec_to_frag_numbers/2
+        |  	]).
+        |  
+        |  %header_doc_include
+        |  %%-behaviour(mnesia2_frag_hash).
+        |  
+        |  %impl_doc_include
+        |  -record(hash_state,
+        |  	{n_fragments,
+        |  	 next_n_to_split,
+        |  	 n_doubles,
+        |  	 function}).
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  init_state(_Tab, State) when State == undefined -&gt;
+    14..|      #hash_state{n_fragments     = 1,
+        |  		next_n_to_split = 1,
+        |  		n_doubles       = 0,
+        |  		function        = phash2}.
+        |  
+        |  convert_old_state({hash_state, N, P, L}) -&gt;
+<font color=red>     0..|      #hash_state{n_fragments     = N,</font>
+        |  		next_n_to_split = P,
+        |  		n_doubles       = L,
+        |  		function        = phash}.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  add_frag(#hash_state{next_n_to_split = SplitN, n_doubles = L, n_fragments = N} = State) -&gt;
+    22..|      P = SplitN + 1,
+    22..|      NewN = N + 1,
+    22..|      State2 = case power2(L) + 1 of
+        |  		 P2 when P2 == P -&gt;
+    14..|  		     State#hash_state{n_fragments      = NewN,
+        |  				      n_doubles        = L + 1,
+        |  				      next_n_to_split = 1};
+        |  		 _ -&gt;
+     8..|  		     State#hash_state{n_fragments     = NewN,
+        |  				      next_n_to_split = P}
+        |  	     end,
+    22..|      {State2, [SplitN], [NewN]};
+        |  add_frag(OldState) -&gt;
+<font color=red>     0..|      State = convert_old_state(OldState),</font>
+<font color=red>     0..|      add_frag(State).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  del_frag(#hash_state{next_n_to_split = SplitN, n_doubles = L, n_fragments = N} = State) -&gt;
+<font color=red>     0..|      P = SplitN - 1,</font>
+<font color=red>     0..|      if</font>
+        |  	P &lt; 1 -&gt;
+<font color=red>     0..|  	    L2 = L - 1,</font>
+<font color=red>     0..|  	    MergeN = power2(L2),</font>
+<font color=red>     0..|  	    State2 = State#hash_state{n_fragments     = N - 1,</font>
+        |  				      next_n_to_split = MergeN,
+        |  				      n_doubles       = L2},
+<font color=red>     0..|  	    {State2, [N], [MergeN]};</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    MergeN = P,</font>
+<font color=red>     0..|  	    State2 = State#hash_state{n_fragments     = N - 1,</font>
+        |  				      next_n_to_split = MergeN},
+<font color=red>     0..|  	    {State2, [N], [MergeN]}</font>
+        |  	end;
+        |  del_frag(OldState) -&gt;
+<font color=red>     0..|      State = convert_old_state(OldState),</font>
+<font color=red>     0..|      del_frag(State).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  key_to_frag_number(#hash_state{function = phash, n_fragments = N, n_doubles = L}, Key) -&gt;
+<font color=red>     0..|      A = erlang:phash(Key, power2(L + 1)),</font>
+<font color=red>     0..|      if</font>
+        |  	A &gt; N -&gt;
+<font color=red>     0..|  	    A - power2(L);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    A</font>
+        |      end;
+        |  key_to_frag_number(#hash_state{function = phash2, n_fragments = N, n_doubles = L}, Key) -&gt;
+ 80863..|      A = erlang:phash2(Key, power2(L + 1)) + 1,
+ 80863..|      if
+        |  	A &gt; N -&gt;
+  6258..|  	    A - power2(L);
+        |  	true -&gt;
+ 74605..|  	    A
+        |      end;
+        |  key_to_frag_number(OldState, Key) -&gt;
+<font color=red>     0..|      State = convert_old_state(OldState),</font>
+<font color=red>     0..|      key_to_frag_number(State, Key).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  match_spec_to_frag_numbers(#hash_state{n_fragments = N} = State, MatchSpec) -&gt;
+     2..|      case MatchSpec of
+        |  	[{HeadPat, _, _}] when is_tuple(HeadPat), tuple_size(HeadPat) &gt; 2 -&gt;
+     2..|  	    KeyPat = element(2, HeadPat),
+     2..|  	    case has_var(KeyPat) of
+        |  		false -&gt;
+<font color=red>     0..|  		    [key_to_frag_number(State, KeyPat)];</font>
+        |  		true -&gt;
+     2..|  		    lists:seq(1, N)
+        |  	    end;
+        |  	_ -&gt; 
+<font color=red>     0..|  	    lists:seq(1, N)</font>
+        |      end;
+        |  match_spec_to_frag_numbers(OldState, MatchSpec) -&gt;
+<font color=red>     0..|      State = convert_old_state(OldState),</font>
+<font color=red>     0..|      match_spec_to_frag_numbers(State, MatchSpec).</font>
+        |  
+        |  power2(Y) -&gt;
+ 87143..|      1 bsl Y. % trunc(math:pow(2, Y)).
+        |  
+        |  %impl_doc_include
+        |  
+        |  has_var(Pat) -&gt;
+     2..|      mnesia2:has_var(Pat).
+</pre>
+</body>
+</html>
