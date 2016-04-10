@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_config_test:dump_log_write_threshold result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_config_test.src.html#dump_log_write_threshold-1">source code for mnesia2_config_test:dump_log_write_threshold/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_config_test:dump_log_write_threshold([{watchdog,<0.925.0>},
+                                              {tc_logfile,
+                                               "/home/travis/build/lrascao/mnesia2/logs/ct_run.test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3.2016-04-10_22.39.15/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.39.41/mnesia2_config_test.dump_log_write_threshold.html"},
+                                              {tc_group_properties,
+                                               [{name,dump_log_thresholds}]},
+                                              {tc_group_path,
+                                               [[{suite,mnesia2_config_test}],
+                                                [{name,config}],
+                                                [{name,registry}],
+                                                [{name,registry}],
+                                                [{name,qlc}],
+                                                [{name,qlc}],
+                                                [{name,nice}],
+                                                [{name,nice}],
+                                                [{name,install}],
+                                                [{name,install}],
+                                                [{name,extra_light}]]},
+                                              {data_dir,
+                                               "/home/travis/build/lrascao/mnesia2/test/mnesia2_config_test_data/"},
+                                              {priv_dir,
+                                               "/home/travis/build/lrascao/mnesia2/logs/ct_run.test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3.2016-04-10_22.39.15/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.39.41/log_private/"},
+                                              {nodenames,
+                                               ['d1100997o1100975n1100985@testing-worker-linux-docker-03d9c4fa-3371-linux-3',
+                                                'd1101016o1101024n1101033@testing-worker-linux-docker-03d9c4fa-3371-linux-3']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3.2016-04-10_22.39.15"
+
+=== Started at 2016-04-10 22:40:09
+
+<br />
+[2016-04-10 22:40:10] mnesia2_config_test.erl(460): <>ERROR<>
+Not Matching Actual result was:
+ {error,undef}
+  [{application,ensure_all_started,[mnesia2,temporary],[]},
+   {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+   {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+   {mnesia2_config_test,'-dump_log_write_threshold/1-fun-1-',0,
+                        [{file,"mnesia2_config_test.erl"},{line,460}]},
+   {mnesia2_config_test,dump_log_write_threshold,1,
+                        [{file,"mnesia2_config_test.erl"},{line,460}]},
+   {test_server,ts_tc,3,[{file,"test_server.erl"},{line,1359}]},
+   {test_server,run_test_case_eval1,6,[{file,"test_server.erl"},{line,976}]},
+   {test_server,run_test_case_eval,9,[{file,"test_server.erl"},{line,925}]}]
+
+[2016-04-10 22:40:10] mnesia2_config_test.erl(462): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3'}}
+
+[2016-04-10 22:40:10] mnesia2_config_test.erl(467): <>ERROR<>
+Not Matching Actual result was:
+ {error,{node_not_running,'test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3'}}
+
+[2016-04-10 22:40:10] mnesia2_config_test.erl(469): <>ERROR<>
+Not Matching Actual result was:
+ {error,
+     {badmatch,
+         {aborted,
+             {node_not_running,
+                 'test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3'}}}}
+  [{mnesia2_config_test,do_trans,1,
+                        [{file,"mnesia2_config_test.erl"},{line,540}]},
+   {mnesia2_config_test,'-dump_log_write_threshold/1-fun-7-',0,
+                        [{file,"mnesia2_config_test.erl"},{line,469}]},
+   {mnesia2_config_test,dump_log_write_threshold,1,
+                        [{file,"mnesia2_config_test.erl"},{line,469}]},
+   {test_server,ts_tc,3,[{file,"test_server.erl"},{line,1359}]},
+   {test_server,run_test_case_eval1,6,[{file,"test_server.erl"},{line,976}]},
+   {test_server,run_test_case_eval,9,[{file,"test_server.erl"},{line,925}]}]
+
+[2016-04-10 22:40:10] mnesia2_config_test.erl(472): <>ERROR<>
+Not Matching Actual result was:
+ {error,
+     {badmatch,
+         {aborted,
+             {node_not_running,
+                 'test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3'}}}}
+  [{mnesia2_config_test,do_trans,1,
+                        [{file,"mnesia2_config_test.erl"},{line,540}]},
+   {mnesia2_config_test,'-dump_log_write_threshold/1-fun-9-',0,
+                        [{file,"mnesia2_config_test.erl"},{line,472}]},
+   {mnesia2_config_test,dump_log_write_threshold,1,
+                        [{file,"mnesia2_config_test.erl"},{line,472}]},
+   {test_server,ts_tc,3,[{file,"test_server.erl"},{line,1359}]},
+   {test_server,run_test_case_eval1,6,[{file,"test_server.erl"},{line,976}]},
+   {test_server,run_test_case_eval,9,[{file,"test_server.erl"},{line,925}]}]
+
+[2016-04-10 22:40:11] mnesia2_config_test.erl(560): <>ERROR<>
+Not Matching Actual result was:
+ false
+
+[2016-04-10 22:40:11] mnesia2_config_test.erl(561): <>ERROR<>
+Not Matching Actual result was:
+ {error,{file_error,"/home/travis/build/lrascao/mnesia2/logs/ct_run.test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3.2016-04-10_22.39.15/Mnesia2.test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3/test_table.DCL",
+                    enoent}}
+
+[2016-04-10 22:40:11] mnesia2_config_test.erl(564): <>ERROR<>
+Not Matching Actual result was:
+ {error,{badarg,continuation}}
+
+[2016-04-10 22:40:11] mnesia2_config_test.erl(569): <>ERROR<>
+Not Matching Actual result was:
+ {error,badarg}
+  [{erlang,length,[no_such_log],[]},
+   {mnesia2_config_test,'-check_logs/1-fun-9-',2,
+                        [{file,"mnesia2_config_test.erl"},{line,569}]},
+   {mnesia2_config_test,dump_log_write_threshold,1,
+                        [{file,"mnesia2_config_test.erl"},{line,474}]},
+   {test_server,ts_tc,3,[{file,"test_server.erl"},{line,1359}]},
+   {test_server,run_test_case_eval1,6,[{file,"test_server.erl"},{line,976}]},
+   {test_server,run_test_case_eval,9,[{file,"test_server.erl"},{line,925}]}]
+
+[2016-04-10 22:40:11] mnesia2_config_test.erl(477): <>ERROR<>
+Not Matching Actual result was:
+ {error,
+     {badmatch,
+         {aborted,
+             {node_not_running,
+                 'test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3'}}}}
+  [{mnesia2_config_test,do_trans,1,
+                        [{file,"mnesia2_config_test.erl"},{line,540}]},
+   {mnesia2_config_test,'-dump_log_write_threshold/1-fun-11-',0,
+                        [{file,"mnesia2_config_test.erl"},{line,477}]},
+   {mnesia2_config_test,dump_log_write_threshold,1,
+                        [{file,"mnesia2_config_test.erl"},{line,477}]},
+   {test_server,ts_tc,3,[{file,"test_server.erl"},{line,1359}]},
+   {test_server,run_test_case_eval1,6,[{file,"test_server.erl"},{line,976}]},
+   {test_server,run_test_case_eval,9,[{file,"test_server.erl"},{line,925}]}]
+
+[2016-04-10 22:40:11] mnesia2_config_test.erl(478): <>ERROR<>
+Not Matching Actual result was:
+ {error,{node_not_running,'test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3'}}
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 22:40:12
+=== location {mnesia2_config_test,dump_log_write_threshold}
+=== reason = [{"mnesia2_config_test.erl",478},
+                  {"mnesia2_config_test.erl",477},
+                  {"mnesia2_config_test.erl",569},
+                  {"mnesia2_config_test.erl",564},
+                  {"mnesia2_config_test.erl",561},
+                  {"mnesia2_config_test.erl",560},
+                  {"mnesia2_config_test.erl",472},
+                  {"mnesia2_config_test.erl",469},
+                  {"mnesia2_config_test.erl",467},
+                  {"mnesia2_config_test.erl",462},
+                  {"mnesia2_config_test.erl",460}]
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 22:40:09<!/date><br />
+</div>
+</center>
+</body>
+</html>

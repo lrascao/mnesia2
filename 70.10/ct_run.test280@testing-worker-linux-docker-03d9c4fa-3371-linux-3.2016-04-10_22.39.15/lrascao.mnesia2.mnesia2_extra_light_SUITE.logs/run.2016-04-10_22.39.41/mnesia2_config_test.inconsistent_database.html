@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_config_test:inconsistent_database result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_config_test.src.html#inconsistent_database-1">source code for mnesia2_config_test:inconsistent_database/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_config_test:inconsistent_database([{watchdog,<0.807.0>},
+                                           {tc_logfile,
+                                            "/home/travis/build/lrascao/mnesia2/logs/ct_run.test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3.2016-04-10_22.39.15/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.39.41/mnesia2_config_test.inconsistent_database.html"},
+                                           {tc_group_properties,
+                                            [{suite,mnesia2_config_test}]},
+                                           {tc_group_path,
+                                            [[{name,config}],
+                                             [{name,registry}],
+                                             [{name,registry}],
+                                             [{name,qlc}],
+                                             [{name,qlc}],
+                                             [{name,nice}],
+                                             [{name,nice}],
+                                             [{name,install}],
+                                             [{name,install}],
+                                             [{name,extra_light}]]},
+                                           {data_dir,
+                                            "/home/travis/build/lrascao/mnesia2/test/mnesia2_config_test_data/"},
+                                           {priv_dir,
+                                            "/home/travis/build/lrascao/mnesia2/logs/ct_run.test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3.2016-04-10_22.39.15/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.39.41/log_private/"},
+                                           {nodenames,
+                                            ['d1100997o1100975n1100985@testing-worker-linux-docker-03d9c4fa-3371-linux-3',
+                                             'd1101016o1101024n1101033@testing-worker-linux-docker-03d9c4fa-3371-linux-3']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3.2016-04-10_22.39.15"
+
+=== Started at 2016-04-10 22:40:15
+
+<br />
+[2016-04-10 22:40:16] mnesia2_config_test.erl(1375): <>ERROR<>
+Not Matching Actual result was:
+ {[{badrpc,
+       {'EXIT',
+           {undef,
+               [{application,ensure_all_started,[mnesia2,temporary],[]},
+                {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+                {rpc,'-handle_call_call/6-fun-0-',5,
+                    [{file,"rpc.erl"},{line,205}]}]}}},
+   {badrpc,
+       {'EXIT',
+           {undef,
+               [{application,ensure_all_started,[mnesia2,temporary],[]},
+                {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+                {rpc,'-handle_call_call/6-fun-0-',5,
+                    [{file,"rpc.erl"},{line,205}]}]}}}],
+  []}
+
+A fun apply costs 0 micro seconds. Record size is 60 bytes.
+
+Run 24 meters with table config: [{ram_copies,['test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3']}]
+
+[2016-04-10 22:40:16] mnesia2_config_test.erl(1378): <>ERROR<>
+Not Matching Actual result was:
+ {error,
+     {badmatch,
+         {aborted,
+             {node_not_running,
+                 'test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3'}}}}
+  [{mnesia2_meter,start,2,[{file,"mnesia2_meter.erl"},{line,434}]},
+   {mnesia2_meter,run,3,[{file,"mnesia2_meter.erl"},{line,406}]},
+   {mnesia2_meter,go,5,[{file,"mnesia2_meter.erl"},{line,75}]},
+   {mnesia2_meter,go,2,[{file,"mnesia2_meter.erl"},{line,61}]},
+   {mnesia2_config_test,'-inconsistent_database/1-fun-5-',1,
+                        [{file,"mnesia2_config_test.erl"},{line,1378}]},
+   {mnesia2_config_test,inconsistent_database,1,
+                        [{file,"mnesia2_config_test.erl"},{line,1378}]},
+   {test_server,ts_tc,3,[{file,"test_server.erl"},{line,1359}]},
+   {test_server,run_test_case_eval1,6,[{file,"test_server.erl"},{line,976}]}]
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-10 22:40:17
+=== location {mnesia2_config_test,inconsistent_database}
+=== reason = [{"mnesia2_config_test.erl",1378},
+                  {"mnesia2_config_test.erl",1375}]
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Sun Apr 10 2016 22:40:15<!/date><br />
+</div>
+</center>
+</body>
+</html>

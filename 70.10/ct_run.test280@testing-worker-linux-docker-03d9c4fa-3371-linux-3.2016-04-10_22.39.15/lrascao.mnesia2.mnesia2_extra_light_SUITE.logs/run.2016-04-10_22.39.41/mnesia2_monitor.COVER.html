@@ -1,0 +1,915 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test280@testing-worker-linux-docker-03d9c4fa-3371-linux-3.2016-04-10_22.39.15/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-10_22.39.41/mnesia2_monitor.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_monitor.erl by COVER 2016-04-10 at 22:40:40
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1996-2014. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_monitor).
+        |  
+        |  -behaviour(gen_server).
+        |  
+        |  %% Public exports
+        |  -export([
+        |  	 close_dets/1,
+        |  	 close_log/1,
+        |  	 detect_inconcistency/2,
+        |  	 get_env/1,
+        |  	 init/0,
+        |  	 mktab/2,
+        |  	 unsafe_mktab/2,
+        |  	 mnesia2_down/2,
+        |  	 needs_protocol_conversion/1,
+        |  	 negotiate_protocol/1,
+        |  	 disconnect/1,
+        |  	 open_dets/2,
+        |  	 unsafe_open_dets/2,
+        |  	 open_log/1,
+        |  	 patch_env/2,
+        |  	 protocol_version/0,
+        |  	 reopen_log/3,
+        |  	 set_env/2,
+        |  	 start/0,
+        |  	 start_proc/4,
+        |  	 sync_log/1,
+        |  	 terminate_proc/3,
+        |  	 unsafe_close_dets/1,
+        |  	 unsafe_close_log/1,
+        |  	 use_dir/0,
+        |  	 do_check_type/2
+        |  	]).
+        |  
+        |  %% gen_server callbacks
+        |  -export([
+        |  	 init/1,
+        |  	 handle_call/3,
+        |  	 handle_cast/2,
+        |  	 handle_info/2,
+        |  	 terminate/2,
+        |  	 code_change/3
+        |  	]).
+        |  
+        |  %% Internal exports
+        |  -export([
+        |  	 call/1,
+        |  	 cast/1,
+        |  	 detect_partitioned_network/2,
+        |  	 has_remote_mnesia2_down/1,
+        |  	 negotiate_protocol_impl/2
+        |  	]).
+        |  
+        |  -compile({no_auto_import,[error/2]}).
+        |  
+        |  -import(mnesia2_lib, [dbg_out/2, verbose/2, error/2, fatal/2, set/2]).
+        |  
+        |  -include("mnesia2.hrl").
+        |  
+        |  -record(state, {supervisor, pending_negotiators = [],
+        |  		going_down = [], tm_started = false, early_connects = [],
+        |  		connecting, mq = [], remote_node_status = []}).
+        |  
+        |  -define(current_protocol_version,  {8,1}).
+        |  
+        |  -define(previous_protocol_version, {8,0}).
+        |  
+        |  start() -&gt;
+<font color=red>     0..|      gen_server:start_link({local, ?MODULE}, ?MODULE,</font>
+        |  			  [self()], [{timeout, infinity}
+        |  				     %% ,{debug, [trace]}
+        |  				    ]).
+        |  
+        |  init() -&gt;
+<font color=red>     0..|      call(init).</font>
+        |  
+        |  mnesia2_down(From, Node) -&gt;
+<font color=red>     0..|      cast({mnesia2_down, From, Node}).</font>
+        |  
+        |  mktab(Tab, Args) -&gt;
+<font color=red>     0..|      unsafe_call({mktab, Tab, Args}).</font>
+        |  unsafe_mktab(Tab, Args) -&gt;
+<font color=red>     0..|      unsafe_call({unsafe_mktab, Tab, Args}).</font>
+        |  
+        |  open_dets(Tab, Args) -&gt;
+<font color=red>     0..|      unsafe_call({open_dets, Tab, Args}).</font>
+        |  unsafe_open_dets(Tab, Args) -&gt;
+<font color=red>     0..|      unsafe_call({unsafe_open_dets, Tab, Args}).</font>
+        |  
+        |  close_dets(Tab) -&gt;
+<font color=red>     0..|      unsafe_call({close_dets, Tab}).</font>
+        |  
+        |  unsafe_close_dets(Name) -&gt;
+<font color=red>     0..|      unsafe_call({unsafe_close_dets, Name}).</font>
+        |  
+        |  open_log(Args) -&gt;
+<font color=red>     0..|      unsafe_call({open_log, Args}).</font>
+        |  
+        |  reopen_log(Name, Fname, Head) -&gt;
+<font color=red>     0..|      unsafe_call({reopen_log, Name, Fname, Head}).</font>
+        |  
+        |  sync_log(Name) -&gt;
+<font color=red>     0..|      unsafe_call({sync_log, Name}).</font>
+        |  
+        |  close_log(Name) -&gt;
+<font color=red>     0..|      unsafe_call({close_log, Name}).</font>
+        |  
+        |  unsafe_close_log(Name) -&gt;
+<font color=red>     0..|      unsafe_call({unsafe_close_log, Name}).</font>
+        |  
+        |  
+        |  disconnect(Node) -&gt;
+<font color=red>     0..|      cast({disconnect, Node}).</font>
+        |  
+        |  %% Returns GoodNoodes
+        |  %% Creates a link to each compatible monitor and
+        |  %% protocol_version to agreed version upon success
+        |  
+<font color=red>     0..|  negotiate_protocol([]) -&gt; [];</font>
+        |  negotiate_protocol(Nodes) -&gt;
+<font color=red>     0..|      call({negotiate_protocol, Nodes}).</font>
+        |  
+        |  negotiate_protocol_impl(Nodes, Requester) -&gt;
+<font color=red>     0..|      Version    = mnesia2:system_info(version),</font>
+<font color=red>     0..|      Protocols  = acceptable_protocol_versions(),</font>
+<font color=red>     0..|      MonitorPid = whereis(?MODULE),</font>
+<font color=red>     0..|      Msg = {negotiate_protocol, MonitorPid, Version, Protocols},</font>
+<font color=red>     0..|      {Replies, _BadNodes} = multicall(Nodes, Msg),</font>
+<font color=red>     0..|      Res = check_protocol(Replies, Protocols),</font>
+<font color=red>     0..|      ?MODULE ! {protocol_negotiated,Requester,Res},</font>
+<font color=red>     0..|      unlink(whereis(?MODULE)),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  check_protocol([{Node, {accept, Mon, Version, Protocol}} | Tail], Protocols) -&gt;
+<font color=red>     0..|      case lists:member(Protocol, Protocols) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    case Protocol == protocol_version() of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    set({protocol, Node}, {Protocol, false});</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    set({protocol, Node}, {Protocol, true})</font>
+        |  	    end,
+<font color=red>     0..|  	    [node(Mon) | check_protocol(Tail, Protocols)];</font>
+        |  	false  -&gt;
+<font color=red>     0..|  	    verbose("Failed to connect with ~p. ~p protocols rejected. "</font>
+        |  		    "expected version = ~p, expected protocol = ~p~n",
+        |  		    [Node, Protocols, Version, Protocol]),
+<font color=red>     0..|  	    unlink(Mon), % Get rid of unneccessary link</font>
+<font color=red>     0..|  	    check_protocol(Tail, Protocols)</font>
+        |      end;
+        |  check_protocol([{Node, {reject, _Mon, Version, Protocol}} | Tail], Protocols) -&gt;
+<font color=red>     0..|      verbose("Failed to connect with ~p. ~p protocols rejected. "</font>
+        |  	    "expected version = ~p, expected protocol = ~p~n",
+        |  	    [Node, Protocols, Version, Protocol]),
+<font color=red>     0..|      check_protocol(Tail, Protocols);</font>
+        |  check_protocol([{error, _Reason} | Tail], Protocols) -&gt;
+<font color=red>     0..|      dbg_out("~p connect failed error: ~p~n", [?MODULE, _Reason]),</font>
+<font color=red>     0..|      check_protocol(Tail, Protocols);</font>
+        |  check_protocol([{badrpc, _Reason} | Tail], Protocols) -&gt;
+<font color=red>     0..|      dbg_out("~p connect failed badrpc: ~p~n", [?MODULE, _Reason]),</font>
+<font color=red>     0..|      check_protocol(Tail, Protocols);</font>
+        |  check_protocol([], [Protocol | _Protocols]) -&gt;
+<font color=red>     0..|      set(protocol_version, Protocol),</font>
+<font color=red>     0..|      [].</font>
+        |  
+        |  protocol_version() -&gt;
+<font color=red>     0..|      case ?catch_val(protocol_version) of</font>
+<font color=red>     0..|  	{'EXIT', _} -&gt; ?current_protocol_version;</font>
+<font color=red>     0..|  	Version -&gt; Version</font>
+        |      end.
+        |  
+        |  %% A sorted list of acceptable protocols the
+        |  %% preferred protocols are first in the list
+        |  acceptable_protocol_versions() -&gt;
+<font color=red>     0..|      [protocol_version(), ?previous_protocol_version, {7,6}].</font>
+        |  
+        |  needs_protocol_conversion(Node) -&gt;
+<font color=red>     0..|      case {?catch_val({protocol, Node}), protocol_version()} of</font>
+        |  	{{'EXIT', _}, _} -&gt;
+<font color=red>     0..|  	    false;</font>
+        |  	{{_, Bool}, ?current_protocol_version} -&gt;
+<font color=red>     0..|  	    Bool;</font>
+        |  	{{_, Bool}, _} -&gt;
+<font color=red>     0..|  	    not Bool</font>
+        |      end.
+        |  
+        |  cast(Msg) -&gt;
+<font color=red>     0..|      case whereis(?MODULE) of</font>
+<font color=red>     0..|  	undefined -&gt; ok;</font>
+<font color=red>     0..|  	Pid -&gt;  gen_server:cast(Pid, Msg)</font>
+        |      end.
+        |  
+        |  unsafe_call(Msg) -&gt;
+<font color=red>     0..|      case whereis(?MODULE) of</font>
+<font color=red>     0..|  	undefined -&gt; {error, {node_not_running, node()}};</font>
+<font color=red>     0..|  	Pid -&gt; gen_server:call(Pid, Msg, infinity)</font>
+        |      end.
+        |  
+        |  call(Msg) -&gt;
+<font color=red>     0..|      case whereis(?MODULE) of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    {error, {node_not_running, node()}};</font>
+        |  	Pid -&gt;
+<font color=red>     0..|  	    link(Pid),</font>
+<font color=red>     0..|  	    Res = gen_server:call(Pid, Msg, infinity),</font>
+<font color=red>     0..|  	    unlink(Pid),</font>
+        |  
+        |              %% We get an exit signal if server dies
+<font color=red>     0..|  	    receive</font>
+        |  		{'EXIT', Pid, _Reason} -&gt;
+<font color=red>     0..|  		    {error, {node_not_running, node()}}</font>
+        |  	    after 0 -&gt;
+<font color=red>     0..|  		    Res</font>
+        |  	    end
+        |      end.
+        |  
+        |  multicall(Nodes, Msg) -&gt;
+<font color=red>     0..|      rpc:multicall(Nodes, ?MODULE, call, [Msg]).</font>
+        |  
+        |  start_proc(Who, Mod, Fun, Args) -&gt;
+<font color=red>     0..|      Args2 = [Who, Mod, Fun, Args],</font>
+<font color=red>     0..|      proc_lib:start_link(mnesia2_sp, init_proc, Args2, infinity).</font>
+        |  
+        |  terminate_proc(Who, R, State) when R /= shutdown, R /= killed -&gt;
+<font color=red>     0..|      fatal("~p crashed: ~p state: ~p~n", [Who, R, State]);</font>
+        |  
+        |  terminate_proc(Who, Reason, _State) -&gt;
+<font color=red>     0..|      mnesia2_lib:verbose("~p terminated: ~p~n", [Who, Reason]),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %%% Callback functions from gen_server
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: init/1
+        |  %% Returns: {ok, State}          |
+        |  %%          {ok, State, Timeout} |
+        |  %%          {stop, Reason}
+        |  %%----------------------------------------------------------------------
+        |  init([Parent]) -&gt;
+<font color=red>     0..|      process_flag(trap_exit, true),</font>
+<font color=red>     0..|      ?ets_new_table(mnesia2_gvar, [set, public, named_table]),</font>
+<font color=red>     0..|      ?ets_new_table(mnesia2_stats, [set, public, named_table]),</font>
+<font color=red>     0..|      set(subscribers, []),</font>
+<font color=red>     0..|      set(activity_subscribers, []),</font>
+<font color=red>     0..|      mnesia2_lib:verbose("~p starting: ~p~n", [?MODULE, self()]),</font>
+<font color=red>     0..|      Version = mnesia2:system_info(version),</font>
+<font color=red>     0..|      set(version, Version),</font>
+<font color=red>     0..|      dbg_out("Version: ~p~n", [Version]),</font>
+        |  
+<font color=red>     0..|      try process_config_args(env()) of</font>
+        |  	ok -&gt;
+<font color=red>     0..|  	    mnesia2_lib:set({'$$$_report', current_pos}, 0),</font>
+<font color=red>     0..|  	    Level = mnesia2_lib:val(debug),</font>
+<font color=red>     0..|  	    mnesia2_lib:verbose("Mnesia2 debug level set to ~p\n", [Level]),</font>
+<font color=red>     0..|  	    set(mnesia2_status, starting), %%  set start status</font>
+<font color=red>     0..|  	    set({current, db_nodes}, [node()]),</font>
+<font color=red>     0..|  	    set(use_dir, use_dir()),</font>
+<font color=red>     0..|  	    mnesia2_lib:create_counter(trans_aborts),</font>
+<font color=red>     0..|  	    mnesia2_lib:create_counter(trans_commits),</font>
+<font color=red>     0..|  	    mnesia2_lib:create_counter(trans_log_writes),</font>
+<font color=red>     0..|  	    Left = get_env(dump_log_write_threshold),</font>
+<font color=red>     0..|  	    mnesia2_lib:set_counter(trans_log_writes_left, Left),</font>
+<font color=red>     0..|  	    mnesia2_lib:create_counter(trans_log_writes_prev),</font>
+<font color=red>     0..|  	    mnesia2_lib:create_counter(trans_restarts),</font>
+<font color=red>     0..|  	    mnesia2_lib:create_counter(trans_failures),</font>
+<font color=red>     0..|  	    set(checkpoints, []),</font>
+<font color=red>     0..|  	    set(pending_checkpoints, []),</font>
+<font color=red>     0..|  	    set(pending_checkpoint_pids, []),</font>
+        |  
+<font color=red>     0..|  	    {ok, #state{supervisor = Parent}}</font>
+        |      catch _:Reason -&gt;
+<font color=red>     0..|  	    mnesia2_lib:report_fatal("Bad configuration: ~p~n", [Reason]),</font>
+<font color=red>     0..|  	    {stop, {bad_config, Reason}}</font>
+        |      end.
+        |  
+        |  use_dir() -&gt;
+   100..|      case ?catch_val(use_dir) of
+        |  	{'EXIT', _} -&gt;
+   100..|  	    case get_env(schema_location) of
+<font color=red>     0..|  		disc -&gt; true;</font>
+   100..|  		opt_disc -&gt; non_empty_dir();
+<font color=red>     0..|  		ram -&gt; false</font>
+        |  	    end;
+        |  	Bool -&gt;
+<font color=red>     0..|  	    Bool</font>
+        |      end.
+        |  
+        |  %% Returns true if the Mnesia2 directory contains
+        |  %% important files
+        |  non_empty_dir() -&gt;
+        |      mnesia2_lib:exists(mnesia2_bup:fallback_bup()) or
+   100..|      mnesia2_lib:exists(mnesia2_lib:tab2dmp(schema)) or
+        |      mnesia2_lib:exists(mnesia2_lib:tab2dat(schema)).
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: handle_call/3
+        |  %% Returns: {reply, Reply, State}          |
+        |  %%          {reply, Reply, State, Timeout} |
+        |  %%          {noreply, State}               |
+        |  %%          {noreply, State, Timeout}      |
+        |  %%          {stop, Reason, Reply, State}   | (terminate/2 is called)
+        |  %%----------------------------------------------------------------------
+        |  
+        |  handle_call({mktab, Tab, Args}, _From, State) -&gt;
+<font color=red>     0..|      try ?ets_new_table(Tab, Args) of</font>
+        |  	Reply -&gt;
+<font color=red>     0..|  	    {reply, Reply, State}</font>
+        |      catch error:ExitReason -&gt;
+<font color=red>     0..|  	    Msg = "Cannot create ets table",</font>
+<font color=red>     0..|  	    Reason = {system_limit, Msg, Tab, Args, ExitReason},</font>
+<font color=red>     0..|  	    fatal("~p~n", [Reason]),</font>
+<font color=red>     0..|  	    {noreply, State}</font>
+        |      end;
+        |  
+        |  handle_call({unsafe_mktab, Tab, Args}, _From, State) -&gt;
+<font color=red>     0..|      try ?ets_new_table(Tab, Args) of</font>
+        |  	Reply -&gt;
+<font color=red>     0..|  	    {reply, Reply, State}</font>
+        |      catch error:ExitReason -&gt;
+<font color=red>     0..|  	    {reply, {error, ExitReason}, State}</font>
+        |      end;
+        |  
+        |  handle_call({open_dets, Tab, Args}, _From, State) -&gt;
+<font color=red>     0..|      case mnesia2_lib:dets_sync_open(Tab, Args) of</font>
+        |  	{ok, Tab} -&gt;
+<font color=red>     0..|  	    {reply, {ok, Tab}, State};</font>
+        |  
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    Msg = "Cannot open dets table",</font>
+<font color=red>     0..|  	    Error = {error, {Msg, Tab, Args, Reason}},</font>
+<font color=red>     0..|  	    fatal("~p~n", [Error]),</font>
+<font color=red>     0..|  	    {noreply, State}</font>
+        |      end;
+        |  
+        |  handle_call({unsafe_open_dets, Tab, Args}, _From, State) -&gt;
+<font color=red>     0..|      case mnesia2_lib:dets_sync_open(Tab, Args) of</font>
+        |  	{ok, Tab} -&gt;
+<font color=red>     0..|  	    {reply, {ok, Tab}, State};</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {reply, {error,Reason}, State}</font>
+        |      end;
+        |  
+        |  handle_call({close_dets, Tab}, _From, State) -&gt;
+<font color=red>     0..|      ok = mnesia2_lib:dets_sync_close(Tab),</font>
+<font color=red>     0..|      {reply, ok, State};</font>
+        |  
+        |  handle_call({unsafe_close_dets, Tab}, _From, State) -&gt;
+<font color=red>     0..|      mnesia2_lib:dets_sync_close(Tab),</font>
+<font color=red>     0..|      {reply, ok, State};</font>
+        |  
+        |  handle_call({open_log, Args}, _From, State) -&gt;
+<font color=red>     0..|      Res = disk_log:open([{notify, true}|Args]),</font>
+<font color=red>     0..|      {reply, Res, State};</font>
+        |  
+        |  handle_call({reopen_log, Name, Fname, Head}, _From, State) -&gt;
+<font color=red>     0..|      case disk_log:reopen(Name, Fname, Head) of</font>
+        |  	ok -&gt;
+<font color=red>     0..|  	    {reply, ok, State};</font>
+        |  
+        |          {error, Reason} -&gt;
+<font color=red>     0..|  	    Msg = "Cannot rename disk_log file",</font>
+<font color=red>     0..|              Error = {error, {Msg, Name, Fname, Head, Reason}},</font>
+<font color=red>     0..|  	    fatal("~p~n", [Error]),</font>
+<font color=red>     0..|   	    {noreply, State}</font>
+        |      end;
+        |  
+        |  handle_call({sync_log, Name}, _From, State) -&gt;
+<font color=red>     0..|      {reply, disk_log:sync(Name), State};</font>
+        |  
+        |  handle_call({close_log, Name}, _From, State) -&gt;
+<font color=red>     0..|      case disk_log:close(Name) of</font>
+        |  	ok -&gt;
+<font color=red>     0..|  	    {reply, ok, State};</font>
+        |  
+        |          {error, Reason} -&gt;
+<font color=red>     0..|  	    Msg = "Cannot close disk_log file",</font>
+<font color=red>     0..|              Error = {error, {Msg, Name, Reason}},</font>
+<font color=red>     0..|  	    fatal("~p~n", [Error]),</font>
+<font color=red>     0..|  	    {noreply, State}</font>
+        |      end;
+        |  
+        |  handle_call({unsafe_close_log, Name}, _From, State) -&gt;
+<font color=red>     0..|      _ = disk_log:close(Name),</font>
+<font color=red>     0..|      {reply, ok, State};</font>
+        |  
+        |  handle_call({negotiate_protocol, Mon, _Version, _Protocols}, _From, State)
+        |    when State#state.tm_started == false -&gt;
+<font color=red>     0..|      State2 =  State#state{early_connects = [node(Mon) | State#state.early_connects]},</font>
+<font color=red>     0..|      {reply, {node(), {reject, self(), uninitialized, uninitialized}}, State2};</font>
+        |  
+        |  %% From remote monitor..
+        |  handle_call({negotiate_protocol, Mon, Version, Protocols}, From, State)
+        |    when node(Mon) /= node() -&gt;
+<font color=red>     0..|      Protocol = protocol_version(),</font>
+<font color=red>     0..|      MyVersion = mnesia2:system_info(version),</font>
+<font color=red>     0..|      case lists:member(Protocol, Protocols) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    accept_protocol(Mon, MyVersion, Protocol, From, State);</font>
+        |  	false -&gt;
+        |  	    %% in this release we should be able to handle the previous
+        |  	    %% protocol
+<font color=red>     0..|  	    case hd(Protocols) of</font>
+        |  		?previous_protocol_version -&gt;
+<font color=red>     0..|  		    accept_protocol(Mon, MyVersion, ?previous_protocol_version, From, State);</font>
+        |  		{7,6} -&gt;
+<font color=red>     0..|  		    accept_protocol(Mon, MyVersion, {7,6}, From, State);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    verbose("Connection with ~p rejected. "</font>
+        |  			    "version = ~p, protocols = ~p, "
+        |  			    "expected version = ~p, expected protocol = ~p~n",
+        |  			    [node(Mon), Version, Protocols, MyVersion, Protocol]),
+<font color=red>     0..|  		    {reply, {node(), {reject, self(), MyVersion, Protocol}}, State}</font>
+        |  	    end
+        |      end;
+        |  
+        |  %% Local request to negotiate with other monitors (nodes).
+        |  handle_call({negotiate_protocol, Nodes}, From, State) -&gt;
+<font color=red>     0..|      case mnesia2_lib:intersect(State#state.going_down, Nodes) of</font>
+        |  	[] -&gt;
+<font color=red>     0..|  	    spawn_link(?MODULE, negotiate_protocol_impl, [Nodes, From]),</font>
+<font color=red>     0..|  	    {noreply, State#state{connecting={From,Nodes}}};</font>
+        |  	_ -&gt;  %% Cannot connect now, still processing mnesia2 down
+<font color=red>     0..|  	    {reply, busy, State}</font>
+        |      end;
+        |  
+        |  handle_call(init, _From, State) -&gt;
+<font color=red>     0..|      _ = net_kernel:monitor_nodes(true),</font>
+<font color=red>     0..|      EarlyNodes = State#state.early_connects,</font>
+<font color=red>     0..|      State2 = State#state{tm_started = true},</font>
+<font color=red>     0..|      {reply, EarlyNodes, State2};</font>
+        |  
+        |  handle_call(Msg, _From, State) -&gt;
+<font color=red>     0..|      error("~p got unexpected call: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|      {noreply, State}.</font>
+        |  
+        |  accept_protocol(Mon, Version, Protocol, From, State) -&gt;
+<font color=red>     0..|      Reply = {node(), {accept, self(), Version, Protocol}},</font>
+<font color=red>     0..|      Node = node(Mon),</font>
+<font color=red>     0..|      Pending0 = State#state.pending_negotiators,</font>
+<font color=red>     0..|      Pending = lists:keydelete(Node, 1, Pending0),</font>
+<font color=red>     0..|      case lists:member(Node, State#state.going_down) of</font>
+        |  	true -&gt;
+        |  	    %% Wait for the mnesia2_down to be processed,
+        |  	    %% before we reply
+<font color=red>     0..|  	    P = Pending ++ [{Node, Mon, From, Reply}],</font>
+<font color=red>     0..|  	    {noreply, State#state{pending_negotiators = P}};</font>
+        |  	false -&gt;
+        |  	    %% No need for wait
+<font color=red>     0..|  	    link(Mon),  %% link to remote Monitor</font>
+<font color=red>     0..|  	    case Protocol == protocol_version() of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    set({protocol, Node}, {Protocol, false});</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    set({protocol, Node}, {Protocol, true})</font>
+        |  	    end,
+<font color=red>     0..|  	    {reply, Reply, State#state{pending_negotiators = Pending}}</font>
+        |      end.
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: handle_cast/2
+        |  %% Returns: {noreply, State}          |
+        |  %%          {noreply, State, Timeout} |
+        |  %%          {stop, Reason, State}            (terminate/2 is called)
+        |  %%----------------------------------------------------------------------
+        |  
+        |  handle_cast({mnesia2_down, mnesia2_controller, Node}, State) -&gt;
+<font color=red>     0..|      mnesia2_tm:mnesia2_down(Node),</font>
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_cast({mnesia2_down, mnesia2_tm, Node}, State) -&gt;
+<font color=red>     0..|      Down = {mnesia2_down, Node},</font>
+<font color=red>     0..|      mnesia2_lib:report_system_event(Down),</font>
+<font color=red>     0..|      GoingDown = lists:delete(Node, State#state.going_down),</font>
+<font color=red>     0..|      State2 = State#state{going_down = GoingDown},</font>
+<font color=red>     0..|      Pending = State#state.pending_negotiators,</font>
+<font color=red>     0..|      State3 = check_raise_conditon_nodeup(Node, State2),</font>
+<font color=red>     0..|      case lists:keysearch(Node, 1, Pending) of</font>
+        |  	{value, {Node, Mon, ReplyTo, Reply}} -&gt;
+        |  	    %% Late reply to remote monitor
+<font color=red>     0..|  	    link(Mon),  %% link to remote Monitor</font>
+<font color=red>     0..|  	    gen_server:reply(ReplyTo, Reply),</font>
+<font color=red>     0..|  	    P2 = lists:keydelete(Node, 1,Pending),</font>
+<font color=red>     0..|  	    State4 = State3#state{pending_negotiators = P2},</font>
+<font color=red>     0..|  	    process_q(State4);</font>
+        |  	false -&gt;
+        |  	    %% No pending remote monitors
+<font color=red>     0..|  	    process_q(State3)</font>
+        |      end;
+        |  
+        |  handle_cast({disconnect, Node}, State) -&gt;
+<font color=red>     0..|      case rpc:call(Node, erlang, whereis, [?MODULE]) of</font>
+        |  	{badrpc, _} -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	RemoteMon when is_pid(RemoteMon) -&gt;
+<font color=red>     0..|  	    unlink(RemoteMon)</font>
+        |      end,
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_cast({inconsistent_database, Context, Node}, State) -&gt;
+<font color=red>     0..|      Msg = {inconsistent_database, Context, Node},</font>
+<font color=red>     0..|      mnesia2_lib:report_system_event(Msg),</font>
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_cast(Msg, State) -&gt;
+<font color=red>     0..|      error("~p got unexpected cast: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|      {noreply, State}.</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: handle_info/2
+        |  %% Returns: {noreply, State}          |
+        |  %%          {noreply, State, Timeout} |
+        |  %%          {stop, Reason, State}            (terminate/2 is called)
+        |  %%----------------------------------------------------------------------
+        |  
+        |  handle_info({'EXIT', Pid, R}, State) when Pid == State#state.supervisor -&gt;
+<font color=red>     0..|      dbg_out("~p was ~p by supervisor~n",[?MODULE, R]),</font>
+<font color=red>     0..|      {stop, R, State};</font>
+        |  
+        |  handle_info({'EXIT', Pid, fatal}, State) when node(Pid) == node() -&gt;
+<font color=red>     0..|      dbg_out("~p got FATAL ERROR from: ~p~n",[?MODULE, Pid]),</font>
+        |      %% This may hang supervisor if a shutdown happens at the same time as an fatal
+        |      %% is in progress
+        |      %% exit(State#state.supervisor, shutdown),
+        |      %% It is better to kill an innocent process
+<font color=red>     0..|      ?SAFE(exit(whereis(mnesia2_locker), kill)),</font>
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_info(Msg = {'EXIT',Pid,_}, State) -&gt;
+<font color=red>     0..|      Node = node(Pid),</font>
+<font color=red>     0..|      if</font>
+        |  	Node /= node(), State#state.connecting == undefined -&gt;
+        |  	    %% Remotly linked process died, assume that it was a mnesia2_monitor
+<font color=red>     0..|  	    mnesia2_recover:mnesia2_down(Node),</font>
+<font color=red>     0..|  	    mnesia2_controller:mnesia2_down(Node),</font>
+<font color=red>     0..|  	    {noreply, State#state{going_down = [Node | State#state.going_down]}};</font>
+        |  	Node /= node() -&gt;
+<font color=red>     0..|  	    {noreply, State#state{mq = State#state.mq ++ [{info, Msg}]}};</font>
+        |  	true -&gt;
+        |  	    %% We have probably got an exit signal from
+        |  	    %% disk_log or dets
+<font color=red>     0..|  	    Hint = "Hint: check that the disk still is writable",</font>
+<font color=red>     0..|  	    fatal("~p got unexpected info: ~p; ~p~n",</font>
+        |  		  [?MODULE, Msg, Hint])
+        |      end;
+        |  
+        |  handle_info({protocol_negotiated, From,Res}, State) -&gt;
+<font color=red>     0..|      From = element(1,State#state.connecting),</font>
+<font color=red>     0..|      gen_server:reply(From, Res),</font>
+<font color=red>     0..|      process_q(State#state{connecting = undefined});</font>
+        |  
+        |  handle_info({check_nodeup, Node}, State) -&gt;
+<font color=red>     0..|      State2 = check_mnesia2_down(Node, State),</font>
+<font color=red>     0..|      {noreply, State2};</font>
+        |  
+        |  handle_info({nodeup, Node}, State) -&gt;
+<font color=red>     0..|      State2 = remote_node_status(Node, up, State),</font>
+<font color=red>     0..|      State3 = check_mnesia2_down(Node, State2),</font>
+<font color=red>     0..|      {noreply, State3};</font>
+        |  
+        |  handle_info({nodedown, Node}, State) -&gt;
+<font color=red>     0..|      State2 = remote_node_status(Node, down, State),</font>
+<font color=red>     0..|      {noreply, State2};</font>
+        |  
+        |  handle_info({disk_log, _Node, Log, Info}, State) -&gt;
+<font color=red>     0..|      case Info of</font>
+        |  	{truncated, _No} -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    mnesia2_lib:important("Warning Log file ~p error reason ~s~n",</font>
+        |  				 [Log, disk_log:format_error(Info)])
+        |      end,
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_info(Msg, State) -&gt;
+<font color=red>     0..|      error("~p got unexpected info (~p): ~p~n", [?MODULE, State, Msg]).</font>
+        |  
+<font color=red>     0..|  process_q(State = #state{mq=[]}) -&gt; {noreply,State};</font>
+        |  process_q(State = #state{mq=[{info,Msg}|R]}) -&gt;
+<font color=red>     0..|      handle_info(Msg, State#state{mq=R});</font>
+        |  process_q(State = #state{mq=[{cast,Msg}|R]}) -&gt;
+<font color=red>     0..|      handle_cast(Msg, State#state{mq=R});</font>
+        |  process_q(State = #state{mq=[{call,From,Msg}|R]}) -&gt;
+<font color=red>     0..|      handle_call(Msg, From, State#state{mq=R}).</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: terminate/2
+        |  %% Purpose: Shutdown the server
+        |  %% Returns: any (ignored by gen_server)
+        |  %%----------------------------------------------------------------------
+        |  terminate(Reason, State) -&gt;
+<font color=red>     0..|      terminate_proc(?MODULE, Reason, State).</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: code_change/3
+        |  %% Purpose: Upgrade process when its code is to be changed
+        |  %% Returns: {ok, NewState}
+        |  %%----------------------------------------------------------------------
+        |  
+        |  
+        |  code_change(_, {state, SUP, PN, GD, TMS, EC}, _) -&gt;
+<font color=red>     0..|      {ok, #state{supervisor=SUP, pending_negotiators=PN,</font>
+        |  		going_down = GD, tm_started =TMS, early_connects = EC}};
+        |  
+        |  code_change(_OldVsn, State, _Extra) -&gt;
+<font color=red>     0..|      {ok, State}.</font>
+        |  
+        |  %%%----------------------------------------------------------------------
+        |  %%% Internal functions
+        |  %%%----------------------------------------------------------------------
+        |  
+        |  process_config_args([]) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  process_config_args([C|T]) -&gt;
+<font color=red>     0..|      V = get_env(C),</font>
+<font color=red>     0..|      dbg_out("Env ~p: ~p~n", [C, V]),</font>
+<font color=red>     0..|      mnesia2_lib:set(C, V),</font>
+<font color=red>     0..|      process_config_args(T).</font>
+        |  
+        |  set_env(E,Val) -&gt;
+<font color=red>     0..|      mnesia2_lib:set(E, check_type(E,Val)),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  get_env(E) -&gt;
+   858..|      case ?catch_val(E) of
+        |  	{'EXIT', _} -&gt;
+   858..|  	    case application:get_env(mnesia2, E) of
+        |  		{ok, Val} -&gt;
+   188..|  		    check_type(E, Val);
+        |  		undefined -&gt;
+   670..|  		    check_type(E, default_env(E))
+        |  	    end;
+        |  	Val -&gt;
+<font color=red>     0..|  	    Val</font>
+        |      end.
+        |  
+        |  env() -&gt;
+<font color=red>     0..|      [</font>
+        |       access_module,
+        |       auto_repair,
+        |       backup_module,
+        |       debug,
+        |       dir,
+        |       dump_disc_copies_at_startup,
+        |       dump_log_load_regulation,
+        |       dump_log_time_threshold,
+        |       dump_log_update_in_place,
+        |       dump_log_write_threshold,
+        |       event_module,
+        |       extra_db_nodes,
+        |       ignore_fallback_at_startup,
+        |       fallback_error_function,
+        |       max_wait_for_decision,
+        |       schema_location,
+        |       core_dir,
+        |       pid_sort_order,
+        |       no_table_loaders,
+        |       dc_dump_limit,
+        |       send_compressed,
+        |       send_max_packets,
+        |       send_max_transfer_size,
+        |       async_dirty_buffer_size,
+        |       async_dirty_max_buffer_file_size,
+        |       async_dirty_tx_backlog_threshold,
+        |       async_dirty_buffer_min_runtime,
+        |       async_dirty_buffer_drained_cutoff
+        |      ].
+        |  
+        |  default_env(access_module) -&gt;
+<font color=red>     0..|      mnesia2;</font>
+        |  default_env(auto_repair) -&gt;
+     1..|      true;
+        |  default_env(backup_module) -&gt;
+    42..|      mnesia2_backup;
+        |  default_env(debug) -&gt;
+    89..|      none;
+        |  default_env(dir) -&gt;
+   489..|      Name = lists:concat(["Mnesia2.", node()]),
+   489..|      filename:absname(Name);
+        |  default_env(dump_disc_copies_at_startup) -&gt;
+<font color=red>     0..|      true;</font>
+        |  default_env(dump_log_load_regulation) -&gt;
+<font color=red>     0..|      false;</font>
+        |  default_env(dump_log_time_threshold) -&gt;
+<font color=red>     0..|      timer:minutes(3);</font>
+        |  default_env(dump_log_update_in_place) -&gt;
+<font color=red>     0..|      true;</font>
+        |  default_env(dump_log_write_threshold) -&gt;
+<font color=red>     0..|      1000;</font>
+        |  default_env(event_module) -&gt;
+<font color=red>     0..|      mnesia2_event;</font>
+        |  default_env(extra_db_nodes) -&gt;
+<font color=red>     0..|      [];</font>
+        |  default_env(ignore_fallback_at_startup) -&gt;
+<font color=red>     0..|      false;</font>
+        |  default_env(fallback_error_function) -&gt;
+<font color=red>     0..|      {mnesia2, lkill};</font>
+        |  default_env(max_wait_for_decision) -&gt;
+<font color=red>     0..|      infinity;</font>
+        |  default_env(schema_location) -&gt;
+    49..|      opt_disc;
+        |  default_env(core_dir) -&gt;
+<font color=red>     0..|      false;</font>
+        |  default_env(pid_sort_order) -&gt;
+<font color=red>     0..|      false;</font>
+        |  default_env(no_table_loaders) -&gt;
+<font color=red>     0..|      2;</font>
+        |  default_env(dc_dump_limit) -&gt;
+<font color=red>     0..|      4;</font>
+        |  default_env(send_compressed) -&gt;
+<font color=red>     0..|      0;</font>
+        |  default_env(send_max_packets) -&gt;
+<font color=red>     0..|      20;</font>
+        |  default_env(send_max_transfer_size) -&gt;
+<font color=red>     0..|      7500;</font>
+        |  default_env(async_dirty_buffer_size) -&gt;
+<font color=red>     0..|      524288;</font>
+        |  default_env(async_dirty_max_buffer_file_size) -&gt;
+<font color=red>     0..|      100000000;</font>
+        |  default_env(async_dirty_tx_backlog_threshold) -&gt;
+<font color=red>     0..|      200000;</font>
+        |  default_env(async_dirty_buffer_min_runtime) -&gt;
+<font color=red>     0..|      10000;</font>
+        |  default_env(async_dirty_buffer_drained_cutoff) -&gt;
+<font color=red>     0..|      5.</font>
+        |  
+        |  check_type(Env, Val) -&gt;
+   858..|      try do_check_type(Env, Val)
+<font color=red>     0..|      catch error:_ -&gt; exit({bad_config, Env, Val})</font>
+        |      end.
+        |  
+     3..|  do_check_type(access_module, A) when is_atom(A) -&gt; A;
+     6..|  do_check_type(auto_repair, B) -&gt; bool(B);
+    85..|  do_check_type(backup_module, B) when is_atom(B) -&gt; B;
+     3..|  do_check_type(debug, debug) -&gt; debug;
+     1..|  do_check_type(debug, false) -&gt; none;
+    90..|  do_check_type(debug, none) -&gt; none;
+     2..|  do_check_type(debug, trace) -&gt; trace;
+     1..|  do_check_type(debug, true) -&gt; debug;
+     2..|  do_check_type(debug, verbose) -&gt; verbose;
+   491..|  do_check_type(dir, V) -&gt; filename:absname(V);
+<font color=red>     0..|  do_check_type(dump_disc_copies_at_startup, B) -&gt; bool(B);</font>
+<font color=red>     0..|  do_check_type(dump_log_load_regulation, B) -&gt; bool(B);</font>
+     4..|  do_check_type(dump_log_time_threshold, I) when is_integer(I), I &gt; 0 -&gt; I;
+<font color=red>     0..|  do_check_type(dump_log_update_in_place, B) -&gt; bool(B);</font>
+     4..|  do_check_type(dump_log_write_threshold, I) when is_integer(I), I &gt; 0 -&gt; I;
+     2..|  do_check_type(event_module, A) when is_atom(A) -&gt; A;
+<font color=red>     0..|  do_check_type(ignore_fallback_at_startup, B) -&gt; bool(B);</font>
+        |  do_check_type(fallback_error_function, {Mod, Func})
+<font color=red>     0..|    when is_atom(Mod), is_atom(Func) -&gt; {Mod, Func};</font>
+        |  do_check_type(extra_db_nodes, L) when is_list(L) -&gt;
+<font color=red>     0..|      Fun = fun(N) when N == node() -&gt; false;</font>
+<font color=red>     0..|  	     (A) when is_atom(A) -&gt; true</font>
+        |  	  end,
+<font color=red>     0..|      lists:filter(Fun, L);</font>
+<font color=red>     0..|  do_check_type(max_wait_for_decision, infinity) -&gt; infinity;</font>
+<font color=red>     0..|  do_check_type(max_wait_for_decision, I) when is_integer(I), I &gt; 0 -&gt; I;</font>
+   228..|  do_check_type(schema_location, M) -&gt; media(M);
+<font color=red>     0..|  do_check_type(core_dir, "false") -&gt; false;</font>
+<font color=red>     0..|  do_check_type(core_dir, false) -&gt; false;</font>
+<font color=red>     0..|  do_check_type(core_dir, Dir) when is_list(Dir) -&gt; Dir;</font>
+<font color=red>     0..|  do_check_type(pid_sort_order, r9b_plain) -&gt; r9b_plain;</font>
+<font color=red>     0..|  do_check_type(pid_sort_order, "r9b_plain") -&gt; r9b_plain;</font>
+<font color=red>     0..|  do_check_type(pid_sort_order, standard) -&gt; standard;</font>
+<font color=red>     0..|  do_check_type(pid_sort_order, "standard") -&gt; standard;</font>
+<font color=red>     0..|  do_check_type(pid_sort_order, _) -&gt; false;</font>
+<font color=red>     0..|  do_check_type(no_table_loaders, N) when is_integer(N), N &gt; 0 -&gt; N;</font>
+<font color=red>     0..|  do_check_type(dc_dump_limit,N) when is_number(N), N &gt; 0 -&gt; N;</font>
+<font color=red>     0..|  do_check_type(send_compressed, L) when is_integer(L), L &gt;= 0, L =&lt; 9 -&gt; L;</font>
+<font color=red>     0..|  do_check_type(send_max_packets, L) when is_integer(L), L &gt; 0 -&gt; L;</font>
+<font color=red>     0..|  do_check_type(send_max_transfer_size, L) when is_integer(L), L &gt; 0 -&gt; L;</font>
+<font color=red>     0..|  do_check_type(async_dirty_buffer_size, L) when is_integer(L), L &gt; 0 -&gt; L;</font>
+<font color=red>     0..|  do_check_type(async_dirty_max_buffer_file_size, L) when is_integer(L), L &gt; 0 -&gt; L;</font>
+<font color=red>     0..|  do_check_type(async_dirty_tx_backlog_threshold, L) when is_integer(L), L &gt; 0 -&gt; L;</font>
+<font color=red>     0..|  do_check_type(async_dirty_buffer_min_runtime, L) when is_integer(L), L &gt; 0 -&gt; L;</font>
+<font color=red>     0..|  do_check_type(async_dirty_buffer_drained_cutoff, L) when is_integer(L), L &gt; 0 -&gt; L.</font>
+        |  
+     3..|  bool(true) -&gt; true;
+     2..|  bool(false) -&gt; false.
+        |  
+<font color=red>     0..|  media(disc) -&gt; disc;</font>
+   226..|  media(opt_disc) -&gt; opt_disc;
+     2..|  media(ram) -&gt; ram.
+        |  
+        |  patch_env(Env, Val) -&gt;
+    25..|      try do_check_type(Env, Val) of
+        |  	NewVal -&gt;
+    21..|  	    application_controller:set_env(mnesia2, Env, NewVal),
+    21..|  	    NewVal
+        |      catch error:_ -&gt;
+     4..|  	    {error, {bad_type, Env, Val}}
+        |      end.
+        |  
+        |  detect_partitioned_network(Mon, Node) -&gt;
+<font color=red>     0..|      detect_inconcistency([Node], running_partitioned_network),</font>
+<font color=red>     0..|      unlink(Mon),</font>
+<font color=red>     0..|      exit(normal).</font>
+        |  
+        |  detect_inconcistency([], _Context) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  detect_inconcistency(Nodes, Context) -&gt;
+<font color=red>     0..|      Downs = [N || N &lt;- Nodes, mnesia2_recover:has_mnesia2_down(N)],</font>
+<font color=red>     0..|      {Replies, _BadNodes} =</font>
+        |  	rpc:multicall(Downs, ?MODULE, has_remote_mnesia2_down, [node()]),
+<font color=red>     0..|      report_inconsistency(Replies, Context, ok).</font>
+        |  
+        |  has_remote_mnesia2_down(Node) -&gt;
+<font color=red>     0..|      HasDown = mnesia2_recover:has_mnesia2_down(Node),</font>
+<font color=red>     0..|      Master  = mnesia2_recover:get_master_nodes(schema),</font>
+<font color=red>     0..|      if</font>
+        |  	HasDown == true, Master == [] -&gt;
+<font color=red>     0..|  	    {true, node()};</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    {false, node()}</font>
+        |      end.
+        |  
+        |  report_inconsistency([{true, Node} | Replies], Context, _Status) -&gt;
+        |      %% Oops, mnesia2 is already running on the
+        |      %% other node AND we both regard each
+        |      %% other as down. The database is
+        |      %% potentially inconsistent and we has to
+        |      %% do tell the applications about it, so
+        |      %% they may perform some clever recovery
+        |      %% action.
+<font color=red>     0..|      Msg = {inconsistent_database, Context, Node},</font>
+<font color=red>     0..|      mnesia2_lib:report_system_event(Msg),</font>
+<font color=red>     0..|      report_inconsistency(Replies, Context, inconsistent_database);</font>
+        |  report_inconsistency([{false, _Node} | Replies], Context, Status) -&gt;
+<font color=red>     0..|      report_inconsistency(Replies, Context, Status);</font>
+        |  report_inconsistency([{badrpc, _Reason} | Replies], Context, Status) -&gt;
+<font color=red>     0..|      report_inconsistency(Replies, Context, Status);</font>
+        |  report_inconsistency([], _Context, Status) -&gt;
+<font color=red>     0..|      Status.</font>
+        |  
+        |  remote_node_status(Node, Status, State) -&gt;
+<font color=red>     0..|      {ok, Nodes} = mnesia2_schema:read_nodes(),</font>
+<font color=red>     0..|      case lists:member(Node, Nodes) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    update_node_status({Node, Status}, State);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    State</font>
+        |      end.
+        |  
+        |  update_node_status({Node, down}, State = #state{remote_node_status = RNodeS}) -&gt;
+<font color=red>     0..|      RNodeS2 = lists:ukeymerge(1, [{Node, down}], RNodeS),</font>
+<font color=red>     0..|      State#state{remote_node_status = RNodeS2};</font>
+        |  update_node_status({Node, up}, State = #state{remote_node_status = RNodeS}) -&gt;
+<font color=red>     0..|      case lists:keyfind(Node, 1, RNodeS) of</font>
+        |  	{Node, down} -&gt;
+<font color=red>     0..|  	    RNodeS2 = lists:ukeymerge(1, [{Node, up}], RNodeS),</font>
+<font color=red>     0..|  	    State#state{remote_node_status = RNodeS2};</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    State</font>
+        |      end.
+        |  
+        |  check_raise_conditon_nodeup(Node, State = #state{remote_node_status = RNodeS}) -&gt;
+<font color=red>     0..|      case lists:keyfind(Node, 1, RNodeS) of</font>
+        |  	{Node, up} -&gt;
+<font color=red>     0..|  	    self() ! {check_nodeup, Node};</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      State#state{remote_node_status = lists:keydelete(Node, 1, RNodeS)}.</font>
+        |  
+        |  check_mnesia2_down(Node, State = #state{remote_node_status = RNodeS}) -&gt;
+        |      %% Check if the network has been partitioned
+        |      %% due to communication failure.
+        |  
+<font color=red>     0..|      HasDown   = mnesia2_recover:has_mnesia2_down(Node),</font>
+<font color=red>     0..|      ImRunning = mnesia2_lib:is_running(),</font>
+<font color=red>     0..|      if</font>
+        |  	%% If I'm not running the test will be made later.
+        |  	HasDown == true, ImRunning == yes -&gt;
+<font color=red>     0..|  	    spawn_link(?MODULE, detect_partitioned_network, [self(), Node]),</font>
+<font color=red>     0..|  	    State#state{remote_node_status = lists:keydelete(Node, 1, RNodeS)};</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    State</font>
+        |      end.
+</pre>
+</body>
+</html>
