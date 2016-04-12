@@ -1,0 +1,297 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test8024@testing-worker-linux-docker-f366a174-3354-linux-14.2016-04-12_08.45.13/mnesia2_registry.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_registry.erl by COVER 2016-04-12 at 08:48:55
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 1998-2010. All Rights Reserved.
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_registry).
+        |  
+        |  %%%----------------------------------------------------------------------
+        |  %%% File    : mnesia2_registry.erl
+        |  %%% Purpose : Support dump and restore of a registry on a C-node
+        |  %%%           This is an OTP internal module and is not public available.
+        |  %%%
+        |  %%% Example : Dump some hardcoded records into the Mnesia2 table Tab
+        |  %%%
+        |  %%% 	  case rpc:call(Node, mnesia2_registry, start_dump, [Tab, self()]) of
+        |  %%% 	     Pid when pid(Pid) -&gt;
+        |  %%% 		 Pid ! {write, key1, key_size1, val_type1, val_size1, val1},
+        |  %%% 		 Pid ! {delete, key3},
+        |  %%% 		 Pid ! {write, key2, key_size2, val_type2, val_size2, val2},
+        |  %%% 		 Pid ! {write, key4, key_size4, val_type4, val_size4, val4},
+        |  %%% 		 Pid ! {commit, self()},
+        |  %%% 		 receive
+        |  %%% 		     {ok, Pid} -&gt;
+        |  %%% 			 ok;
+        |  %%% 		     {'EXIT', Pid, Reason} -&gt;
+        |  %%% 			 exit(Reason)
+        |  %%% 		 end;
+        |  %%% 	     {badrpc, Reason} -&gt;
+        |  %%% 		 exit(Reason)
+        |  %%% 	 end.
+        |  %%%
+        |  %%% Example : Restore the corresponding Mnesia2 table Tab
+        |  %%%
+        |  %%% 	  case rpc:call(Node, mnesia2_registry, start_restore, [Tab, self()]) of
+        |  %%% 	     {size, Pid, N, LargestKey, LargestVal} -&gt;
+        |  %%% 		 Pid ! {send_records, self()},
+        |  %%%              Fun = fun() -&gt;
+        |  %%%                        receive
+        |  %%%                            {restore, KeySize, ValSize, ValType, Key, Val} -&gt; 
+        |  %%%                                {Key, Val};
+        |  %%% 		               {'EXIT', Pid, Reason} -&gt;
+        |  %%% 			           exit(Reason)
+        |  %%%                        end
+        |  %%% 		       end,
+        |  %%%              lists:map(Fun, lists:seq(1, N));
+        |  %%% 	     {badrpc, Reason} -&gt;
+        |  %%% 		 exit(Reason)
+        |  %%% 	 end.
+        |  %%%
+        |  %%%----------------------------------------------------------------------
+        |  
+        |  %% External exports
+        |  %% Avoid warning for local function max/2 clashing with autoimported BIF.
+        |  -compile({no_auto_import,[max/2]}).
+        |  -export([start_dump/2, start_restore/2]).
+        |  -export([create_table/1, create_table/2]).
+        |  
+        |  %% Internal exports 
+        |  -export([init/4]).
+        |  
+        |  -record(state, {table, ops = [], link_to}).
+        |  
+        |  -record(registry_entry, {key, key_size, val_type, val_size, val}).
+        |  
+        |  -record(size, {pid = self(), n_values = 0, largest_key = 0, largest_val = 0}).
+        |  
+        |  %%%----------------------------------------------------------------------
+        |  %%% Client
+        |  %%%----------------------------------------------------------------------
+        |  
+        |  start(Type, Tab, LinkTo) -&gt;
+     7..|      Starter = self(),
+     7..|      Args = [Type, Starter, LinkTo, Tab],
+     7..|      Pid = spawn_link(?MODULE, init, Args),
+        |      %% The receiver process may unlink the current process
+     7..|      receive
+        |  	{ok, Res} -&gt;
+     5..|  	    Res;
+        |  	{'EXIT', Pid, Reason} when LinkTo == Starter -&gt;
+     2..|  	    exit(Reason)
+        |      end.
+        |  
+        |  %% Starts a receiver process and optionally creates a Mnesia2 table
+        |  %% with suitable default values. Returns the Pid of the receiver process
+        |  %% 
+        |  %% The receiver process accumulates Mnesia2 operations and performs
+        |  %% all operations or none at commit. The understood messages are:
+        |  %% 
+        |  %%    {write, Key, KeySize, ValType, ValSize, Val} -&gt;
+        |  %%        accumulates mnesia2:write({Tab, Key, KeySize, ValType, ValSize, Val})
+        |  %%                                                    (no reply)
+        |  %%    {delete, Key}     -&gt;
+        |  %%        accumulates mnesia2:delete({Tab, Key})       (no reply)
+        |  %%    {commit, ReplyTo} -&gt;
+        |  %%        commits all accumulated operations
+        |  %%        and stops the process                       (replies {ok, Pid})
+        |  %%    abort             -&gt;
+        |  %%        stops the process                           (no reply)
+        |  %%    
+        |  %% The receiver process is linked to the process with the process identifier
+        |  %% LinkTo. If some error occurs the receiver process will invoke exit(Reason)
+        |  %% and it is up to he LinkTo process to act properly when it receives an exit
+        |  %% signal.
+        |  
+        |  start_dump(Tab, LinkTo) -&gt;
+     4..|      start(dump, Tab, LinkTo).
+        |  
+        |  %% Starts a sender process which sends restore messages back to the
+        |  %% LinkTo process. But first are some statistics about the table
+        |  %% determined and returned as a 5-tuple:
+        |  %% 
+        |  %%    {size, SenderPid, N, LargestKeySize, LargestValSize}
+        |  %%
+        |  %% where N is the number of records in the table. Then the sender process
+        |  %% waits for a 2-tuple message:
+        |  %% 
+        |  %%    {send_records, ReplyTo}
+        |  %%
+        |  %% At last N 6-tuple messages is sent to the ReplyTo process:
+        |  %% 
+        |  %%    ReplyTo !  {restore, KeySize, ValSize, ValType, Key, Val}
+        |  %%
+        |  %% If some error occurs the receiver process will invoke exit(Reason)
+        |  %% and it is up to he LinkTo process to act properly when it receives an
+        |  %% exit signal.
+        |  
+        |  start_restore(Tab, LinkTo) -&gt;
+     3..|      start(restore, Tab, LinkTo).
+        |  
+        |  
+        |  %% Optionally creates the Mnesia2 table Tab with suitable default values.
+        |  %% Returns ok or EXIT's
+        |  create_table(Tab) -&gt;
+     6..|      Storage = mnesia2:table_info(schema, storage_type),
+     4..|      create_table(Tab, [{Storage, [node()]}]).
+        |  
+        |  create_table(Tab, TabDef) -&gt;
+     4..|      Attrs = record_info(fields, registry_entry),
+     4..|      case mnesia2:create_table(Tab, [{attributes, Attrs} | TabDef]) of
+        |  	{atomic, ok} -&gt;
+     2..|  	    ok;
+        |  	{aborted, {already_exists, Tab}} -&gt;
+     2..|  	    ok;
+        |  	{aborted, Reason} -&gt;
+<font color=red>     0..|  	    exit(Reason)</font>
+        |      end.
+        |      
+        |  %%%----------------------------------------------------------------------
+        |  %%% Server
+        |  %%%----------------------------------------------------------------------
+        |  
+        |  init(Type, Starter, LinkTo, Tab) -&gt;
+     7..|      if
+        |  	LinkTo /= Starter -&gt;
+<font color=red>     0..|  	    link(LinkTo),</font>
+<font color=red>     0..|  	    unlink(Starter);</font>
+        |  	true -&gt;
+     7..|  	    ignore
+        |      end,
+     7..|      case Type of
+        |  	dump -&gt;
+     4..|  	    Starter ! {ok, self()},
+     4..|  	    dump_loop(#state{table = Tab, link_to = LinkTo});
+        |  	restore -&gt;
+     3..|  	    restore_table(Tab, Starter, LinkTo)
+        |      end.
+        |  
+        |  %%%----------------------------------------------------------------------
+        |  %%% Dump loop    
+        |  %%%----------------------------------------------------------------------
+        |  
+        |  dump_loop(S) -&gt;
+    16..|      Tab = S#state.table,
+    16..|      Ops = S#state.ops,
+    16..|      receive
+        |  	{write, Key, KeySize, ValType, ValSize, Val} -&gt;
+     8..|  	    RE = #registry_entry{key = Key,
+        |  				 key_size = KeySize,
+        |  				 val_type = ValType,
+        |  				 val_size = ValSize,
+        |  				 val = Val},
+     8..|  	    dump_loop(S#state{ops = [{write, RE} | Ops]});
+        |  	{delete, Key} -&gt;
+     4..|  	    dump_loop(S#state{ops = [{delete, Key} | Ops]});
+        |  	{commit, ReplyTo} -&gt;
+     4..|  	    create_table(Tab),
+     3..|  	    RecName = mnesia2:table_info(Tab, record_name),
+        |  	    %% The Ops are in reverse order, but there is no need
+        |  	    %% for reversing the list of accumulated operations
+     3..|  	    case mnesia2:transaction(fun handle_ops/3, [Tab, RecName, Ops]) of
+        |                  {atomic, ok} -&gt;
+     2..|                      ReplyTo ! {ok, self()},
+     2..|                      stop(S#state.link_to);
+        |                  {aborted, Reason} -&gt;
+     1..|                      exit({aborted, Reason})
+        |              end;
+        |  	abort -&gt;
+<font color=red>     0..|  	    stop(S#state.link_to);</font>
+        |          BadMsg -&gt;
+<font color=red>     0..|              exit({bad_message, BadMsg})					   </font>
+        |      end.
+        |  
+        |  stop(LinkTo) -&gt;
+     2..|      unlink(LinkTo),
+     2..|      exit(normal).
+        |  
+        |  %% Grab a write lock for the entire table
+        |  %% and iterate over all accumulated operations
+        |  handle_ops(Tab, RecName, Ops) -&gt;
+     3..|      mnesia2:write_lock_table(Tab),
+     3..|      do_handle_ops(Tab, RecName, Ops).
+        |  
+        |  do_handle_ops(Tab, RecName, [{write, RegEntry} | Ops]) -&gt;
+     5..|      Record = setelement(1, RegEntry, RecName),
+     5..|      mnesia2:write(Tab, Record, write),
+     4..|      do_handle_ops(Tab, RecName, Ops);
+        |  do_handle_ops(Tab, RecName, [{delete, Key} | Ops]) -&gt;
+     2..|      mnesia2:delete(Tab, Key, write),
+     2..|      do_handle_ops(Tab, RecName, Ops);
+        |  do_handle_ops(_Tab, _RecName, []) -&gt;
+     2..|      ok.
+        |      
+        |  %%%----------------------------------------------------------------------
+        |  %%% Restore table
+        |  %%%----------------------------------------------------------------------
+        |  
+        |  restore_table(Tab, Starter, LinkTo) -&gt;
+     3..|      Pat = mnesia2:table_info(Tab, wild_pattern),
+     1..|      Fun = fun() -&gt; mnesia2:match_object(Tab, Pat, read) end,
+     1..|      case mnesia2:transaction(Fun) of
+        |  	{atomic, AllRecords} -&gt;
+     1..|  	    Size = calc_size(AllRecords, #size{}),
+     1..|  	    Starter ! {ok, Size},
+     1..|  	    receive
+        |  		{send_records, ReplyTo} -&gt; 
+     1..|  		    send_records(AllRecords, ReplyTo),
+     1..|  		    unlink(LinkTo),
+     1..|  		    exit(normal);
+        |  		BadMsg -&gt;
+<font color=red>     0..|  		    exit({bad_message, BadMsg})</font>
+        |  	    end;
+        |  	{aborted, Reason} -&gt;
+<font color=red>     0..|              exit(Reason)</font>
+        |      end.
+        |  
+        |  calc_size([H | T], S) -&gt;
+     2..|      KeySize = max(element(#registry_entry.key_size, H), S#size.largest_key),
+     2..|      ValSize = max(element(#registry_entry.val_size, H), S#size.largest_val),
+     2..|      N = S#size.n_values + 1,
+     2..|      calc_size(T, S#size{n_values = N, largest_key = KeySize, largest_val = ValSize});
+        |  calc_size([], Size) -&gt;
+     1..|      Size.
+        |  
+     2..|  max(New, Old) when New &gt; Old -&gt; New;
+     2..|  max(_New, Old) -&gt; Old.
+        |  
+        |  send_records([H | T], ReplyTo) -&gt;
+     2..|      KeySize = element(#registry_entry.key_size, H),
+     2..|      ValSize = element(#registry_entry.val_size, H),
+     2..|      ValType = element(#registry_entry.val_type, H),
+     2..|      Key = element(#registry_entry.key, H),
+     2..|      Val = element(#registry_entry.val, H),
+     2..|      ReplyTo ! {restore, KeySize, ValSize, ValType, Key, Val},
+     2..|      send_records(T, ReplyTo);
+        |  send_records([], _ReplyTo) -&gt;
+     1..|      ok.
+        |  
+</pre>
+</body>
+</html>

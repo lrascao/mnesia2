@@ -1,0 +1,358 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_nice_coverage_test:nice result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+<a name="top"></a><pre>
+=== Test case: <a href="mnesia2_nice_coverage_test.src.html#nice-1">mnesia2_nice_coverage_test:nice/1</a> (click for source code)
+
+=== Config value:
+
+    [{watchdog,<0.1121.0>},
+     {tc_logfile,"/home/travis/build/lrascao/mnesia2/logs/ct_run.test8024@testing-worker-linux-docker-f366a174-3354-linux-14.2016-04-12_08.45.13/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.45.32/mnesia2_nice_coverage_test.nice.html"},
+     {tc_group_properties,[{suite,mnesia2_nice_coverage_test}]},
+     {tc_group_path,[[{name,nice}],
+                     [{name,install}],
+                     [{name,install}],
+                     [{name,extra_light}]]},
+     {data_dir,"/home/travis/build/lrascao/mnesia2/test/mnesia2_nice_coverage_test_data/"},
+     {priv_dir,"/home/travis/build/lrascao/mnesia2/logs/ct_run.test8024@testing-worker-linux-docker-f366a174-3354-linux-14.2016-04-12_08.45.13/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.45.32/log_private/"},
+     {nodenames,['d795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14',
+                 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14']}]
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test8024@testing-worker-linux-docker-f366a174-3354-linux-14.2016-04-12_08.45.13"
+
+=== Started at 2016-04-12 08:45:35
+
+<br />
+---> Processes holding locks <--- 
+
+---> Processes waiting for locks <--- 
+
+---> Participant transactions <--- 
+
+---> Coordinator transactions <---
+
+---> Uncertain transactions <--- 
+
+---> Active tables <--- 
+
+nice_tab       : with 0        records occupying 299      words of mem
+
+schema         : with 2        records occupying 529      words of mem
+
+===> System info in version "1.0.0", debug level = none <===
+
+opt_disc. Directory "/home/travis/build/lrascao/mnesia2/logs/ct_run.test8024@testing-worker-linux-docker-f366a174-3354-linux-14.2016-04-12_08.45.13/Mnesia2.test8024@testing-worker-linux-docker-f366a174-3354-linux-14" is used.
+
+use fallback at restart = false
+
+running db nodes   = ['d795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14','test8024@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+stopped db nodes   = [] 
+
+master node tables = []
+
+remote             = []
+
+ram_copies         = [nice_tab]
+
+disc_copies        = [schema]
+
+disc_only_copies   = []
+
+[{'d795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14',
+     disc_copies},
+ {'test8024@testing-worker-linux-docker-f366a174-3354-linux-14',disc_copies}] = [schema]
+
+[{'test8024@testing-worker-linux-docker-f366a174-3354-linux-14',ram_copies}] = [nice_tab]
+
+4 transactions committed, 0 aborted, 0 restarted, 5 logged to disc
+
+0 held locks, 0 in queue; 0 local transactions, 0 remote
+
+0 transactions waits for other nodes: []
+
+-- Properties for nice_tab table --- 
+
+access_mode          -> read_write
+
+active_replicas      -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+all_nodes            -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+arity                -> 3
+
+attributes           -> [key,val]
+
+checkpoints          -> []
+
+commit_work          -> []
+
+cookie               -> {{1460450735672198105,-576460752303420798,1},
+                         'test8024@testing-worker-linux-docker-f366a174-3354-linux-14'}
+
+disc_copies          -> []
+
+disc_only_copies     -> []
+
+frag_properties      -> []
+
+index                -> []
+
+load_by_force        -> false
+
+load_node            -> 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14'
+
+load_order           -> 0
+
+load_reason          -> {dumper,create_table}
+
+local_content        -> false
+
+majority             -> false
+
+master_nodes         -> []
+
+memory               -> 299
+
+ram_copies           -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+record_name          -> nice_tab
+
+record_validation    -> {nice_tab,3,set}
+
+setorbag             -> set
+
+size                 -> 0
+
+snmp                 -> []
+
+storage_properties   -> []
+
+storage_type         -> ram_copies
+
+subscribers          -> []
+
+user_properties      -> []
+
+version              -> {{2,0},[]}
+
+where_to_commit      -> [{'test8024@testing-worker-linux-docker-f366a174-3354-linux-14',
+                             ram_copies}]
+
+where_to_read        -> 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14'
+
+where_to_wlock       -> {['test8024@testing-worker-linux-docker-f366a174-3354-linux-14'],
+                         false}
+
+where_to_write       -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+wild_pattern         -> {nice_tab,'_','_'}
+
+
+
+-- Properties for schema table --- 
+
+access_mode          -> read_write
+
+active_replicas      -> ['d795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14',
+                         'test8024@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+all_nodes            -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14',
+                         'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+arity                -> 3
+
+attributes           -> [table,cstruct]
+
+checkpoints          -> []
+
+commit_work          -> []
+
+cookie               -> {{1460450735605423889,-576460752303421118,1},
+                         'test8024@testing-worker-linux-docker-f366a174-3354-linux-14'}
+
+disc_copies          -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14',
+                         'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+disc_only_copies     -> []
+
+frag_properties      -> []
+
+index                -> []
+
+load_by_force        -> false
+
+load_node            -> 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14'
+
+load_order           -> 0
+
+load_reason          -> initial
+
+local_content        -> false
+
+local_tables         -> [nice_tab,schema]
+
+majority             -> false
+
+master_nodes         -> []
+
+memory               -> 529
+
+ram_copies           -> []
+
+record_name          -> schema
+
+record_validation    -> {schema,3,set}
+
+setorbag             -> set
+
+size                 -> 2
+
+snmp                 -> []
+
+storage_properties   -> []
+
+storage_type         -> disc_copies
+
+subscribers          -> []
+
+tables               -> [nice_tab,schema]
+
+user_properties      -> []
+
+version              -> {{2,0},[]}
+
+where_to_commit      -> [{'d795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14',
+                             disc_copies},
+                         {'test8024@testing-worker-linux-docker-f366a174-3354-linux-14',
+                             disc_copies}]
+
+where_to_read        -> 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14'
+
+where_to_wlock       -> {['test8024@testing-worker-linux-docker-f366a174-3354-linux-14',
+                          'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14'],
+                         false}
+
+where_to_write       -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14',
+                         'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+wild_pattern         -> {schema,'_','_'}
+
+
+
+-- Properties for nice_tab table --- 
+
+access_mode          -> read_write
+
+active_replicas      -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+all_nodes            -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+arity                -> 3
+
+attributes           -> [key,val]
+
+checkpoints          -> []
+
+commit_work          -> []
+
+cookie               -> {{1460450735672198105,-576460752303420798,1},
+                         'test8024@testing-worker-linux-docker-f366a174-3354-linux-14'}
+
+disc_copies          -> []
+
+disc_only_copies     -> []
+
+frag_properties      -> []
+
+index                -> []
+
+load_by_force        -> false
+
+load_node            -> 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14'
+
+load_order           -> 0
+
+load_reason          -> {dumper,create_table}
+
+local_content        -> false
+
+majority             -> false
+
+master_nodes         -> []
+
+memory               -> 299
+
+ram_copies           -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+record_name          -> nice_tab
+
+record_validation    -> {nice_tab,3,set}
+
+setorbag             -> set
+
+size                 -> 0
+
+snmp                 -> []
+
+storage_properties   -> []
+
+storage_type         -> ram_copies
+
+subscribers          -> []
+
+user_properties      -> []
+
+version              -> {{2,0},[]}
+
+where_to_commit      -> [{'test8024@testing-worker-linux-docker-f366a174-3354-linux-14',
+                             ram_copies}]
+
+where_to_read        -> 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14'
+
+where_to_wlock       -> {['test8024@testing-worker-linux-docker-f366a174-3354-linux-14'],
+                         false}
+
+where_to_write       -> ['test8024@testing-worker-linux-docker-f366a174-3354-linux-14']
+
+wild_pattern         -> {nice_tab,'_','_'}
+
+
+
+** Table backup_nice already exists on 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14', just entering data
+
+** Table nice_snmp already exists on 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14', just entering data
+
+** Table nice_tab already exists on 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14', just entering data
+
+** Table nice_counter_tab already exists on 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14', just entering data
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-12 08:45:36
+=== successfully completed test case
+=== Returned value: ok
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Tue Apr 12 2016 08:45:35<!/date><br />
+</div>
+</center>
+</body>
+</html>

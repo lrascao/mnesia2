@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_examples_test:dist_test result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+<a name="top"></a><pre>
+=== Test case: <a href="mnesia2_examples_test.src.html#dist_test-1">mnesia2_examples_test:dist_test/1</a> (click for source code)
+
+=== Config value:
+
+    [{watchdog,<0.7462.0>},
+     {tc_logfile,"/home/travis/build/lrascao/mnesia2/logs/ct_run.test8024@testing-worker-linux-docker-f366a174-3354-linux-14.2016-04-12_08.45.13/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.45.32/mnesia2_examples_test.dist_test.html"},
+     {tc_group_properties,[{name,tpcb}]},
+     {tc_group_path,[[{suite,mnesia2_examples_test}],
+                     [{name,examples}],
+                     [{name,config}],
+                     [{name,config}],
+                     [{name,registry}],
+                     [{name,registry}],
+                     [{name,qlc}],
+                     [{name,qlc}],
+                     [{name,nice}],
+                     [{name,nice}],
+                     [{name,install}],
+                     [{name,install}],
+                     [{name,extra_light}]]},
+     {data_dir,"/home/travis/build/lrascao/mnesia2/test/mnesia2_examples_test_data/"},
+     {priv_dir,"/home/travis/build/lrascao/mnesia2/logs/ct_run.test8024@testing-worker-linux-docker-f366a174-3354-linux-14.2016-04-12_08.45.13/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.45.32/log_private/"},
+     {nodenames,['d795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14',
+                 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14']}]
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test8024@testing-worker-linux-docker-f366a174-3354-linux-14.2016-04-12_08.45.13"
+
+=== Started at 2016-04-12 08:48:00
+
+<br />
+TPC-B: Table config: [{db_nodes,['test8024@testing-worker-linux-docker-f366a174-3354-linux-14',
+                                 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14',
+                                 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14']},
+                      {n_replicas,3},
+                      {replica_nodes,['test8024@testing-worker-linux-docker-f366a174-3354-linux-14',
+                                      'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14',
+                                      'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14']},
+                      {replica_type,ram_copies},
+                      {use_running_mnesia2,false},
+                      {n_fragments,0},
+                      {n_branches,3000},
+                      {n_tellers_per_branch,10},
+                      {n_accounts_per_branch,10},
+                      {branch_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890}},
+                      {account_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234}},
+                      {teller_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      1234567890123456789012345678901234567890123456789012345678}}] 
+
+TPC-B: Generating 3000 branches a 102 bytes
+
+TPC-B: Generating 3000 * 10 tellers a 103 bytes
+
+TPC-B: Generating 3000 * 10 accounts a 103 bytes
+
+TPC-B: Generating 0 history records a 43 bytes
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+TPC-B: Run config: [{driver_nodes,['test8024@testing-worker-linux-docker-f366a174-3354-linux-14',
+                                   'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14',
+                                   'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14']},
+                    {n_drivers_per_node,10},
+                    {use_running_mnesia2,false},
+                    {seed,undefined},
+                    {stop_after,6000},
+                    {report_interval,1000},
+                    {send_bench_report,false},
+                    {use_sticky_locks,false},
+                    {spawn_near_branch,false},
+                    {activity_type,transaction},
+                    {reuse_history_id,true}] 
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+TPC-B: Orphan branches: []
+
+TPC-B: Driver 1 started as <37483.2449.0> on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 1 started as <0.8845.0> on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 1 started as <37484.5636.0> on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 2 started as <37483.2450.0> on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 2 started as <37484.5637.0> on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 2 started as <0.8846.0> on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 3 started as <37483.2451.0> on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 3 started as <37484.5638.0> on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 3 started as <0.8847.0> on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 4 started as <37483.2452.0> on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 4 started as <37484.5639.0> on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 4 started as <0.8848.0> on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 5 started as <37483.2453.0> on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 5 started as <37484.5640.0> on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 5 started as <0.8849.0> on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 6 started as <37483.2454.0> on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 6 started as <37484.5641.0> on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 6 started as <0.8850.0> on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 7 started as <37483.2455.0> on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 7 started as <37484.5642.0> on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 7 started as <0.8851.0> on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 8 started as <37483.2456.0> on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 8 started as <37484.5643.0> on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 8 started as <0.8852.0> on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 9 started as <37483.2457.0> on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 9 started as <37484.5644.0> on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 9 started as <0.8853.0> on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 10 started as <37483.2458.0> on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 10 started as <37484.5645.0> on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: Driver 10 started as <0.8854.0> on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' with 100 local branches
+
+TPC-B: 1 iter 0 diff 597 (0) tps 50189 avg micros 231570 max micros 2.0 unfairness
+
+TPC-B: 2 iter -13 diff 584 (0) tps 51323 avg micros 276861 max micros 1.8666666666666667 unfairness
+
+TPC-B: 3 iter -45 diff 539 (0) tps 55620 avg micros 199936 max micros 1.6111111111111112 unfairness
+
+TPC-B: 4 iter +28 diff 567 (0) tps 52858 avg micros 242259 max micros 2.0 unfairness
+
+TPC-B: Driver 7 (<37483.2455.0>) on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,117,98,98,5258506,231570}
+
+TPC-B: Driver 8 (<37483.2456.0>) on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,105,93,93,5261791,219703}
+
+TPC-B: Driver 2 (<37484.5637.0>) on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,110,92,92,5279504,171073}
+
+TPC-B: Driver 10 (<37484.5645.0>) on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,93,81,81,5236881,165288}
+
+TPC-B: Driver 6 (<37483.2454.0>) on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,107,90,90,5275833,215446}
+
+TPC-B: Driver 3 (<37483.2451.0>) on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,97,84,84,5290783,233294}
+
+TPC-B: Driver 5 (<37484.5640.0>) on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,106,92,92,5286590,178169}
+
+TPC-B: Driver 4 (<37483.2452.0>) on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,107,89,89,5288180,176208}
+
+TPC-B: Driver 9 (<0.8853.0>) on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,90,77,77,5269749,189591}
+
+TPC-B: Driver 7 (<0.8851.0>) on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,85,74,74,5277518,223254}
+
+TPC-B: Driver 2 (<0.8846.0>) on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,99,82,82,5296504,242259}
+
+TPC-B: Driver 10 (<37483.2458.0>) on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,109,96,96,5271857,163662}
+
+TPC-B: Driver 8 (<37484.5643.0>) on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,107,90,90,5278533,185634}
+
+TPC-B: Driver 4 (<0.8848.0>) on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,100,83,83,5296315,199936}
+
+TPC-B: Driver 7 (<37484.5642.0>) on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,108,95,95,5281180,160064}
+
+TPC-B: Driver 1 (<37484.5636.0>) on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,106,85,85,5300704,276861}
+
+TPC-B: Driver 3 (<0.8847.0>) on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,100,86,86,5311278,123225}
+
+TPC-B: Driver 6 (<0.8850.0>) on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,92,78,78,5307591,196124}
+
+TPC-B: Driver 5 (<0.8849.0>) on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,103,88,88,5310399,190569}
+
+TPC-B: Driver 3 (<37484.5638.0>) on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,122,104,104,5315322,149086}
+
+TPC-B: Driver 4 (<37484.5639.0>) on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,109,93,93,5314881,204027}
+
+TPC-B: Driver 6 (<37484.5641.0>) on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,104,91,91,5311077,190470}
+
+TPC-B: Driver 8 (<0.8852.0>) on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,104,91,91,5302047,138599}
+
+TPC-B: Driver 1 (<37483.2449.0>) on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,117,103,103,5331846,174593}
+
+TPC-B: Driver 10 (<0.8854.0>) on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,106,88,88,5279596,177222}
+
+TPC-B: Driver 9 (<37483.2457.0>) on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,101,81,81,5301063,212736}
+
+TPC-B: Driver 1 (<0.8845.0>) on node 'test8024@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,95,86,86,5335919,168003}
+
+TPC-B: Driver 2 (<37483.2450.0>) on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,81,72,72,5329413,202678}
+
+TPC-B: Driver 5 (<37483.2453.0>) on node 'd795486o795394n795394@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,103,86,86,5341452,167013}
+
+TPC-B: Driver 9 (<37484.5644.0>) on node 'd795492o795484n795484@testing-worker-linux-docker-f366a174-3354-linux-14' stopped: {time,106,97,97,5328001,180877}
+
+TPC-B: 4 iter +101 diff 668 (0) tps 44864 avg micros 180877 max micros 2.3333333333333335 unfairness
+
+TPC-B: 583 (0) transactions per second, duration of longest transaction was 276 milliseconds
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-12 08:48:21
+=== successfully completed test case
+=== Returned value: {success,{ok,{time,3089,9,30,158870313,276861}}}
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Tue Apr 12 2016 08:48:00<!/date><br />
+</div>
+</center>
+</body>
+</html>
