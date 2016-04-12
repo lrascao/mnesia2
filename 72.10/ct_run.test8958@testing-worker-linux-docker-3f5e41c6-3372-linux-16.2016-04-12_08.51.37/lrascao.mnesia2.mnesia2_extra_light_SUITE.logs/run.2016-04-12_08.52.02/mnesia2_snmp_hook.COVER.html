@@ -1,0 +1,269 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16.2016-04-12_08.51.37/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.52.02/mnesia2_snmp_hook.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_snmp_hook.erl by COVER 2016-04-12 at 08:53:00
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 1996-2014. All Rights Reserved.
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_snmp_hook).
+        |  
+        |  %% Hooks (called from mnesia2)
+        |  -export([check_ustruct/1, create_table/3, delete_table/2,
+        |  	 key_to_oid/2, key_to_oid/3, oid_to_key/2, 
+        |  	 update/1, 
+        |  	 get_row/2, get_next_index/2, get_mnesia2_key/2]).
+        |  
+        |  -export([key_to_oid_i/2, oid_to_key_1/2]). %% Test
+        |  
+        |  -include("mnesia2.hrl").
+        |  
+        |  
+        |  check_ustruct([]) -&gt;
+<font color=red>     0..|      true;  %% default value, not SNMP'ified</font>
+        |  check_ustruct([{key, Types}]) -&gt; 
+<font color=red>     0..|      is_snmp_type(to_list(Types));</font>
+<font color=red>     0..|  check_ustruct(_) -&gt; false.</font>
+        |      
+<font color=red>     0..|  to_list(Tuple) when is_tuple(Tuple) -&gt; tuple_to_list(Tuple);</font>
+<font color=red>     0..|  to_list(X) -&gt; [X].</font>
+        |  
+<font color=red>     0..|  is_snmp_type([integer    | T]) -&gt; is_snmp_type(T);</font>
+<font color=red>     0..|  is_snmp_type([string     | T]) -&gt; is_snmp_type(T);</font>
+<font color=red>     0..|  is_snmp_type([fix_string | T]) -&gt; is_snmp_type(T);</font>
+<font color=red>     0..|  is_snmp_type([]) -&gt; true;</font>
+<font color=red>     0..|  is_snmp_type(_) -&gt; false.</font>
+        |  
+        |  create_table([], Mnesia2Tab, _Storage) -&gt;
+<font color=red>     0..|      mnesia2:abort({badarg, Mnesia2Tab, {snmp, empty_snmpstruct}});</font>
+        |  
+        |  create_table([{key, Us}], Mnesia2Tab, Storage) -&gt;
+<font color=red>     0..|      Tree = b_new(Mnesia2Tab, Us),</font>
+<font color=red>     0..|      mnesia2_lib:db_fixtable(Storage, Mnesia2Tab, true),</font>
+<font color=red>     0..|      First = mnesia2_lib:db_first(Storage, Mnesia2Tab),</font>
+<font color=red>     0..|      build_table(First, Mnesia2Tab, Tree, Us, Storage),</font>
+<font color=red>     0..|      mnesia2_lib:db_fixtable(Storage, Mnesia2Tab, false),</font>
+<font color=red>     0..|      Tree.</font>
+        |      
+        |  build_table(Mnesia2Key, Mnesia2Tab, Tree, Us, Storage)
+        |    when Mnesia2Key /= '$end_of_table' -&gt;
+        |      %%update(write, Tree, Mnesia2Key, Mnesia2Key),
+<font color=red>     0..|      SnmpKey = key_to_oid_i(Mnesia2Key, Us),</font>
+<font color=red>     0..|      b_insert(Tree, SnmpKey, Mnesia2Key),</font>
+<font color=red>     0..|      Next = mnesia2_lib:db_next_key(Storage, Mnesia2Tab, Mnesia2Key), </font>
+<font color=red>     0..|      build_table(Next, Mnesia2Tab, Tree, Us, Storage);</font>
+        |  build_table('$end_of_table', _Mnesia2Tab, _Tree, _Us, _Storage) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  delete_table(_Mnesia2Tab, Tree) -&gt;
+<font color=red>     0..|      b_delete_tree(Tree),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% update({Op, Mnesia2Tab, Mnesia2Key, SnmpKey})
+        |  %%-----------------------------------------------------------------
+        |     
+        |  update({clear_table, Mnesia2Tab}) -&gt;
+<font color=red>     0..|      Tree = mnesia2_lib:val({Mnesia2Tab, {index, snmp}}),</font>
+<font color=red>     0..|      b_clear(Tree),</font>
+<font color=red>     0..|      ok;</font>
+        |      
+        |  update({Op, Mnesia2Tab, Mnesia2Key, SnmpKey}) -&gt;
+<font color=red>     0..|      Tree = mnesia2_lib:val({Mnesia2Tab, {index, snmp}}),</font>
+<font color=red>     0..|      update(Op, Tree, Mnesia2Key, SnmpKey).</font>
+        |  
+        |  update(Op, Tree, Mnesia2Key, SnmpKey) -&gt;
+<font color=red>     0..|      case Op of</font>
+        |  	write -&gt;
+<font color=red>     0..|  	    b_insert(Tree, SnmpKey, Mnesia2Key);</font>
+        |  	update_counter -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	delete -&gt;
+<font color=red>     0..|  	    b_delete(Tree, SnmpKey);</font>
+        |  	delete_object -&gt;
+<font color=red>     0..|  	    b_delete(Tree, SnmpKey)</font>
+        |      end,
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% Func: key_to_oid(Tab, Key, Ustruct)
+        |  %% Args: Key ::= key()
+        |  %%         key() ::= int() | string() | {int() | string()}
+        |  %%       Type ::= {fix_string | term()}
+        |  %% Make an OBJECT IDENTIFIER out of it.
+        |  %% Variable length objects are prepended by their length.
+        |  %% Ex. Key = {"pelle", 42} AND Type = {string, integer} =&gt;
+        |  %%        OID [5, $p, $e, $l, $l, $e, 42]
+        |  %%     Key = {"pelle", 42} AND Type = {fix_string, integer} =&gt;
+        |  %%        OID [$p, $e, $l, $l, $e, 42]
+        |  %%-----------------------------------------------------------------
+        |  
+        |  key_to_oid(Tab,Key) -&gt;
+<font color=red>     0..|      Types = mnesia2_lib:val({Tab,snmp}),</font>
+<font color=red>     0..|      key_to_oid(Tab, Key, Types).</font>
+        |  	     
+        |  key_to_oid(Tab, Key, [{key, Types}]) -&gt;
+<font color=red>     0..|      try key_to_oid_i(Key,Types) </font>
+        |      catch _:_ -&gt;
+<font color=red>     0..|  	    mnesia2:abort({bad_snmp_key, {Tab,Key}, Types})</font>
+        |      end.
+        |  	
+<font color=red>     0..|  key_to_oid_i(Key, integer) when is_integer(Key) -&gt; [Key];</font>
+<font color=red>     0..|  key_to_oid_i(Key, fix_string) when is_list(Key) -&gt; Key;</font>
+<font color=red>     0..|  key_to_oid_i(Key, string) when is_list(Key) -&gt; [length(Key) | Key];</font>
+<font color=red>     0..|  key_to_oid_i(Key, Types) -&gt; keys_to_oid(size(Key), Key, [], Types).</font>
+        |  
+<font color=red>     0..|  keys_to_oid(0, _Key, Oid, _Types) -&gt; Oid;</font>
+        |  keys_to_oid(N, Key, Oid, Types) -&gt;
+<font color=red>     0..|      Oid2 = lists:append(key_to_oid_i(element(N, Key), element(N, Types)), Oid),</font>
+<font color=red>     0..|      keys_to_oid(N-1, Key, Oid2, Types).</font>
+        |  
+        |  %%--------------------------------------------------
+        |  %% The reverse of the above, i.e. snmp oid to mnesia2 key.
+        |  %% This can be lookup up in tree but that might be on a remote node.
+        |  %% It's probably faster to look it up, but use when it migth be remote 
+        |  oid_to_key(Oid, Tab) -&gt;
+<font color=red>     0..|      [{key, Types}] = mnesia2_lib:val({Tab,snmp}),</font>
+<font color=red>     0..|      oid_to_key_1(Types, Oid). </font>
+        |  
+<font color=red>     0..|  oid_to_key_1(integer, [Key])  -&gt; Key;</font>
+<font color=red>     0..|  oid_to_key_1(fix_string, Key) -&gt; Key;</font>
+<font color=red>     0..|  oid_to_key_1(string, [_|Key]) -&gt; Key;</font>
+        |  oid_to_key_1(Tuple, Oid) -&gt;
+<font color=red>     0..|      try </font>
+<font color=red>     0..|  	List = oid_to_key_2(1, size(Tuple), Tuple, Oid),</font>
+<font color=red>     0..|  	list_to_tuple(List)</font>
+        |      catch 
+<font color=red>     0..|  	_:_ -&gt; unknown</font>
+        |      end.
+        |  
+        |  oid_to_key_2(N, Sz, Tuple, Oid0) when N =&lt; Sz -&gt;
+<font color=red>     0..|      case element(N, Tuple) of</font>
+        |  	integer -&gt; 
+<font color=red>     0..|  	    [Key|Oid] = Oid0,</font>
+<font color=red>     0..|  	    [Key|oid_to_key_2(N+1, Sz, Tuple, Oid)];</font>
+        |  	fix_string when N =:= Sz -&gt;
+<font color=red>     0..|  	    [Oid0];</font>
+        |  	fix_string -&gt;
+<font color=red>     0..|  	    throw(fix_string);</font>
+        |  	string -&gt;
+<font color=red>     0..|  	    [Len|Oid1] = Oid0,</font>
+<font color=red>     0..|  	    {Str,Oid} = lists:split(Len, Oid1),</font>
+<font color=red>     0..|  	    [Str|oid_to_key_2(N+1, Sz, Tuple, Oid)]</font>
+        |      end;
+        |  oid_to_key_2(N, Sz, _, []) when N =:= (Sz+1) -&gt;
+<font color=red>     0..|      [].</font>
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% Func: get_row/2
+        |  %% Args: Name is the name of the table (atom)
+        |  %%       RowIndex is an Oid
+        |  %% Returns: {ok, Row} | undefined
+        |  %%          Note that the Row returned might contain columns that
+        |  %%          are not visible via SNMP. e.g. the first column may be
+        |  %%          ifIndex, and the last MFA ({ifIndex, col1, col2, MFA}).
+        |  %%          where ifIndex is used only as index (not as a real col),
+        |  %%          and MFA as extra info, used by the application.
+        |  %%-----------------------------------------------------------------
+        |  get_row(Name, RowIndex) -&gt;
+<font color=red>     0..|      Tree = mnesia2_lib:val({Name, {index, snmp}}),</font>
+<font color=red>     0..|      case b_lookup(Tree, RowIndex) of</font>
+        |  	{ok, {_RowIndex, Key}} -&gt;
+<font color=red>     0..|  	    [Row] = mnesia2:dirty_read({Name, Key}),</font>
+<font color=red>     0..|  	    {ok, Row};</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    undefined</font>
+        |      end.
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% Func: get_next_index/2
+        |  %% Args: Name is the name of the table (atom)
+        |  %%       RowIndex is an Oid
+        |  %% Returns: {NextIndex,Mnesia2Key}  | {endOfTable, undefined}
+        |  %%-----------------------------------------------------------------
+        |  get_next_index(Name, RowIndex) -&gt;
+<font color=red>     0..|      Tree = mnesia2_lib:val({Name, {index, snmp}}),</font>
+<font color=red>     0..|      case b_lookup_next(Tree, RowIndex) of</font>
+        |  	{ok, R} -&gt;
+<font color=red>     0..|  	    R;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    {endOfTable,undefined}</font>
+        |      end.
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% Func: get_mnesia2_key/2
+        |  %% Purpose: Get the mnesia2 key corresponding to the RowIndex.
+        |  %% Args: Name is the name of the table (atom)
+        |  %%       RowIndex is an Oid
+        |  %% Returns: {ok, Key} | undefiend
+        |  %%-----------------------------------------------------------------
+        |  get_mnesia2_key(Name, RowIndex) -&gt;
+<font color=red>     0..|      Tree = mnesia2_lib:val({Name, {index, snmp}}),</font>
+<font color=red>     0..|      case b_lookup(Tree, RowIndex) of</font>
+        |  	{ok, {_RowIndex, Key}} -&gt;
+<font color=red>     0..|  	    {ok, Key};</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    undefined</font>
+        |      end.
+        |  
+        |  
+        |  %%-----------------------------------------------------------------
+        |  %% Internal implementation, ordered_set ets.
+        |  
+        |  b_new(_Tab, _Us) -&gt;
+<font color=red>     0..|      mnesia2_monitor:unsafe_mktab(?MODULE, [public, ordered_set]).</font>
+        |  
+        |  b_delete_tree(Tree) -&gt;
+<font color=red>     0..|      ets:delete(Tree).  %% Close via mnesia2_monitor ?</font>
+        |  
+        |  b_clear(Tree) -&gt;
+<font color=red>     0..|      ets:delete_all_objects(Tree).</font>
+        |  
+        |  b_insert(Tree, SnmpKey, Mnesia2Key) -&gt;
+<font color=red>     0..|      ets:insert(Tree, {SnmpKey, Mnesia2Key}).</font>
+        |  
+        |  b_delete(Tree, SnmpKey) -&gt;
+<font color=red>     0..|      ets:delete(Tree, SnmpKey).</font>
+        |  
+        |  b_lookup(Tree, RowIndex) -&gt;
+<font color=red>     0..|      case ets:lookup(Tree, RowIndex) of</font>
+        |  	[X] -&gt;
+<font color=red>     0..|  	    {ok, X};</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    undefined</font>
+        |      end.
+        |  
+        |  b_lookup_next(Tree,RowIndex) -&gt;
+<font color=red>     0..|      case ets:next(Tree, RowIndex) of</font>
+        |  	'$end_of_table' -&gt;
+<font color=red>     0..|  	    undefined;</font>
+        |  	Key -&gt;
+<font color=red>     0..|  	    b_lookup(Tree, Key)</font>
+        |      end.
+</pre>
+</body>
+</html>

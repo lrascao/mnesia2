@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_config_test:backup_module result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_config_test.src.html#backup_module-1">source code for mnesia2_config_test:backup_module/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_config_test:backup_module([{watchdog,<0.807.0>},
+                                   {tc_logfile,
+                                       "/home/travis/build/lrascao/mnesia2/logs/ct_run.test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16.2016-04-12_08.51.37/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.52.02/mnesia2_config_test.backup_module.html"},
+                                   {tc_group_properties,
+                                       [{suite,mnesia2_config_test}]},
+                                   {tc_group_path,
+                                       [[{name,config}],
+                                        [{name,registry}],
+                                        [{name,registry}],
+                                        [{name,qlc}],
+                                        [{name,qlc}],
+                                        [{name,nice}],
+                                        [{name,nice}],
+                                        [{name,install}],
+                                        [{name,install}],
+                                        [{name,extra_light}]]},
+                                   {data_dir,
+                                       "/home/travis/build/lrascao/mnesia2/test/mnesia2_config_test_data/"},
+                                   {priv_dir,
+                                       "/home/travis/build/lrascao/mnesia2/logs/ct_run.test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16.2016-04-12_08.51.37/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.52.02/log_private/"},
+                                   {nodenames,
+                                       ['d1251189o1251195n1251201@testing-worker-linux-docker-3f5e41c6-3372-linux-16',
+                                        'd1251163o1251157n1251154@testing-worker-linux-docker-3f5e41c6-3372-linux-16']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16.2016-04-12_08.51.37"
+
+=== Started at 2016-04-12 08:52:08
+
+<br />
+[2016-04-12 08:52:09] mnesia2_config_test.erl(284): <>ERROR<>
+Not Matching Actual result was:
+ {error,undef}
+  [{application,ensure_all_started,[mnesia2,temporary],[]},
+   {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+   {mnesia2,start,0,[{file,"src/mnesia2.erl"},{line,200}]},
+   {mnesia2_config_test,'-backup_module/1-fun-1-',0,
+                        [{file,"mnesia2_config_test.erl"},{line,284}]},
+   {mnesia2_config_test,backup_module,1,
+                        [{file,"mnesia2_config_test.erl"},{line,284}]},
+   {test_server,ts_tc,3,[{file,"test_server.erl"},{line,1359}]},
+   {test_server,run_test_case_eval1,6,[{file,"test_server.erl"},{line,976}]},
+   {test_server,run_test_case_eval,9,[{file,"test_server.erl"},{line,925}]}]
+
+[2016-04-12 08:52:09] mnesia2_config_test.erl(285): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16'}}
+
+[2016-04-12 08:52:09] mnesia2_config_test.erl(291): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16'}}
+
+[2016-04-12 08:52:09] mnesia2_config_test.erl(297): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16'}}
+
+[2016-04-12 08:52:09] mnesia2_config_test.erl(298): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16'}}
+
+[2016-04-12 08:52:09] mnesia2_config_test.erl(301): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16'}}
+
+[2016-04-12 08:52:09] mnesia2_config_test.erl(302): <>ERROR<>
+Not Matching Actual result was:
+ {aborted,{node_not_running,'test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16'}}
+
+<div class="ct_error_notify"><b>*** CT Error Notification 2016-04-12 08:52:09.551 ***</b>
+mnesia2:abort failed on line 313
+Reason: aborted
+
+<a href="#end">Full error description and stacktrace</a>
+</div>
+<a name="end"></a>
+
+
+=== Ended at 2016-04-12 08:52:09
+=== location [{mnesia2,abort,313},
+              {mnesia2_log,backup,615},
+              {mnesia2_config_test,'-backup_module/1-fun-19-',307},
+              {mnesia2_config_test,backup_module,307},
+              {test_server,ts_tc,1359},
+              {test_server,run_test_case_eval1,976},
+              {test_server,run_test_case_eval,925}]
+=== reason = {aborted,
+                     {node_not_running,
+                         'test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16'}}
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Tue Apr 12 2016 08:52:08<!/date><br />
+</div>
+</center>
+</body>
+</html>

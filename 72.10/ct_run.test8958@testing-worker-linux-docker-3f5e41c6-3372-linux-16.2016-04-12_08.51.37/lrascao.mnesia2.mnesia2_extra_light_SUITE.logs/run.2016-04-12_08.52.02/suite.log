@@ -1,0 +1,1991 @@
+=== Suite started at 2016-04-12 08:52:02
+=== Starting test, 52 test cases
+=cases         52
+=user          travis
+=host          testing-worker-linux-docker-3f5e41c6-3372-linux-16
+=hosts         testing-worker-linux-docker-3f5e41c6-3372-linux-16 
+=emulator_vsn  5.10.2
+=emulator      beam
+=otp_release   R16B01
+=started       2016-04-12 08:52:02
+=case          mnesia2_extra_light_SUITE:init_per_suite
+=logfile       mnesia2_extra_light_suite.init_per_suite.html
+=started       2016-04-12 08:52:02
+=ended         2016-04-12 08:52:02
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_extra_light_SUITE:init_per_group
+=logfile       mnesia2_extra_light_suite.init_per_group.html
+=group_props   [{name,extra_light}]
+=started       2016-04-12 08:52:02
+=ended         2016-04-12 08:52:02
+=result        ok
+=elapsed       0.007449
+=case          mnesia2_extra_light_SUITE:init_per_group
+=logfile       mnesia2_extra_light_suite.init_per_group.451122.773.html
+=group_props   [{name,install}]
+=started       2016-04-12 08:52:02
+=ended         2016-04-12 08:52:02
+=result        ok
+=elapsed       1.44e-4
+=case          mnesia2_extra_light_SUITE:end_per_suite
+=logfile       mnesia2_extra_light_suite.end_per_suite.html
+=started       2016-04-12 08:52:02
+=ended         2016-04-12 08:52:02
+=result        ok
+=elapsed       1.0e-6
+=case          ct_framework:init_per_suite
+=logfile       ct_framework.init_per_suite.html
+=group_props   [{suite,mnesia2_install_test}]
+=started       2016-04-12 08:52:02
+=ended         2016-04-12 08:52:02
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_install_test:silly_durability
+=logfile       mnesia2_install_test.silly_durability.html
+=started       2016-04-12 08:52:02
+=ended         2016-04-12 08:52:02
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_install_test,
+                                                       silly_durability,100},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 1 of 52
+=case          mnesia2_install_test:silly_move
+=logfile       mnesia2_install_test.silly_move.html
+=started       2016-04-12 08:52:02
+=ended         2016-04-12 08:52:03
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_install_test,
+                                                       silly_move,134},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 2 of 52
+=case          mnesia2_install_test:silly_upgrade
+=logfile       mnesia2_install_test.silly_upgrade.html
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_install_test,
+                                                       silly_upgrade,174},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 3 of 52
+=case          ct_framework:end_per_suite
+=logfile       ct_framework.end_per_suite.html
+=group_props   [{suite,mnesia2_install_test}]
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       1.0e-6
+=group_time    0.803s
+=case          mnesia2_extra_light_SUITE:init_per_suite
+=logfile       mnesia2_extra_light_suite.init_per_suite.451123.658.html
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_extra_light_SUITE:end_per_group
+=logfile       mnesia2_extra_light_suite.end_per_group.html
+=group_props   [{name,install}]
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       2.81e-4
+=case          mnesia2_extra_light_SUITE:init_per_group
+=logfile       mnesia2_extra_light_suite.init_per_group.451123.712.html
+=group_props   [{name,nice}]
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       2.78e-4
+=case          mnesia2_extra_light_SUITE:end_per_suite
+=logfile       mnesia2_extra_light_suite.end_per_suite.451123.738.html
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       1.0e-6
+=case          ct_framework:init_per_suite
+=logfile       ct_framework.init_per_suite.451123.763.html
+=group_props   [{suite,mnesia2_nice_coverage_test}]
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       2.0e-6
+=case          mnesia2_nice_coverage_test:nice
+=logfile       mnesia2_nice_coverage_test.nice.html
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_nice_coverage_test,
+                                                       nice,54},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 4 of 52
+=case          ct_framework:end_per_suite
+=logfile       ct_framework.end_per_suite.451123.872.html
+=group_props   [{suite,mnesia2_nice_coverage_test}]
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       1.0e-6
+=group_time    0.109s
+=case          mnesia2_extra_light_SUITE:init_per_suite
+=logfile       mnesia2_extra_light_suite.init_per_suite.451123.897.html
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_extra_light_SUITE:end_per_group
+=logfile       mnesia2_extra_light_suite.end_per_group.451123.926.html
+=group_props   [{name,nice}]
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       8.9e-5
+=case          mnesia2_extra_light_SUITE:init_per_group
+=logfile       mnesia2_extra_light_suite.init_per_group.451123.951.html
+=group_props   [{name,qlc}]
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       9.0e-5
+=case          mnesia2_extra_light_SUITE:end_per_suite
+=logfile       mnesia2_extra_light_suite.end_per_suite.451123.976.html
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:03
+=result        ok
+=elapsed       1.0e-6
+=case          ct_framework:init_per_suite
+=logfile       ct_framework.init_per_suite.451124.2.html
+=group_props   [{suite,mnesia2_qlc_test}]
+=started       2016-04-12 08:52:03
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_qlc_test:init_per_group
+=logfile       mnesia2_qlc_test.init_per_group.html
+=group_props   [{name,dirty}]
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_qlc_test:dirty_nice_ram_copies
+=logfile       mnesia2_qlc_test.dirty_nice_ram_copies.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_qlc_test,
+                                                       init_testcases,65},
+                                                      {mnesia2_qlc_test,
+                                                       dirty_nice,86},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 5 of 52
+=case          mnesia2_qlc_test:dirty_nice_disc_copies
+=logfile       mnesia2_qlc_test.dirty_nice_disc_copies.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_qlc_test,
+                                                       init_testcases,65},
+                                                      {mnesia2_qlc_test,
+                                                       dirty_nice,86},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 6 of 52
+=case          mnesia2_qlc_test:dirty_nice_disc_only_copies
+=logfile       mnesia2_qlc_test.dirty_nice_disc_only_copies.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_qlc_test,
+                                                       init_testcases,65},
+                                                      {mnesia2_qlc_test,
+                                                       dirty_nice,86},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 7 of 52
+=case          mnesia2_qlc_test:end_per_group
+=logfile       mnesia2_qlc_test.end_per_group.html
+=group_props   [{name,dirty}]
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       1.0e-6
+=group_time    0.237s
+=case          mnesia2_qlc_test:init_per_group
+=logfile       mnesia2_qlc_test.init_per_group.451124.298.html
+=group_props   [{name,trans}]
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_qlc_test:trans_nice_ram_copies
+=logfile       mnesia2_qlc_test.trans_nice_ram_copies.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_qlc_test,
+                                                       init_testcases,65},
+                                                      {mnesia2_qlc_test,
+                                                       trans_nice,132},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 8 of 52
+=case          mnesia2_qlc_test:trans_nice_disc_copies
+=logfile       mnesia2_qlc_test.trans_nice_disc_copies.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_qlc_test,
+                                                       init_testcases,65},
+                                                      {mnesia2_qlc_test,
+                                                       trans_nice,132},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 9 of 52
+=case          mnesia2_qlc_test:trans_nice_disc_only_copies
+=logfile       mnesia2_qlc_test.trans_nice_disc_only_copies.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_qlc_test,
+                                                       init_testcases,65},
+                                                      {mnesia2_qlc_test,
+                                                       trans_nice,132},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 10 of 52
+=case          mnesia2_qlc_test:init_per_group
+=logfile       mnesia2_qlc_test.init_per_group.451124.505.html
+=group_props   [{name,atomic}]
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_qlc_test:atomic_eval
+=logfile       mnesia2_qlc_test.atomic_eval.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_qlc_test,
+                                                       init_testcases,65},
+                                                      {mnesia2_qlc_test,
+                                                       atomic_eval,196},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 11 of 52
+=case          mnesia2_qlc_test:end_per_group
+=logfile       mnesia2_qlc_test.end_per_group.451124.640.html
+=group_props   [{name,atomic}]
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       1.0e-6
+=group_time    0.135s
+=case          mnesia2_qlc_test:end_per_group
+=logfile       mnesia2_qlc_test.end_per_group.451124.666.html
+=group_props   [{name,trans}]
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       1.0e-6
+=group_time    0.368s
+=case          mnesia2_qlc_test:frag
+=logfile       mnesia2_qlc_test.frag.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_qlc_test,
+                                                       init_testcases,65},
+                                                      {mnesia2_qlc_test,frag,
+                                                       276},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 12 of 52
+=case          mnesia2_qlc_test:info
+=logfile       mnesia2_qlc_test.info.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_qlc_test,
+                                                       init_testcases,65},
+                                                      {mnesia2_qlc_test,info,
+                                                       310},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 13 of 52
+=case          mnesia2_qlc_test:mnesia2_down
+=logfile       mnesia2_qlc_test.mnesia2_down.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_qlc_test,
+                                                       init_testcases,65},
+                                                      {mnesia2_qlc_test,
+                                                       mnesia2_down,343},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 14 of 52
+=case          ct_framework:end_per_suite
+=logfile       ct_framework.end_per_suite.451124.888.html
+=group_props   [{suite,mnesia2_qlc_test}]
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       1.0e-6
+=group_time    0.885s
+=case          mnesia2_extra_light_SUITE:init_per_suite
+=logfile       mnesia2_extra_light_suite.init_per_suite.451124.913.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_extra_light_SUITE:end_per_group
+=logfile       mnesia2_extra_light_suite.end_per_group.451124.944.html
+=group_props   [{name,qlc}]
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       8.7e-5
+=case          mnesia2_extra_light_SUITE:init_per_group
+=logfile       mnesia2_extra_light_suite.init_per_group.451124.970.html
+=group_props   [{name,registry}]
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:04
+=result        ok
+=elapsed       9.1e-5
+=case          mnesia2_extra_light_SUITE:end_per_suite
+=logfile       mnesia2_extra_light_suite.end_per_suite.451124.996.html
+=started       2016-04-12 08:52:04
+=ended         2016-04-12 08:52:05
+=result        ok
+=elapsed       1.0e-6
+=case          ct_framework:init_per_suite
+=logfile       ct_framework.init_per_suite.451125.22.html
+=group_props   [{suite,mnesia2_registry_test}]
+=started       2016-04-12 08:52:05
+=ended         2016-04-12 08:52:05
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_registry_test:good_dump
+=logfile       mnesia2_registry_test.good_dump.html
+=started       2016-04-12 08:52:05
+=ended         2016-04-12 08:52:05
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_registry_test,
+                                                       good_dump,52},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 15 of 52
+=case          mnesia2_registry_test:bad_dump
+=logfile       mnesia2_registry_test.bad_dump.html
+=started       2016-04-12 08:52:05
+=ended         2016-04-12 08:52:05
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_registry_test,
+                                                       bad_dump,130},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 16 of 52
+=case          ct_framework:end_per_suite
+=logfile       ct_framework.end_per_suite.451125.180.html
+=group_props   [{suite,mnesia2_registry_test}]
+=started       2016-04-12 08:52:05
+=ended         2016-04-12 08:52:05
+=result        ok
+=elapsed       1.0e-6
+=group_time    0.158s
+=case          mnesia2_extra_light_SUITE:init_per_suite
+=logfile       mnesia2_extra_light_suite.init_per_suite.451125.205.html
+=started       2016-04-12 08:52:05
+=ended         2016-04-12 08:52:05
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_extra_light_SUITE:end_per_group
+=logfile       mnesia2_extra_light_suite.end_per_group.451125.235.html
+=group_props   [{name,registry}]
+=started       2016-04-12 08:52:05
+=ended         2016-04-12 08:52:05
+=result        ok
+=elapsed       9.6e-5
+=case          mnesia2_extra_light_SUITE:init_per_group
+=logfile       mnesia2_extra_light_suite.init_per_group.451125.261.html
+=group_props   [{name,config}]
+=started       2016-04-12 08:52:05
+=ended         2016-04-12 08:52:05
+=result        ok
+=elapsed       8.9e-5
+=case          mnesia2_extra_light_SUITE:end_per_suite
+=logfile       mnesia2_extra_light_suite.end_per_suite.451125.287.html
+=started       2016-04-12 08:52:05
+=ended         2016-04-12 08:52:05
+=result        ok
+=elapsed       1.0e-6
+=case          ct_framework:init_per_suite
+=logfile       ct_framework.init_per_suite.451125.319.html
+=group_props   [{suite,mnesia2_config_test}]
+=started       2016-04-12 08:52:05
+=ended         2016-04-12 08:52:05
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_config_test:access_module
+=logfile       mnesia2_config_test.access_module.html
+=started       2016-04-12 08:52:05
+=ended         2016-04-12 08:52:06
+=result        failed: {aborted,
+                           {node_not_running,
+                               'test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16'}}, [{mnesia2,
+                                                                                                  wrap_trans,
+                                                                                                  399},
+                                                                                                 {mnesia2_config_test,
+                                                                                                  '-access_tab/2-fun-7-',
+                                                                                                  177},
+                                                                                                 {mnesia2_config_test,
+                                                                                                  access_tab,
+                                                                                                  177},
+                                                                                                 {mnesia2_config_test,
+                                                                                                  access_module,
+                                                                                                  145},
+                                                                                                 {test_server,
+                                                                                                  ts_tc,
+                                                                                                  1359},
+                                                                                                 {test_server,
+                                                                                                  run_test_case_eval1,
+                                                                                                  976},
+                                                                                                 {test_server,
+                                                                                                  run_test_case_eval,
+                                                                                                  925}]
+=== *** FAILED *** test case 17 of 52
+=case          mnesia2_config_test:auto_repair
+=logfile       mnesia2_config_test.auto_repair.html
+=started       2016-04-12 08:52:06
+=ended         2016-04-12 08:52:08
+=result        failed: [{"mnesia2_config_test.erl",265},
+                        {"mnesia2_config_test.erl",262},
+                        {"mnesia2_config_test.erl",259}], [{mnesia2_config_test,
+                                                            auto_repair}]
+=== *** FAILED *** test case 18 of 52
+=case          mnesia2_config_test:backup_module
+=logfile       mnesia2_config_test.backup_module.html
+=started       2016-04-12 08:52:08
+=ended         2016-04-12 08:52:09
+=result        failed: {aborted,
+                           {node_not_running,
+                               'test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16'}}, [{mnesia2,
+                                                                                                  abort,
+                                                                                                  313},
+                                                                                                 {mnesia2_log,
+                                                                                                  backup,
+                                                                                                  615},
+                                                                                                 {mnesia2_config_test,
+                                                                                                  '-backup_module/1-fun-19-',
+                                                                                                  307},
+                                                                                                 {mnesia2_config_test,
+                                                                                                  backup_module,
+                                                                                                  307},
+                                                                                                 {test_server,
+                                                                                                  ts_tc,
+                                                                                                  1359},
+                                                                                                 {test_server,
+                                                                                                  run_test_case_eval1,
+                                                                                                  976},
+                                                                                                 {test_server,
+                                                                                                  run_test_case_eval,
+                                                                                                  925}]
+=== *** FAILED *** test case 19 of 52
+=case          mnesia2_config_test:debug
+=logfile       mnesia2_config_test.debug.html
+=started       2016-04-12 08:52:09
+=ended         2016-04-12 08:52:19
+=result        failed: [{"mnesia2_config_test.erl",377},
+                        {"mnesia2_config_test.erl",374},
+                        {"mnesia2_config_test.erl",369},
+                        {"mnesia2_config_test.erl",364},
+                        {"mnesia2_config_test.erl",359},
+                        {"mnesia2_config_test.erl",354}], [{mnesia2_config_test,
+                                                            debug}]
+=== *** FAILED *** test case 20 of 52
+=case          mnesia2_config_test:dir
+=logfile       mnesia2_config_test.dir.html
+=started       2016-04-12 08:52:19
+=ended         2016-04-12 08:52:21
+=result        failed: [{"mnesia2_config_test.erl",388}], [{mnesia2_config_test,
+                                                            dir}]
+=== *** FAILED *** test case 21 of 52
+=case          mnesia2_config_test:dump_log_load_regulation
+=logfile       mnesia2_config_test.dump_log_load_regulation.html
+=started       2016-04-12 08:52:21
+=ended         2016-04-12 08:52:21
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_config_test,
+                                                       dump_log_load_regulation,
+                                                       579},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 22 of 52
+=case          mnesia2_config_test:init_per_group
+=logfile       mnesia2_config_test.init_per_group.html
+=group_props   [{name,dump_log_thresholds}]
+=started       2016-04-12 08:52:21
+=ended         2016-04-12 08:52:21
+=result        ok
+=elapsed       2.0e-6
+=case          mnesia2_config_test:dump_log_time_threshold
+=logfile       mnesia2_config_test.dump_log_time_threshold.html
+=started       2016-04-12 08:52:21
+=ended         2016-04-12 08:52:29
+=result        failed: [{"mnesia2_config_test.erl",525},
+                        {"mnesia2_config_test.erl",569},
+                        {"mnesia2_config_test.erl",564},
+                        {"mnesia2_config_test.erl",561},
+                        {"mnesia2_config_test.erl",560},
+                        {"mnesia2_config_test.erl",521},
+                        {"mnesia2_config_test.erl",515},
+                        {"mnesia2_config_test.erl",508},
+                        {"mnesia2_config_test.erl",505}], [{mnesia2_config_test,
+                                                            dump_log_time_threshold}]
+=== *** FAILED *** test case 23 of 52
+=case          mnesia2_config_test:dump_log_write_threshold
+=logfile       mnesia2_config_test.dump_log_write_threshold.html
+=started       2016-04-12 08:52:29
+=ended         2016-04-12 08:52:33
+=result        failed: [{"mnesia2_config_test.erl",478},
+                        {"mnesia2_config_test.erl",477},
+                        {"mnesia2_config_test.erl",569},
+                        {"mnesia2_config_test.erl",564},
+                        {"mnesia2_config_test.erl",561},
+                        {"mnesia2_config_test.erl",560},
+                        {"mnesia2_config_test.erl",472},
+                        {"mnesia2_config_test.erl",469},
+                        {"mnesia2_config_test.erl",467},
+                        {"mnesia2_config_test.erl",462},
+                        {"mnesia2_config_test.erl",460}], [{mnesia2_config_test,
+                                                            dump_log_write_threshold}]
+=== *** FAILED *** test case 24 of 52
+=case          mnesia2_config_test:end_per_group
+=logfile       mnesia2_config_test.end_per_group.html
+=group_props   [{name,dump_log_thresholds}]
+=started       2016-04-12 08:52:33
+=ended         2016-04-12 08:52:33
+=result        ok
+=elapsed       1.0e-6
+=group_time    11.216s
+=case          mnesia2_config_test:dump_log_update_in_place
+=logfile       mnesia2_config_test.dump_log_update_in_place.html
+=started       2016-04-12 08:52:33
+=ended         2016-04-12 08:52:34
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_config_test,
+                                                       dump_log_update_in_place,
+                                                       401},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 25 of 52
+=case          mnesia2_config_test:event_module
+=logfile       mnesia2_config_test.event_module.html
+=started       2016-04-12 08:52:34
+=ended         2016-04-12 08:52:36
+=result        failed: {badarg,
+                           [{mnesia2_config_test,event_module,1,
+                                [{file,"mnesia2_config_test.erl"},{line,699}]},
+                            {test_server,ts_tc,3,
+                                [{file,"test_server.erl"},{line,1359}]},
+                            {test_server,run_test_case_eval1,6,
+                                [{file,"test_server.erl"},{line,976}]},
+                            {test_server,run_test_case_eval,9,
+                                [{file,"test_server.erl"},{line,925}]}]}, [{mnesia2_config_test,
+                                                                            event_module,
+                                                                            699},
+                                                                           {test_server,
+                                                                            ts_tc,
+                                                                            1359},
+                                                                           {test_server,
+                                                                            run_test_case_eval1,
+                                                                            976},
+                                                                           {test_server,
+                                                                            run_test_case_eval,
+                                                                            925}]
+=== *** FAILED *** test case 26 of 52
+=case          mnesia2_config_test:inconsistent_database
+=logfile       mnesia2_config_test.inconsistent_database.html
+=started       2016-04-12 08:52:36
+=ended         2016-04-12 08:52:38
+=result        failed: [{"mnesia2_config_test.erl",1378},
+                        {"mnesia2_config_test.erl",1375}], [{mnesia2_config_test,
+                                                             inconsistent_database}]
+=== *** FAILED *** test case 27 of 52
+=case          mnesia2_config_test:max_wait_for_decision
+=logfile       mnesia2_config_test.max_wait_for_decision.html
+=started       2016-04-12 08:52:38
+=ended         2016-04-12 08:52:38
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_config_test:send_compressed
+=logfile       mnesia2_config_test.send_compressed.html
+=started       2016-04-12 08:52:38
+=ended         2016-04-12 08:52:38
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_config_test,
+                                                       send_compressed,631},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 29 of 52
+=case          mnesia2_config_test:app_test
+=logfile       mnesia2_config_test.app_test.html
+=started       2016-04-12 08:52:38
+=ended         2016-04-12 08:52:38
+=result        ok
+=elapsed       0.080621
+=case          mnesia2_config_test:init_per_group
+=logfile       mnesia2_config_test.init_per_group.451158.987.html
+=group_props   [{name,schema_config}]
+=started       2016-04-12 08:52:38
+=ended         2016-04-12 08:52:39
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_config_test:start_one_disc_full_then_one_disc_less
+=logfile       mnesia2_config_test.start_one_disc_full_then_one_disc_less.html
+=started       2016-04-12 08:52:39
+=ended         2016-04-12 08:52:41
+=result        failed: [{"mnesia2_config_test.erl",778},
+                        {"mnesia2_config_test.erl",775},
+                        {"mnesia2_config_test.erl",769},
+                        {"mnesia2_config_test.erl",762},
+                        {"mnesia2_config_test.erl",758},
+                        {"mnesia2_config_test.erl",749},
+                        {"mnesia2_config_test.erl",743},
+                        {"mnesia2_config_test.erl",738},
+                        {"mnesia2_config_test.erl",736},
+                        {"mnesia2_config_test.erl",734}], [{mnesia2_config_test,
+                                                            start_one_disc_full_then_one_disc_less}]
+=== *** FAILED *** test case 31 of 52
+=case          mnesia2_config_test:start_first_one_disc_less_then_one_disc_full
+=logfile       mnesia2_config_test.start_first_one_disc_less_then_one_disc_full.html
+=started       2016-04-12 08:52:41
+=ended         2016-04-12 08:52:45
+=result        failed: [{"mnesia2_config_test.erl",852},
+                        {"mnesia2_config_test.erl",848},
+                        {"mnesia2_config_test.erl",842},
+                        {"mnesia2_config_test.erl",836},
+                        {"mnesia2_config_test.erl",831},
+                        {"mnesia2_config_test.erl",825},
+                        {"mnesia2_config_test.erl",814},
+                        {"mnesia2_config_test.erl",805},
+                        {"mnesia2_config_test.erl",800},
+                        {"mnesia2_config_test.erl",793},
+                        {"mnesia2_config_test.erl",791},
+                        {"mnesia2_config_test.erl",789}], [{mnesia2_config_test,
+                                                            start_first_one_disc_less_then_one_disc_full}]
+=== *** FAILED *** test case 32 of 52
+=case          mnesia2_config_test:start_first_one_disc_less_then_two_more_disc_less
+=logfile       mnesia2_config_test.start_first_one_disc_less_then_two_more_disc_less.html
+=started       2016-04-12 08:52:45
+=ended         2016-04-12 08:52:47
+=result        failed: [{"mnesia2_config_test.erl",916},
+                        {"mnesia2_config_test.erl",911},
+                        {"mnesia2_config_test.erl",907},
+                        {"mnesia2_config_test.erl",902},
+                        {"mnesia2_config_test.erl",896},
+                        {"mnesia2_config_test.erl",891},
+                        {"mnesia2_config_test.erl",886},
+                        {"mnesia2_config_test.erl",877},
+                        {"mnesia2_config_test.erl",873},
+                        {"mnesia2_config_test.erl",871},
+                        {"mnesia2_config_test.erl",868},
+                        {"mnesia2_config_test.erl",866},
+                        {"mnesia2_config_test.erl",863}], [{mnesia2_config_test,
+                                                            start_first_one_disc_less_then_two_more_disc_less}]
+=== *** FAILED *** test case 33 of 52
+=case          mnesia2_config_test:schema_location_and_extra_db_nodes_combinations
+=logfile       mnesia2_config_test.schema_location_and_extra_db_nodes_combinations.html
+=started       2016-04-12 08:52:47
+=ended         2016-04-12 08:52:49
+=result        failed: [{"mnesia2_config_test.erl",945},
+                        {"mnesia2_config_test.erl",941},
+                        {"mnesia2_config_test.erl",937},
+                        {"mnesia2_config_test.erl",934},
+                        {"mnesia2_config_test.erl",931}], [{mnesia2_config_test,
+                                                            schema_location_and_extra_db_nodes_combinations}]
+=== *** FAILED *** test case 34 of 52
+=case          mnesia2_config_test:table_load_to_disc_less_nodes
+=logfile       mnesia2_config_test.table_load_to_disc_less_nodes.html
+=started       2016-04-12 08:52:49
+=ended         2016-04-12 08:52:51
+=result        failed: [{"mnesia2_config_test.erl",991},
+                        {"mnesia2_config_test.erl",986},
+                        {"mnesia2_config_test.erl",981},
+                        {"mnesia2_config_test.erl",976},
+                        {"mnesia2_config_test.erl",967},
+                        {"mnesia2_config_test.erl",963},
+                        {"mnesia2_config_test.erl",960},
+                        {"mnesia2_config_test.erl",957}], [{mnesia2_config_test,
+                                                            table_load_to_disc_less_nodes}]
+=== *** FAILED *** test case 35 of 52
+=case          mnesia2_config_test:schema_merge
+=logfile       mnesia2_config_test.schema_merge.html
+=started       2016-04-12 08:52:51
+=ended         2016-04-12 08:52:53
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_config_test,
+                                                       schema_merge,1013},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 36 of 52
+=case          mnesia2_config_test:init_per_group
+=logfile       mnesia2_config_test.init_per_group.451173.49.html
+=group_props   [{name,dynamic_connect}]
+=started       2016-04-12 08:52:53
+=ended         2016-04-12 08:52:53
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_config_test:dynamic_basic
+=logfile       mnesia2_config_test.dynamic_basic.html
+=started       2016-04-12 08:52:53
+=ended         2016-04-12 08:52:53
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_config_test,
+                                                       dynamic_basic,1091},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 37 of 52
+=case          mnesia2_config_test:dynamic_ext
+=logfile       mnesia2_config_test.dynamic_ext.html
+=started       2016-04-12 08:52:53
+=ended         2016-04-12 08:52:53
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_config_test,
+                                                       dynamic_ext,1187},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 38 of 52
+=case          mnesia2_config_test:dynamic_bad
+=logfile       mnesia2_config_test.dynamic_bad.html
+=started       2016-04-12 08:52:53
+=ended         2016-04-12 08:52:53
+=result        failed: {test_case_fatal,"Cannot start appls ~p: ~p~n",
+                        [[mnesia2],
+                         [{badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,mnesia2,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {mnesia2_test_lib,remote_start,3,
+                               [{file,"mnesia2_test_lib.erl"},{line,828}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}]],
+                        "mnesia2_test_lib.erl",694}, [{mnesia2_test_lib,
+                                                       do_prepare,694},
+                                                      {mnesia2_config_test,
+                                                       dynamic_bad,1306},
+                                                      {test_server,ts_tc,1359},
+                                                      {test_server,
+                                                       run_test_case_eval1,
+                                                       976},
+                                                      {test_server,
+                                                       run_test_case_eval,
+                                                       925}]
+=== *** FAILED *** test case 39 of 52
+=case          mnesia2_config_test:end_per_group
+=logfile       mnesia2_config_test.end_per_group.451173.350.html
+=group_props   [{name,dynamic_connect}]
+=started       2016-04-12 08:52:53
+=ended         2016-04-12 08:52:53
+=result        ok
+=elapsed       2.0e-6
+=group_time    0.301s
+=case          mnesia2_config_test:end_per_group
+=logfile       mnesia2_config_test.end_per_group.451173.379.html
+=group_props   [{name,schema_config}]
+=started       2016-04-12 08:52:53
+=ended         2016-04-12 08:52:53
+=result        ok
+=elapsed       1.0e-6
+=group_time    14.392s
+=case          mnesia2_config_test:unknown_config
+=logfile       mnesia2_config_test.unknown_config.html
+=started       2016-04-12 08:52:53
+=ended         2016-04-12 08:52:55
+=result        ok
+=elapsed       2.046411
+=case          ct_framework:end_per_suite
+=logfile       ct_framework.end_per_suite.451175.484.html
+=group_props   [{suite,mnesia2_config_test}]
+=started       2016-04-12 08:52:55
+=ended         2016-04-12 08:52:55
+=result        ok
+=elapsed       2.0e-6
+=group_time    50.165s
+=case          mnesia2_extra_light_SUITE:init_per_suite
+=logfile       mnesia2_extra_light_suite.init_per_suite.451175.512.html
+=started       2016-04-12 08:52:55
+=ended         2016-04-12 08:52:55
+=result        ok
+=elapsed       2.0e-6
+=case          mnesia2_extra_light_SUITE:end_per_group
+=logfile       mnesia2_extra_light_suite.end_per_group.451175.551.html
+=group_props   [{name,config}]
+=started       2016-04-12 08:52:55
+=ended         2016-04-12 08:52:55
+=result        ok
+=elapsed       1.21e-4
+=case          mnesia2_extra_light_SUITE:init_per_group
+=logfile       mnesia2_extra_light_suite.init_per_group.451175.579.html
+=group_props   [{name,examples}]
+=started       2016-04-12 08:52:55
+=ended         2016-04-12 08:52:55
+=result        ok
+=elapsed       6.31e-4
+=case          mnesia2_extra_light_SUITE:end_per_suite
+=logfile       mnesia2_extra_light_suite.end_per_suite.451175.605.html
+=started       2016-04-12 08:52:55
+=ended         2016-04-12 08:52:55
+=result        ok
+=elapsed       1.0e-6
+=case          ct_framework:init_per_suite
+=logfile       ct_framework.init_per_suite.451175.630.html
+=group_props   [{suite,mnesia2_examples_test}]
+=started       2016-04-12 08:52:55
+=ended         2016-04-12 08:52:55
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_examples_test:bup
+=logfile       mnesia2_examples_test.bup.html
+=started       2016-04-12 08:52:55
+=ended         2016-04-12 08:52:55
+=result        failed: {error,undef}, [{mnesia2_examples_test,bup}]
+=== *** FAILED *** test case 41 of 52
+=case          mnesia2_examples_test:company
+=logfile       mnesia2_examples_test.company.html
+=started       2016-04-12 08:52:55
+=ended         2016-04-12 08:52:55
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_examples_test:meter
+=logfile       mnesia2_examples_test.meter.html
+=started       2016-04-12 08:52:55
+=ended         2016-04-12 08:52:56
+=result        failed: {error,
+                           {badmatch,
+                               {aborted,
+                                   {node_not_running,
+                                       'test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16'}}}}, [{mnesia2_examples_test,
+                                                                                                            meter}]
+=== *** FAILED *** test case 43 of 52
+=case          mnesia2_examples_test:init_per_group
+=logfile       mnesia2_examples_test.init_per_group.html
+=group_props   [{name,tpcb}]
+=started       2016-04-12 08:52:56
+=ended         2016-04-12 08:52:56
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_examples_test:replica_test
+=logfile       mnesia2_examples_test.replica_test.html
+=started       2016-04-12 08:52:56
+=ended         2016-04-12 08:52:56
+=result        failed: {'EXIT',
+                        {start_failed,
+                         [{badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}],
+                         []}}, [{mnesia2_examples_test,replica_test}]
+=== *** FAILED *** test case 44 of 52
+=case          mnesia2_examples_test:sticky_replica_test
+=logfile       mnesia2_examples_test.sticky_replica_test.html
+=started       2016-04-12 08:52:56
+=ended         2016-04-12 08:52:56
+=result        failed: {'EXIT',
+                        {start_failed,
+                         [{badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}],
+                         []}}, [{mnesia2_examples_test,sticky_replica_test}]
+=== *** FAILED *** test case 45 of 52
+=case          mnesia2_examples_test:dist_test
+=logfile       mnesia2_examples_test.dist_test.html
+=started       2016-04-12 08:52:56
+=ended         2016-04-12 08:52:56
+=result        failed: {'EXIT',
+                        {start_failed,
+                         [{badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}],
+                         []}}, [{mnesia2_examples_test,dist_test}]
+=== *** FAILED *** test case 46 of 52
+=case          mnesia2_examples_test:conflict_test
+=logfile       mnesia2_examples_test.conflict_test.html
+=started       2016-04-12 08:52:56
+=ended         2016-04-12 08:52:56
+=result        failed: {'EXIT',
+                        {start_failed,
+                         [{badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}],
+                         []}}, [{mnesia2_examples_test,conflict_test}]
+=== *** FAILED *** test case 47 of 52
+=case          mnesia2_examples_test:frag_test
+=logfile       mnesia2_examples_test.frag_test.html
+=started       2016-04-12 08:52:56
+=ended         2016-04-12 08:52:56
+=result        failed: {'EXIT',
+                        {start_failed,
+                         [{badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}],
+                         []}}, [{mnesia2_examples_test,frag_test}]
+=== *** FAILED *** test case 48 of 52
+=case          mnesia2_examples_test:frag2_test
+=logfile       mnesia2_examples_test.frag2_test.html
+=started       2016-04-12 08:52:56
+=ended         2016-04-12 08:52:57
+=result        failed: {'EXIT',
+                        {start_failed,
+                         [{badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}],
+                         []}}, [{mnesia2_examples_test,frag2_test}]
+=== *** FAILED *** test case 49 of 52
+=case          mnesia2_examples_test:remote_test
+=logfile       mnesia2_examples_test.remote_test.html
+=started       2016-04-12 08:52:57
+=ended         2016-04-12 08:52:57
+=result        failed: {'EXIT',
+                        {start_failed,
+                         [{badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}],
+                         []}}, [{mnesia2_examples_test,remote_test}]
+=== *** FAILED *** test case 50 of 52
+=case          mnesia2_examples_test:remote_frag2_test
+=logfile       mnesia2_examples_test.remote_frag2_test.html
+=started       2016-04-12 08:52:57
+=ended         2016-04-12 08:52:57
+=result        failed: {'EXIT',
+                        {start_failed,
+                         [{badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}},
+                          {badrpc,
+                           {'EXIT',
+                            {undef,
+                             [{application,ensure_all_started,
+                               [mnesia2,temporary],
+                               []},
+                              {timer,tc,3,[{file,"timer.erl"},{line,194}]},
+                              {mnesia2,start,0,
+                               [{file,"src/mnesia2.erl"},{line,200}]},
+                              {rpc,'-handle_call_call/6-fun-0-',5,
+                               [{file,"rpc.erl"},{line,205}]}]}}}],
+                         []}}, [{mnesia2_examples_test,remote_frag2_test}]
+=== *** FAILED *** test case 51 of 52
+=case          mnesia2_examples_test:end_per_group
+=logfile       mnesia2_examples_test.end_per_group.html
+=group_props   [{name,tpcb}]
+=started       2016-04-12 08:52:57
+=ended         2016-04-12 08:52:57
+=result        ok
+=elapsed       5.0e-6
+=group_time    0.812s
+=case          ct_framework:end_per_suite
+=logfile       ct_framework.end_per_suite.451177.295.html
+=group_props   [{suite,mnesia2_examples_test}]
+=started       2016-04-12 08:52:57
+=ended         2016-04-12 08:52:57
+=result        ok
+=elapsed       2.0e-6
+=group_time    1.665s
+=case          mnesia2_extra_light_SUITE:init_per_suite
+=logfile       mnesia2_extra_light_suite.init_per_suite.451177.323.html
+=started       2016-04-12 08:52:57
+=ended         2016-04-12 08:52:57
+=result        ok
+=elapsed       1.0e-6
+=case          mnesia2_extra_light_SUITE:end_per_group
+=logfile       mnesia2_extra_light_suite.end_per_group.451177.364.html
+=group_props   [{name,examples}]
+=started       2016-04-12 08:52:57
+=ended         2016-04-12 08:52:57
+=result        ok
+=elapsed       1.27e-4
+=case          mnesia2_extra_light_SUITE:end_per_group
+=logfile       mnesia2_extra_light_suite.end_per_group.451177.393.html
+=group_props   [{name,extra_light}]
+=started       2016-04-12 08:52:57
+=ended         2016-04-12 08:52:57
+=result        ok
+=elapsed       1.38e-4
+=case          mnesia2_extra_light_SUITE:clean_up_suite
+=logfile       mnesia2_extra_light_suite.clean_up_suite.html
+=started       2016-04-12 08:52:57
+=ended         2016-04-12 08:52:57
+=result        ok
+=elapsed       0.018055
+=case          mnesia2_extra_light_SUITE:end_per_suite
+=logfile       mnesia2_extra_light_suite.end_per_suite.451177.469.html
+=started       2016-04-12 08:52:57
+=ended         2016-04-12 08:52:57
+=result        ok
+=elapsed       1.0e-6
+=== TEST COMPLETE, 5 ok, 47 failed of 52 test cases
+
+=finished      2016-04-12 08:52:57
+=failed        47
+=successful    5
+=user_skipped  0
+=auto_skipped  0

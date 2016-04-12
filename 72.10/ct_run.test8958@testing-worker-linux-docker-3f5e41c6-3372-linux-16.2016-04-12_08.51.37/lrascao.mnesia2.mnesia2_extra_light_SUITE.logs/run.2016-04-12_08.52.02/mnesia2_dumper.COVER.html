@@ -1,0 +1,1279 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16.2016-04-12_08.51.37/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.52.02/mnesia2_dumper.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_dumper.erl by COVER 2016-04-12 at 08:53:01
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1996-2014. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_dumper).
+        |  
+        |  %% The InitBy arg may be one of the following:
+        |  %% scan_decisions     Initial scan for decisions
+        |  %% startup	      Initial dump during startup
+        |  %% schema_prepare     Dump initiated during schema transaction preparation
+        |  %% schema_update      Dump initiated during schema transaction commit
+        |  %% fast_schema_update A schema_update, but ignores the log file
+        |  %% user		      Dump initiated by user
+        |  %% write_threshold    Automatic dump caused by too many log writes
+        |  %% time_threshold     Automatic dump caused by timeout
+        |  
+        |  %% Public interface
+        |  -export([
+        |  	 get_log_writes/0,
+        |  	 incr_log_writes/0,
+        |           needs_dump_ets/1,
+        |  	 raw_dump_table/2,
+        |  	 raw_named_dump_table/2,
+        |  	 start_regulator/0,
+        |  	 opt_dump_log/1,
+        |  	 update/3,
+        |  	 snapshot_dcd/1
+        |  	]).
+        |  
+        |   %% Internal stuff
+        |  -export([regulator_init/1]).
+        |  
+        |  -include("mnesia2.hrl").
+        |  -include_lib("kernel/include/file.hrl").
+        |  
+        |  -import(mnesia2_lib, [fatal/2, dbg_out/2]).
+        |  
+        |  -define(REGULATOR_NAME, mnesia2_dumper_load_regulator).
+        |  -define(DumpToEtsMultiplier, 4).
+        |  
+        |  get_log_writes() -&gt;
+<font color=red>     0..|      Max = mnesia2_monitor:get_env(dump_log_write_threshold),</font>
+<font color=red>     0..|      Prev = mnesia2_lib:read_counter(trans_log_writes),</font>
+<font color=red>     0..|      Left = mnesia2_lib:read_counter(trans_log_writes_left),</font>
+<font color=red>     0..|      Diff = Max - Left,</font>
+<font color=red>     0..|      Prev + Diff.</font>
+        |  
+        |  incr_log_writes() -&gt;
+<font color=red>     0..|      Left = mnesia2_lib:incr_counter(trans_log_writes_left, -1),</font>
+<font color=red>     0..|      if</font>
+        |  	Left &gt; 0 -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    adjust_log_writes(true)</font>
+        |      end.
+        |  
+        |  adjust_log_writes(DoCast) -&gt;
+<font color=red>     0..|      Token = {mnesia2_adjust_log_writes, self()},</font>
+<font color=red>     0..|      case global:set_lock(Token, [node()], 1) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ignore; %% Somebody else is sending a dump request</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    case DoCast of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    ignore;</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    mnesia2_controller:async_dump_log(write_threshold)</font>
+        |  	    end,
+<font color=red>     0..|  	    Max = mnesia2_monitor:get_env(dump_log_write_threshold),</font>
+<font color=red>     0..|  	    Left = mnesia2_lib:read_counter(trans_log_writes_left),</font>
+        |  	    %% Don't care if we lost a few writes
+<font color=red>     0..|  	    mnesia2_lib:set_counter(trans_log_writes_left, Max),</font>
+<font color=red>     0..|  	    Diff = Max - Left,</font>
+<font color=red>     0..|  	    _ = mnesia2_lib:incr_counter(trans_log_writes, Diff),</font>
+<font color=red>     0..|  	    global:del_lock(Token, [node()])</font>
+        |      end.
+        |  
+        |  %% Returns 'ok' or exits
+        |  opt_dump_log(InitBy) -&gt;
+<font color=red>     0..|      Reg = case whereis(?REGULATOR_NAME) of</font>
+        |  	      undefined -&gt;
+<font color=red>     0..|  		  nopid;</font>
+        |  	      Pid when is_pid(Pid) -&gt;
+<font color=red>     0..|  		  Pid</font>
+        |  	  end,
+<font color=red>     0..|      perform_dump(InitBy, Reg).</font>
+        |  
+        |  snapshot_dcd(Tables) -&gt;
+<font color=red>     0..|      lists:foreach(</font>
+        |        fun(Tab) -&gt;
+<font color=red>     0..|  	      case mnesia2_lib:storage_type_at_node(node(), Tab) of</font>
+        |  		  disc_copies -&gt;
+<font color=red>     0..|  		      mnesia2_log:ets2dcd(Tab);</font>
+        |  		  _ -&gt;
+        |  		      %% Storage type was checked before queueing the op, though
+<font color=red>     0..|  		      skip</font>
+        |  	      end
+        |        end, Tables),
+<font color=red>     0..|      dumped.</font>
+        |  
+        |  %% Scan for decisions
+        |  perform_dump(InitBy, Regulator) when InitBy == scan_decisions -&gt;
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, perform_dump}, [InitBy]),</font>
+        |  
+<font color=red>     0..|      dbg_out("Transaction log dump initiated by ~w~n", [InitBy]),</font>
+<font color=red>     0..|      scan_decisions(mnesia2_log:previous_log_file(), InitBy, Regulator),</font>
+<font color=red>     0..|      scan_decisions(mnesia2_log:latest_log_file(), InitBy, Regulator);</font>
+        |  
+        |  %% Propagate the log into the DAT-files
+        |  perform_dump(InitBy, Regulator) -&gt;
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, perform_dump}, [InitBy]),</font>
+<font color=red>     0..|      LogState = mnesia2_log:prepare_log_dump(InitBy),</font>
+<font color=red>     0..|      dbg_out("Transaction log dump initiated by ~w: ~w~n",</font>
+        |  	    [InitBy, LogState]),
+<font color=red>     0..|      adjust_log_writes(false),</font>
+<font color=red>     0..|      case LogState of</font>
+        |  	already_dumped -&gt;
+<font color=red>     0..|  	    mnesia2_recover:allow_garb(),</font>
+<font color=red>     0..|  	    dumped;</font>
+        |  	{needs_dump, Diff} -&gt;
+<font color=red>     0..|  	    U = mnesia2_monitor:get_env(dump_log_update_in_place),</font>
+<font color=red>     0..|  	    Cont = mnesia2_log:init_log_dump(),</font>
+<font color=red>     0..|  	    mnesia2_recover:sync(),</font>
+<font color=red>     0..|  	    try do_perform_dump(Cont, U, InitBy, Regulator, undefined) of</font>
+        |  		ok -&gt;
+<font color=red>     0..|  		    ?eval_debug_fun({?MODULE, post_dump}, [InitBy]),</font>
+<font color=red>     0..|  		    case mnesia2_monitor:use_dir() of</font>
+        |  			true -&gt;
+<font color=red>     0..|  			    mnesia2_recover:dump_decision_tab();</font>
+        |  			false -&gt;
+<font color=red>     0..|  			    mnesia2_log:purge_some_logs()</font>
+        |  		    end,
+<font color=red>     0..|  		    mnesia2_recover:allow_garb(),</font>
+        |  		    %% And now to the crucial point...
+<font color=red>     0..|  		    mnesia2_log:confirm_log_dump(Diff)</font>
+        |  	    catch exit:Reason when Reason =/= fatal -&gt;
+<font color=red>     0..|  		    case mnesia2_monitor:get_env(auto_repair) of</font>
+        |  			true -&gt;
+<font color=red>     0..|  			    mnesia2_lib:important(error, Reason),</font>
+        |  			    %% Ignore rest of the log
+<font color=red>     0..|  			    mnesia2_log:confirm_log_dump(Diff);</font>
+        |  			false -&gt;
+<font color=red>     0..|  			    fatal(error, Reason)</font>
+        |  		    end
+        |  	    end;
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, {"Cannot prepare log dump", Reason}}</font>
+        |      end.
+        |  
+        |  scan_decisions(Fname, InitBy, Regulator) -&gt;
+<font color=red>     0..|      Exists = mnesia2_lib:exists(Fname),</font>
+<font color=red>     0..|      case Exists of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Header = mnesia2_log:trans_log_header(),</font>
+<font color=red>     0..|  	    Name = previous_log,</font>
+<font color=red>     0..|  	    mnesia2_log:open_log(Name, Header, Fname, Exists,</font>
+        |  				mnesia2_monitor:get_env(auto_repair), read_only),
+<font color=red>     0..|  	    Cont = start,</font>
+<font color=red>     0..|  	    try</font>
+<font color=red>     0..|  		do_perform_dump(Cont, false, InitBy, Regulator, undefined)</font>
+        |  	    catch exit:Reason when Reason =/= fatal -&gt;
+<font color=red>     0..|  		    {error, Reason}</font>
+<font color=red>     0..|  	    after mnesia2_log:close_log(Name)</font>
+        |  	    end
+        |      end.
+        |  
+        |  do_perform_dump(Cont, InPlace, InitBy, Regulator, OldVersion) -&gt;
+<font color=red>     0..|      case mnesia2_log:chunk_log(Cont) of</font>
+        |  	{C2, Recs} -&gt;
+<font color=red>     0..|  	    try insert_recs(Recs, InPlace, InitBy, Regulator, OldVersion) of</font>
+        |  		Version -&gt;
+<font color=red>     0..|  		    do_perform_dump(C2, InPlace, InitBy, Regulator, Version)</font>
+        |  	    catch _:R when R =/= fatal -&gt;
+<font color=red>     0..|  		    ST = erlang:get_stacktrace(),</font>
+<font color=red>     0..|  		    Reason = {"Transaction log dump error: ~p~n", [{R, ST}]},</font>
+<font color=red>     0..|  		    close_files(InPlace, {error, Reason}, InitBy),</font>
+<font color=red>     0..|  		    exit(Reason)</font>
+        |  	    end;
+        |  	eof -&gt;
+<font color=red>     0..|  	    close_files(InPlace, ok, InitBy),</font>
+<font color=red>     0..|  	    erase(mnesia2_dumper_dets),</font>
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  insert_recs([Rec | Recs], InPlace, InitBy, Regulator, LogV) -&gt;
+<font color=red>     0..|      regulate(Regulator),</font>
+<font color=red>     0..|      case insert_rec(Rec, InPlace, InitBy, LogV) of</font>
+        |  	LogH when is_record(LogH, log_header) -&gt;
+<font color=red>     0..|  	    insert_recs(Recs, InPlace, InitBy, Regulator, LogH#log_header.log_version);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    insert_recs(Recs, InPlace, InitBy, Regulator, LogV)</font>
+        |      end;
+        |  
+        |  insert_recs([], _InPlace, _InitBy, _Regulator, Version) -&gt;
+<font color=red>     0..|      Version.</font>
+        |  
+        |  insert_rec(Rec, _InPlace, scan_decisions, _LogV) -&gt;
+<font color=red>     0..|      if</font>
+        |  	is_record(Rec, commit) -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	is_record(Rec, log_header) -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    mnesia2_recover:note_log_decision(Rec, scan_decisions)</font>
+        |      end;
+        |  insert_rec(Rec, InPlace, InitBy, LogV) when is_record(Rec, commit) -&gt;
+        |      %% Determine the Outcome of the transaction and recover it
+<font color=red>     0..|      D = Rec#commit.decision,</font>
+<font color=red>     0..|      case mnesia2_recover:wait_for_decision(D, InitBy) of</font>
+        |  	{Tid, committed} -&gt;
+<font color=red>     0..|  	    do_insert_rec(Tid, Rec, InPlace, InitBy, LogV);</font>
+        |  	{Tid, aborted} -&gt;
+<font color=red>     0..|  	    case InitBy of</font>
+        |  		startup -&gt;
+<font color=red>     0..|  		    mnesia2_schema:undo_prepare_commit(Tid, Rec);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    ok</font>
+        |  	    end
+        |      end;
+        |  insert_rec(H, _InPlace, _InitBy, _LogV) when is_record(H, log_header) -&gt;
+<font color=red>     0..|      CurrentVersion = mnesia2_log:version(),</font>
+<font color=red>     0..|      if</font>
+        |          H#log_header.log_kind /= trans_log -&gt;
+<font color=red>     0..|  	    exit({"Bad kind of transaction log", H});</font>
+        |  	H#log_header.log_version == CurrentVersion -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	H#log_header.log_version == "4.2" -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	H#log_header.log_version == "4.1" -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	H#log_header.log_version == "4.0" -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    fatal("Bad version of transaction log: ~p~n", [H])</font>
+        |      end,
+<font color=red>     0..|      H;</font>
+        |  
+        |  insert_rec(_Rec, _InPlace, _InitBy, _LogV) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  do_insert_rec(Tid, Rec, InPlace, InitBy, LogV) -&gt;
+<font color=red>     0..|      case Rec#commit.schema_ops of</font>
+        |  	[] -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	SchemaOps -&gt;
+<font color=red>     0..|  	    case val({schema, storage_type}) of</font>
+        |  		ram_copies -&gt;
+<font color=red>     0..|  		    insert_ops(Tid, schema_ops, SchemaOps, InPlace, InitBy, LogV);</font>
+        |  	        Storage -&gt;
+<font color=red>     0..|  		    true = open_files(schema, Storage, InPlace, InitBy),</font>
+<font color=red>     0..|  		    insert_ops(Tid, schema_ops, SchemaOps, InPlace, InitBy, LogV)</font>
+        |  	    end
+        |      end,
+<font color=red>     0..|      D = Rec#commit.disc_copies,</font>
+<font color=red>     0..|      insert_ops(Tid, disc_copies, D, InPlace, InitBy, LogV),</font>
+<font color=red>     0..|      case InitBy of</font>
+        |  	startup -&gt;
+<font color=red>     0..|  	    DO = Rec#commit.disc_only_copies,</font>
+<font color=red>     0..|  	    insert_ops(Tid, disc_only_copies, DO, InPlace, InitBy, LogV);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end.
+        |  
+        |  
+        |  update(_Tid, [], _DumperMode) -&gt;
+<font color=red>     0..|      dumped;</font>
+        |  update(Tid, SchemaOps, DumperMode) -&gt;
+<font color=red>     0..|      UseDir = mnesia2_monitor:use_dir(),</font>
+<font color=red>     0..|      Res = perform_update(Tid, SchemaOps, DumperMode, UseDir),</font>
+<font color=red>     0..|      mnesia2_controller:release_schema_commit_lock(),</font>
+<font color=red>     0..|      Res.</font>
+        |  
+        |  perform_update(_Tid, _SchemaOps, mandatory, true) -&gt;
+        |      %% Force a dump of the transaction log in order to let the
+        |      %% dumper perform needed updates
+        |  
+<font color=red>     0..|      InitBy = schema_update,</font>
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, dump_schema_op}, [InitBy]),</font>
+<font color=red>     0..|      opt_dump_log(InitBy);</font>
+        |  perform_update(Tid, SchemaOps, _DumperMode, _UseDir) -&gt;
+        |      %% No need for a full transaction log dump.
+        |      %% Ignore the log file and perform only perform
+        |      %% the corresponding updates.
+        |  
+<font color=red>     0..|      InitBy = fast_schema_update,</font>
+<font color=red>     0..|      InPlace = mnesia2_monitor:get_env(dump_log_update_in_place),</font>
+<font color=red>     0..|      try insert_ops(Tid, schema_ops, SchemaOps, InPlace, InitBy,</font>
+        |  		   mnesia2_log:version()),
+<font color=red>     0..|  	 ?eval_debug_fun({?MODULE, post_dump}, [InitBy]),</font>
+<font color=red>     0..|  	 close_files(InPlace, ok, InitBy),</font>
+<font color=red>     0..|  	 ok</font>
+        |      catch _:Reason when Reason =/= fatal -&gt;
+<font color=red>     0..|  	    ST = erlang:get_stacktrace(),</font>
+<font color=red>     0..|  	    Error = {error, {"Schema update error", {Reason, ST}}},</font>
+<font color=red>     0..|  	    close_files(InPlace, Error, InitBy),</font>
+<font color=red>     0..|              fatal("Schema update error ~p ~p", [{Reason,ST}, SchemaOps])</font>
+        |      end.
+        |  
+<font color=red>     0..|  insert_ops(_Tid, _Storage, [], _InPlace, _InitBy, _) -&gt;    ok;</font>
+        |  insert_ops(Tid, Storage, [Op], InPlace, InitBy, Ver)  when Ver &gt;= "4.3"-&gt;
+<font color=red>     0..|      insert_op(Tid, Storage, Op, InPlace, InitBy),</font>
+<font color=red>     0..|      ok;</font>
+        |  insert_ops(Tid, Storage, [Op | Ops], InPlace, InitBy, Ver)  when Ver &gt;= "4.3"-&gt;
+<font color=red>     0..|      insert_op(Tid, Storage, Op, InPlace, InitBy),</font>
+<font color=red>     0..|      insert_ops(Tid, Storage, Ops, InPlace, InitBy, Ver);</font>
+        |  insert_ops(Tid, Storage, [Op | Ops], InPlace, InitBy, Ver) when Ver &lt; "4.3" -&gt;
+<font color=red>     0..|      insert_ops(Tid, Storage, Ops, InPlace, InitBy, Ver),</font>
+<font color=red>     0..|      insert_op(Tid, Storage, Op, InPlace, InitBy).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Normal ops
+        |  
+        |  disc_insert(_Tid, Storage, Tab, Key, Val, Op, InPlace, InitBy) -&gt;
+<font color=red>     0..|      case open_files(Tab, Storage, InPlace, InitBy) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    case Storage of</font>
+        |  		disc_copies when Tab /= schema -&gt;
+<font color=red>     0..|  		    mnesia2_log:append({?MODULE,Tab}, {{Tab, Key}, Val, Op}),</font>
+<font color=red>     0..|  		    ok;</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    dets_insert(Op,Tab,Key,Val)</font>
+        |  	    end;
+        |  	false -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end.
+        |  
+        |  %% To fix update_counter so that it behaves better.
+        |  %% i.e. if nothing have changed in tab except update_counter
+        |  %% trust that the value in the dets file is correct.
+        |  %% Otherwise we will get a double increment.
+        |  %% This is perfect but update_counter is a dirty op.
+        |  
+        |  dets_insert(Op,Tab,Key,Val) -&gt;
+<font color=red>     0..|      case Op of</font>
+        |  	write -&gt;
+<font color=red>     0..|  	    dets_updated(Tab,Key),</font>
+<font color=red>     0..|  	    ok = dets:insert(Tab, Val);</font>
+        |  	delete -&gt;
+<font color=red>     0..|  	    dets_updated(Tab,Key),</font>
+<font color=red>     0..|  	    ok = dets:delete(Tab, Key);</font>
+        |  	update_counter -&gt;
+<font color=red>     0..|  	    case dets_incr_counter(Tab,Key) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    {RecName, Incr} = Val,</font>
+<font color=red>     0..|  		    try _ = dets:update_counter(Tab, Key, Incr)</font>
+        |  		    catch error:_ when Incr &lt; 0 -&gt;
+<font color=red>     0..|  			    Zero = {RecName, Key, 0},</font>
+<font color=red>     0..|  			    ok = dets:insert(Tab, Zero);</font>
+        |  			  error:_ -&gt;
+<font color=red>     0..|  			    Init = {RecName, Key, Incr},</font>
+<font color=red>     0..|  			    ok = dets:insert(Tab, Init)</font>
+        |  		    end;
+<font color=red>     0..|  		false -&gt;  ok</font>
+        |  	    end;
+        |  	delete_object -&gt;
+<font color=red>     0..|  	    dets_updated(Tab,Key),</font>
+<font color=red>     0..|  	    ok = dets:delete_object(Tab, Val);</font>
+        |  	clear_table -&gt;
+<font color=red>     0..|  	    dets_cleared(Tab),</font>
+<font color=red>     0..|  	    ok = dets:delete_all_objects(Tab)</font>
+        |      end.
+        |  
+        |  dets_updated(Tab,Key) -&gt;
+<font color=red>     0..|      case get(mnesia2_dumper_dets) of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    Empty = gb_trees:empty(),</font>
+<font color=red>     0..|  	    Tree = gb_trees:insert(Tab, gb_sets:singleton(Key), Empty),</font>
+<font color=red>     0..|  	    put(mnesia2_dumper_dets, Tree);</font>
+        |  	Tree -&gt;
+<font color=red>     0..|  	    case gb_trees:lookup(Tab,Tree) of</font>
+<font color=red>     0..|  		{value, cleared} -&gt; ignore;</font>
+        |  		{value, Set} -&gt;
+<font color=red>     0..|  		    T = gb_trees:update(Tab, gb_sets:add(Key, Set), Tree),</font>
+<font color=red>     0..|  		    put(mnesia2_dumper_dets, T);</font>
+        |  		none -&gt;
+<font color=red>     0..|  		    T = gb_trees:insert(Tab, gb_sets:singleton(Key), Tree),</font>
+<font color=red>     0..|  		    put(mnesia2_dumper_dets, T)</font>
+        |  	    end
+        |      end.
+        |  
+        |  dets_incr_counter(Tab,Key) -&gt;
+<font color=red>     0..|      case get(mnesia2_dumper_dets) of</font>
+<font color=red>     0..|  	undefined -&gt; false;</font>
+        |  	Tree -&gt;
+<font color=red>     0..|  	    case gb_trees:lookup(Tab,Tree) of</font>
+<font color=red>     0..|  		{value, cleared} -&gt; true;</font>
+<font color=red>     0..|  		{value, Set} -&gt; gb_sets:is_member(Key, Set);</font>
+<font color=red>     0..|  		none -&gt; false</font>
+        |  	    end
+        |      end.
+        |  
+        |  dets_cleared(Tab) -&gt;
+<font color=red>     0..|      case get(mnesia2_dumper_dets) of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    Empty = gb_trees:empty(),</font>
+<font color=red>     0..|  	    Tree = gb_trees:insert(Tab, cleared, Empty),</font>
+<font color=red>     0..|  	    put(mnesia2_dumper_dets, Tree);</font>
+        |  	Tree -&gt;
+<font color=red>     0..|  	    case gb_trees:lookup(Tab,Tree) of</font>
+<font color=red>     0..|  		{value, cleared} -&gt; ignore;</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    T = gb_trees:enter(Tab, cleared, Tree),</font>
+<font color=red>     0..|  		    put(mnesia2_dumper_dets, T)</font>
+        |  	    end
+        |      end.
+        |  
+        |  insert(Tid, Storage, Tab, Key, [Val | Tail], Op, InPlace, InitBy) -&gt;
+<font color=red>     0..|      insert(Tid, Storage, Tab, Key, Val, Op, InPlace, InitBy),</font>
+<font color=red>     0..|      insert(Tid, Storage, Tab, Key, Tail, Op, InPlace, InitBy);</font>
+        |  
+        |  insert(_Tid, _Storage, _Tab, _Key, [], _Op, _InPlace, _InitBy) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  
+        |  insert(Tid, Storage, Tab, Key, Val, Op, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Item = {{Tab, Key}, Val, Op},</font>
+<font color=red>     0..|      case InitBy of</font>
+        |  	startup -&gt;
+<font color=red>     0..|  	    disc_insert(Tid, Storage, Tab, Key, Val, Op, InPlace, InitBy);</font>
+        |  
+        |  	_ when Storage == ram_copies -&gt;
+<font color=red>     0..|  	    mnesia2_tm:do_update_op(Tid, Storage, Item),</font>
+<font color=red>     0..|  	    Snmp = mnesia2_tm:prepare_snmp(Tab, Key, [Item]),</font>
+<font color=red>     0..|  	    mnesia2_tm:do_snmp(Tid, Snmp);</font>
+        |  
+        |  	_ when Storage == disc_copies -&gt;
+<font color=red>     0..|  	    disc_insert(Tid, Storage, Tab, Key, Val, Op, InPlace, InitBy),</font>
+<font color=red>     0..|  	    mnesia2_tm:do_update_op(Tid, Storage, Item),</font>
+<font color=red>     0..|  	    Snmp = mnesia2_tm:prepare_snmp(Tab, Key, [Item]),</font>
+<font color=red>     0..|  	    mnesia2_tm:do_snmp(Tid, Snmp);</font>
+        |  
+        |  	_ when Storage == disc_only_copies -&gt;
+<font color=red>     0..|  	    mnesia2_tm:do_update_op(Tid, Storage, Item),</font>
+<font color=red>     0..|  	    Snmp = mnesia2_tm:prepare_snmp(Tab, Key, [Item]),</font>
+<font color=red>     0..|  	    mnesia2_tm:do_snmp(Tid, Snmp);</font>
+        |  
+        |  	_ when Storage == unknown -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end.
+        |  
+        |  disc_delete_table(Tab, Storage) -&gt;
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    if</font>
+        |  		Storage == disc_only_copies; Tab == schema -&gt;
+<font color=red>     0..|  		    mnesia2_monitor:unsafe_close_dets(Tab),</font>
+<font color=red>     0..|  		    Dat = mnesia2_lib:tab2dat(Tab),</font>
+<font color=red>     0..|  		    file:delete(Dat),</font>
+<font color=red>     0..|  		    ok;</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    DclFile = mnesia2_lib:tab2dcl(Tab),</font>
+<font color=red>     0..|  		    case get({?MODULE,Tab}) of</font>
+        |  			{opened_dumper, dcl} -&gt;
+<font color=red>     0..|  			    del_opened_tab(Tab),</font>
+<font color=red>     0..|  			    mnesia2_log:unsafe_close_log(Tab);</font>
+        |  			_ -&gt;
+<font color=red>     0..|  			    ok</font>
+        |  		    end,
+<font color=red>     0..|  		    file:delete(DclFile),</font>
+<font color=red>     0..|  		    DcdFile = mnesia2_lib:tab2dcd(Tab),</font>
+<font color=red>     0..|  		    file:delete(DcdFile),</font>
+<font color=red>     0..|  		    ok</font>
+        |  	    end,
+<font color=red>     0..|  	    erase({?MODULE, Tab}),</font>
+<font color=red>     0..|  	    ok;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  disc_delete_indecies(_Tab, _Cs, Storage) when Storage /= disc_only_copies -&gt;
+<font color=red>     0..|      ok;</font>
+        |  disc_delete_indecies(Tab, Cs, disc_only_copies) -&gt;
+<font color=red>     0..|      Indecies = Cs#cstruct.index,</font>
+<font color=red>     0..|      mnesia2_index:del_transient(Tab, Indecies, disc_only_copies).</font>
+        |  
+        |  insert_op(Tid, Storage, {{Tab, Key}, Val, Op}, InPlace, InitBy) -&gt;
+        |      %% Propagate to disc only
+<font color=red>     0..|      disc_insert(Tid, Storage, Tab, Key, Val, Op, InPlace, InitBy);</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% NOTE that all operations below will only
+        |  %% be performed if the dump is initiated by
+        |  %% startup or fast_schema_update
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  insert_op(_Tid, schema_ops, _OP, _InPlace, Initby)
+        |    when Initby /= startup,
+        |         Initby /= fast_schema_update,
+        |         Initby /= schema_update -&gt;
+<font color=red>     0..|      ignore;</font>
+        |  
+        |  insert_op(Tid, _, {op, rec, Storage, Item}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      {{Tab, Key}, ValList, Op} = Item,</font>
+<font color=red>     0..|      insert(Tid, Storage, Tab, Key, ValList, Op, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, change_table_copy_type, N, FromS, ToS, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      Val = mnesia2_schema:insert_cstruct(Tid, Cs, true), % Update ram only</font>
+<font color=red>     0..|      {schema, Tab, _} = Val,</font>
+<font color=red>     0..|      case lists:member(N, val({current, db_nodes})) of</font>
+        |  	true when InitBy /= startup  -&gt;
+<font color=red>     0..|  	    mnesia2_controller:add_active_replica(Tab, N, Cs);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      if</font>
+        |  	N == node() -&gt;
+<font color=red>     0..|  	    Dmp  = mnesia2_lib:tab2dmp(Tab),</font>
+<font color=red>     0..|  	    Dat  = mnesia2_lib:tab2dat(Tab),</font>
+<font color=red>     0..|  	    Dcd  = mnesia2_lib:tab2dcd(Tab),</font>
+<font color=red>     0..|  	    Dcl  = mnesia2_lib:tab2dcl(Tab),</font>
+<font color=red>     0..|  	    case {FromS, ToS} of</font>
+        |  		{ram_copies, disc_copies} when Tab == schema -&gt;
+<font color=red>     0..|  		    ok = ensure_rename(Dmp, Dat);</font>
+        |  		{ram_copies, disc_copies} -&gt;
+<font color=red>     0..|  		    file:delete(Dcl),</font>
+<font color=red>     0..|  		    ok = ensure_rename(Dmp, Dcd);</font>
+        |  		{disc_copies, ram_copies} when Tab == schema -&gt;
+<font color=red>     0..|  		    mnesia2_lib:set(use_dir, false),</font>
+<font color=red>     0..|  		    mnesia2_monitor:unsafe_close_dets(Tab),</font>
+<font color=red>     0..|  		    ok = file:delete(Dat);</font>
+        |  		{disc_copies, ram_copies} -&gt;
+<font color=red>     0..|  		    _ = file:delete(Dcl),</font>
+<font color=red>     0..|  		    _ = file:delete(Dcd),</font>
+<font color=red>     0..|  		    ok;</font>
+        |  		{ram_copies, disc_only_copies} -&gt;
+<font color=red>     0..|  		    ok = ensure_rename(Dmp, Dat),</font>
+<font color=red>     0..|  		    true = open_files(Tab, disc_only_copies, InPlace, InitBy),</font>
+        |  		    %% ram_delete_table must be done before init_indecies,
+        |  		    %% it uses info which is reset in init_indecies,
+        |  		    %% it doesn't matter, because init_indecies don't use
+        |  		    %% the ram replica of the table when creating the disc
+        |  		    %% index; Could be improved :)
+<font color=red>     0..|  		    mnesia2_schema:ram_delete_table(Tab, FromS),</font>
+<font color=red>     0..|  		    PosList = Cs#cstruct.index,</font>
+<font color=red>     0..|  		    mnesia2_index:init_indecies(Tab, disc_only_copies, PosList);</font>
+        |  		{disc_only_copies, ram_copies} -&gt;
+<font color=red>     0..|  		    mnesia2_monitor:unsafe_close_dets(Tab),</font>
+<font color=red>     0..|  		    disc_delete_indecies(Tab, Cs, disc_only_copies),</font>
+<font color=red>     0..|  		    case InitBy of</font>
+        |  			startup -&gt;
+<font color=red>     0..|  			    ignore;</font>
+        |  			_ -&gt;
+<font color=red>     0..|  			    mnesia2_controller:get_disc_copy(Tab),</font>
+<font color=red>     0..|  			    ok</font>
+        |  		    end,
+<font color=red>     0..|  		    disc_delete_table(Tab, disc_only_copies);</font>
+        |  		{disc_copies, disc_only_copies} -&gt;
+<font color=red>     0..|  		    ok = ensure_rename(Dmp, Dat),</font>
+<font color=red>     0..|  		    true = open_files(Tab, disc_only_copies, InPlace, InitBy),</font>
+<font color=red>     0..|  		    mnesia2_schema:ram_delete_table(Tab, FromS),</font>
+<font color=red>     0..|  		    PosList = Cs#cstruct.index,</font>
+<font color=red>     0..|  		    mnesia2_index:init_indecies(Tab, disc_only_copies, PosList),</font>
+<font color=red>     0..|  		    _ = file:delete(Dcl),</font>
+<font color=red>     0..|  		    _ = file:delete(Dcd),</font>
+<font color=red>     0..|  		    ok;</font>
+        |  		{disc_only_copies, disc_copies} -&gt;
+<font color=red>     0..|  		    mnesia2_monitor:unsafe_close_dets(Tab),</font>
+<font color=red>     0..|  		    disc_delete_indecies(Tab, Cs, disc_only_copies),</font>
+<font color=red>     0..|  		    case InitBy of</font>
+        |  			startup -&gt;
+<font color=red>     0..|  			    ignore;</font>
+        |  			_ -&gt;
+<font color=red>     0..|  			    mnesia2_log:ets2dcd(Tab),</font>
+<font color=red>     0..|  			    mnesia2_controller:get_disc_copy(Tab),</font>
+<font color=red>     0..|  			    disc_delete_table(Tab, disc_only_copies)</font>
+        |  		    end
+        |  	    end;
+        |  	true -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      S = val({schema, storage_type}),</font>
+<font color=red>     0..|      disc_insert(Tid, S, schema, Tab, Val, write, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, transform, _Fun, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      case mnesia2_lib:cs_to_storage_type(node(), Cs) of</font>
+        |  	disc_copies -&gt;
+<font color=red>     0..|  	    open_dcl(Cs#cstruct.name);</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |  
+        |  %%%  Operations below this are handled without using the logg.
+        |  
+        |  insert_op(Tid, _, {op, restore_recreate, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      Type = Cs#cstruct.type,</font>
+<font color=red>     0..|      Storage = mnesia2_lib:cs_to_storage_type(node(), Cs),</font>
+        |      %% Delete all possibly existing files and tables
+<font color=red>     0..|      disc_delete_table(Tab, Storage),</font>
+<font color=red>     0..|      disc_delete_indecies(Tab, Cs, Storage),</font>
+<font color=red>     0..|      case InitBy of</font>
+        |  	startup -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, cstruct}) of</font>
+<font color=red>     0..|  		{'EXIT', _} -&gt; ignore;</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    mnesia2_schema:ram_delete_table(Tab, Storage),</font>
+<font color=red>     0..|  		    mnesia2_checkpoint:tm_del_copy(Tab, node())</font>
+        |  	    end
+        |      end,
+<font color=red>     0..|      StorageProps = Cs#cstruct.storage_properties,</font>
+        |      
+        |      %% And create new ones..
+<font color=red>     0..|      if</font>
+        |  	(InitBy == startup) or (Storage == unknown) -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	Storage == ram_copies -&gt;
+<font color=red>     0..|  	    EtsProps = proplists:get_value(ets, StorageProps, []),</font>
+<font color=red>     0..|  	    Args = [{keypos, 2}, public, named_table, Type | EtsProps],</font>
+<font color=red>     0..|  	    mnesia2_monitor:mktab(Tab, Args);</font>
+        |  	Storage == disc_copies -&gt;
+<font color=red>     0..|  	    EtsProps = proplists:get_value(ets, StorageProps, []),</font>
+<font color=red>     0..|  	    Args = [{keypos, 2}, public, named_table, Type | EtsProps],</font>
+<font color=red>     0..|  	    mnesia2_monitor:mktab(Tab, Args),</font>
+<font color=red>     0..|  	    File = mnesia2_lib:tab2dcd(Tab),</font>
+<font color=red>     0..|  	    FArg = [{file, File}, {name, {mnesia2,create}},</font>
+        |  		    {repair, false}, {mode, read_write}],
+<font color=red>     0..|  	    {ok, Log} = mnesia2_monitor:open_log(FArg),</font>
+<font color=red>     0..|  	    mnesia2_monitor:unsafe_close_log(Log);</font>
+        |  	Storage == disc_only_copies -&gt;
+<font color=red>     0..|  	    File = mnesia2_lib:tab2dat(Tab),</font>
+<font color=red>     0..|  	    file:delete(File),</font>
+<font color=red>     0..|  	    DetsProps = proplists:get_value(dets, StorageProps, []),</font>
+<font color=red>     0..|  	    Args = [{file, mnesia2_lib:tab2dat(Tab)},</font>
+        |  		    {type, mnesia2_lib:disk_type(Tab, Type)},
+        |  		    {keypos, 2},
+        |  		    {repair, mnesia2_monitor:get_env(auto_repair)} 
+        |  		    | DetsProps ],
+<font color=red>     0..|  	    mnesia2_monitor:open_dets(Tab, Args)</font>
+        |      end,
+<font color=red>     0..|      insert_op(Tid, ignore, {op, create_table, TabDef}, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, create_table, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      insert_cstruct(Tid, Cs, false, InPlace, InitBy),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      Storage = mnesia2_lib:cs_to_storage_type(node(), Cs),</font>
+<font color=red>     0..|      StorageProps = Cs#cstruct.storage_properties,</font>
+<font color=red>     0..|      case InitBy of</font>
+        |  	startup -&gt;
+<font color=red>     0..|  	    case Storage of</font>
+        |  		unknown -&gt;
+<font color=red>     0..|  		    ignore;</font>
+        |  		ram_copies -&gt;
+<font color=red>     0..|  		    ignore;</font>
+        |  		disc_copies -&gt;
+<font color=red>     0..|  		    Dcd = mnesia2_lib:tab2dcd(Tab),</font>
+<font color=red>     0..|  		    case mnesia2_lib:exists(Dcd) of</font>
+<font color=red>     0..|  			true -&gt; ignore;</font>
+        |  			false -&gt;
+<font color=red>     0..|  			    mnesia2_log:open_log(temp,</font>
+        |  						mnesia2_log:dcd_log_header(),
+        |  						Dcd,
+        |  						false,
+        |  						false,
+        |  						read_write),
+<font color=red>     0..|  			    mnesia2_log:unsafe_close_log(temp)</font>
+        |  		    end;
+        |  		_ -&gt;
+<font color=red>     0..|  		    DetsProps = proplists:get_value(dets, StorageProps, []),</font>
+        |  
+<font color=red>     0..|  		    Args = [{file, mnesia2_lib:tab2dat(Tab)},</font>
+        |  			    {type, mnesia2_lib:disk_type(Tab, Cs#cstruct.type)},
+        |  			    {keypos, 2},
+        |  			    {repair, mnesia2_monitor:get_env(auto_repair)} 
+        |  			    | DetsProps ],
+<font color=red>     0..|  		    case mnesia2_monitor:open_dets(Tab, Args) of</font>
+        |  			{ok, _} -&gt;
+<font color=red>     0..|  			    mnesia2_monitor:unsafe_close_dets(Tab);</font>
+        |  			{error, Error} -&gt;
+<font color=red>     0..|  			    exit({"Failed to create dets table", Error})</font>
+        |  		    end
+        |  	    end;
+        |  	_ -&gt;
+<font color=red>     0..|  	    Copies = mnesia2_lib:copy_holders(Cs),</font>
+<font color=red>     0..|  	    Active = mnesia2_lib:intersect(Copies, val({current, db_nodes})),</font>
+<font color=red>     0..|  	    [mnesia2_controller:add_active_replica(Tab, N, Cs) || N &lt;- Active],</font>
+        |  	    
+<font color=red>     0..|  	    case Storage of</font>
+        |  		unknown -&gt;
+<font color=red>     0..|  		    mnesia2_lib:unset({Tab, create_table}),</font>
+<font color=red>     0..|  		    case Cs#cstruct.local_content of</font>
+        |  			true -&gt;
+<font color=red>     0..|  			    ignore;</font>
+        |  			false -&gt;
+<font color=red>     0..|  			    mnesia2_lib:set_remote_where_to_read(Tab)</font>
+        |  		    end;
+        |  		_ -&gt;
+<font color=red>     0..|  		    case Cs#cstruct.local_content of</font>
+        |  			true -&gt;
+<font color=red>     0..|  			    mnesia2_lib:set_local_content_whereabouts(Tab);</font>
+        |  			false -&gt;
+<font color=red>     0..|  			    mnesia2_lib:set({Tab, where_to_read}, node())</font>
+        |  		    end,
+<font color=red>     0..|  		    case Storage of</font>
+        |  			ram_copies -&gt;
+<font color=red>     0..|  			    ignore;</font>
+        |  			_ -&gt;
+        |  			    %% Indecies are still created by loader
+<font color=red>     0..|  			    disc_delete_indecies(Tab, Cs, Storage)</font>
+        |  			    %% disc_delete_table(Tab, Storage)
+        |  		    end,
+        |  
+        |  		    %% Update whereabouts and create table
+<font color=red>     0..|  		    mnesia2_controller:create_table(Tab),</font>
+<font color=red>     0..|  		    mnesia2_lib:unset({Tab, create_table})</font>
+        |  	    end
+        |      end;
+        |  
+        |  insert_op(_Tid, _, {op, dump_table, Size, TabDef}, _InPlace, _InitBy) -&gt;
+<font color=red>     0..|      case Size of</font>
+        |  	unknown -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|  	    Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|  	    Dmp = mnesia2_lib:tab2dmp(Tab),</font>
+<font color=red>     0..|  	    Dat = mnesia2_lib:tab2dcd(Tab),</font>
+<font color=red>     0..|  	    case Size of</font>
+        |  		0 -&gt;
+        |  	    	    %% Assume that table files already are closed
+<font color=red>     0..|  		    file:delete(Dmp),</font>
+<font color=red>     0..|  		    file:delete(Dat);</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    ok = ensure_rename(Dmp, Dat)</font>
+        |  	    end
+        |      end;
+        |  
+        |  insert_op(Tid, _, {op, delete_table, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      case mnesia2_lib:cs_to_storage_type(node(), Cs) of</font>
+        |  	unknown -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	Storage -&gt;
+<font color=red>     0..|  	    disc_delete_table(Tab, Storage),</font>
+<font color=red>     0..|  	    disc_delete_indecies(Tab, Cs, Storage),</font>
+<font color=red>     0..|  	    case InitBy of</font>
+        |  		startup -&gt;
+<font color=red>     0..|  		    ignore;</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    mnesia2_schema:ram_delete_table(Tab, Storage),</font>
+<font color=red>     0..|  		    mnesia2_checkpoint:tm_del_copy(Tab, node())</font>
+        |  	    end
+        |      end,
+<font color=red>     0..|      delete_cstruct(Tid, Cs, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, clear_table, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      case mnesia2_lib:cs_to_storage_type(node(), Cs) of</font>
+        |  	unknown -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	Storage -&gt;
+<font color=red>     0..|  	    Oid = '_', %%val({Tab, wild_pattern}),</font>
+<font color=red>     0..|  	    if Storage == disc_copies -&gt;</font>
+<font color=red>     0..|  		    open_dcl(Cs#cstruct.name);</font>
+        |  	       true -&gt;
+<font color=red>     0..|  		    ignore</font>
+        |  	    end,
+        |  	    %% Need to catch this, it crashes on ram_copies if
+        |  	    %% the op comes before table is loaded at startup.
+<font color=red>     0..|  	    ?CATCH(insert(Tid, Storage, Tab, '_', Oid, clear_table, InPlace, InitBy))</font>
+        |      end;
+        |  
+        |  insert_op(Tid, _, {op, merge_schema, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      case Cs#cstruct.name of</font>
+        |  	schema -&gt;
+        |  	    %% If we bootstrap an empty (diskless) mnesia2 from another node
+        |  	    %% we might have changed the storage_type of schema.
+        |  	    %% I think this is a good place to do it.
+<font color=red>     0..|  	    Update = fun(NS = {Node,Storage}) -&gt;</font>
+<font color=red>     0..|  			     case mnesia2_lib:cs_to_storage_type(Node, Cs) of</font>
+<font color=red>     0..|  				 Storage -&gt; NS;</font>
+        |  				 disc_copies when Node == node() -&gt;
+<font color=red>     0..|  				     Dir = mnesia2_lib:dir(),</font>
+<font color=red>     0..|  				     ok = mnesia2_schema:opt_create_dir(true, Dir),</font>
+<font color=red>     0..|  				     mnesia2_schema:purge_dir(Dir, []),</font>
+<font color=red>     0..|  				     mnesia2_log:purge_all_logs(),</font>
+        |  
+<font color=red>     0..|  				     mnesia2_lib:set(use_dir, true),</font>
+<font color=red>     0..|  				     mnesia2_log:init(),</font>
+<font color=red>     0..|  				     Ns = val({current, db_nodes}),</font>
+<font color=red>     0..|  				     F = fun(U) -&gt; mnesia2_recover:log_mnesia2_up(U) end,</font>
+<font color=red>     0..|  				     lists:foreach(F, Ns),</font>
+<font color=red>     0..|  				     raw_named_dump_table(schema, dat),</font>
+<font color=red>     0..|  				     temp_set_master_nodes(),</font>
+<font color=red>     0..|  				     {Node,disc_copies};</font>
+        |  				 CSstorage -&gt;
+<font color=red>     0..|  				     {Node,CSstorage}</font>
+        |  			     end
+        |  		     end,
+        |  
+<font color=red>     0..|  	    W2C0 = val({schema, where_to_commit}),</font>
+<font color=red>     0..|  	    W2C = case W2C0 of</font>
+        |  		      {blocked, List} -&gt;
+<font color=red>     0..|  			  {blocked,lists:map(Update,List)};</font>
+        |  		      List -&gt;
+<font color=red>     0..|  			  lists:map(Update,List)</font>
+        |  		  end,
+<font color=red>     0..|  	    if W2C == W2C0 -&gt; ignore;</font>
+<font color=red>     0..|  	       true -&gt; mnesia2_lib:set({schema, where_to_commit}, W2C)</font>
+        |  	    end;
+        |  	_ -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      insert_cstruct(Tid, Cs, false, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, del_table_copy, Storage, Node, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      if</font>
+        |  	Tab == schema, Storage == ram_copies -&gt;
+<font color=red>     0..|  	    insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |          Tab /= schema -&gt;
+<font color=red>     0..|  	    mnesia2_controller:del_active_replica(Tab, Node),</font>
+<font color=red>     0..|  	    mnesia2_lib:del({Tab, Storage}, Node),</font>
+<font color=red>     0..|  	    if</font>
+        |  		Node == node() -&gt;
+<font color=red>     0..|  		    case Cs#cstruct.local_content of</font>
+<font color=red>     0..|  			true -&gt; mnesia2_lib:set({Tab, where_to_read}, nowhere);</font>
+<font color=red>     0..|  			false -&gt; mnesia2_lib:set_remote_where_to_read(Tab)</font>
+        |  		    end,
+<font color=red>     0..|  		    mnesia2_lib:del({schema, local_tables}, Tab),</font>
+<font color=red>     0..|  		    mnesia2_lib:set({Tab, storage_type}, unknown),</font>
+<font color=red>     0..|  		    insert_cstruct(Tid, Cs, true, InPlace, InitBy),</font>
+<font color=red>     0..|  		    disc_delete_table(Tab, Storage),</font>
+<font color=red>     0..|  		    disc_delete_indecies(Tab, Cs, Storage),</font>
+<font color=red>     0..|  		    mnesia2_schema:ram_delete_table(Tab, Storage),</font>
+<font color=red>     0..|  		    mnesia2_checkpoint:tm_del_copy(Tab, Node);</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    case val({Tab, where_to_read}) of</font>
+        |  			Node -&gt;
+<font color=red>     0..|  			    mnesia2_lib:set_remote_where_to_read(Tab);</font>
+        |  			_  -&gt;
+<font color=red>     0..|  			    ignore</font>
+        |  		    end,
+<font color=red>     0..|  		    insert_cstruct(Tid, Cs, true, InPlace, InitBy)</font>
+        |  	    end
+        |      end;
+        |  
+        |  insert_op(Tid, _, {op, add_table_copy, _Storage, _Node, TabDef}, InPlace, InitBy) -&gt;
+        |      %% During prepare commit, the files was created
+        |      %% and the replica was announced
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, add_snmp, _Us, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, del_snmp, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      Storage = mnesia2_lib:cs_to_storage_type(node(), Cs),</font>
+<font color=red>     0..|      if</font>
+        |  	InitBy /= startup,
+        |  	Storage /= unknown -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, {index, snmp}}) of</font>
+        |  		{'EXIT', _} -&gt;
+<font color=red>     0..|  		    ignore;</font>
+        |  		Stab -&gt;
+<font color=red>     0..|  		    mnesia2_snmp_hook:delete_table(Tab, Stab),</font>
+<font color=red>     0..|  		    mnesia2_lib:unset({Tab, {index, snmp}})</font>
+        |  	    end;
+        |  	true -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, add_index, Pos, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = insert_cstruct(Tid, Cs, true, InPlace, InitBy),</font>
+<font color=red>     0..|      Storage = mnesia2_lib:cs_to_storage_type(node(), Cs),</font>
+<font color=red>     0..|      case InitBy of</font>
+        |  	startup when Storage == disc_only_copies -&gt;
+<font color=red>     0..|  	    true = open_files(Tab, Storage, InPlace, InitBy),</font>
+<font color=red>     0..|  	    mnesia2_index:init_indecies(Tab, Storage, [Pos]);</font>
+        |  	startup -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	_  -&gt;
+<font color=red>     0..|  	    case val({Tab,where_to_read}) of</font>
+<font color=red>     0..|  		nowhere -&gt; ignore;</font>
+        |  		_ -&gt;
+<font color=red>     0..|  		    mnesia2_index:init_indecies(Tab, Storage, [Pos])</font>
+        |  	    end
+        |      end;
+        |  
+        |  insert_op(Tid, _, {op, del_index, Pos, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      Storage = mnesia2_lib:cs_to_storage_type(node(), Cs),</font>
+<font color=red>     0..|      case InitBy of</font>
+        |  	startup when Storage == disc_only_copies -&gt;
+<font color=red>     0..|  	    mnesia2_index:del_index_table(Tab, Storage, Pos);</font>
+        |  	startup -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    mnesia2_index:del_index_table(Tab, Storage, Pos)</font>
+        |      end,
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, change_table_access_mode,TabDef, _OldAccess, _Access}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      case InitBy of</font>
+<font color=red>     0..|  	startup -&gt; ignore;</font>
+<font color=red>     0..|  	_ -&gt; mnesia2_controller:change_table_access_mode(Cs)</font>
+        |      end,
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, change_table_majority,TabDef, _OldAccess, _Access}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      case InitBy of</font>
+<font color=red>     0..|  	startup -&gt; ignore;</font>
+<font color=red>     0..|  	_ -&gt; mnesia2_controller:change_table_majority(Cs)</font>
+        |      end,
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, change_table_load_order, TabDef, _OldLevel, _Level}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, delete_property, TabDef, PropKey}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      Tab = Cs#cstruct.name,</font>
+<font color=red>     0..|      mnesia2_lib:unset({Tab, user_property, PropKey}),</font>
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, write_property, TabDef, _Prop}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy);</font>
+        |  
+        |  insert_op(Tid, _, {op, change_table_frag, _Change, TabDef}, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Cs = mnesia2_schema:list2cs(TabDef),</font>
+<font color=red>     0..|      insert_cstruct(Tid, Cs, true, InPlace, InitBy).</font>
+        |  
+        |  open_files(Tab, Storage, UpdateInPlace, InitBy)
+        |    when Storage /= unknown, Storage /= ram_copies -&gt;
+<font color=red>     0..|      case get({?MODULE, Tab}) of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    case ?catch_val({Tab, setorbag}) of</font>
+        |  		{'EXIT', _} -&gt;
+<font color=red>     0..|  		    false;</font>
+        |  		Type -&gt;
+<font color=red>     0..|  		    case Storage of</font>
+        |  			disc_copies when Tab /= schema -&gt;
+<font color=red>     0..|  			    Bool = open_disc_copies(Tab, InitBy),</font>
+<font color=red>     0..|  			    Bool;</font>
+        |  			_ -&gt;
+<font color=red>     0..|  			    Props = val({Tab, storage_properties}),</font>
+<font color=red>     0..|  			    DetsProps = proplists:get_value(dets, Props, []),</font>
+<font color=red>     0..|  			    Fname = prepare_open(Tab, UpdateInPlace),</font>
+<font color=red>     0..|  			    Args = [{file, Fname},</font>
+        |  				    {keypos, 2},
+        |  				    {repair, mnesia2_monitor:get_env(auto_repair)},
+        |  				    {type, mnesia2_lib:disk_type(Tab, Type)} 
+        |  				    | DetsProps],
+<font color=red>     0..|  			    {ok, _} = mnesia2_monitor:open_dets(Tab, Args),</font>
+<font color=red>     0..|  			    put({?MODULE, Tab}, {opened_dumper, dat}),</font>
+<font color=red>     0..|  			    true</font>
+        |  		    end
+        |  	    end;
+        |  	already_dumped -&gt;
+<font color=red>     0..|  	    false;</font>
+        |  	{opened_dumper, _} -&gt;
+<font color=red>     0..|  	    true</font>
+        |      end;
+        |  open_files(_Tab, _Storage, _UpdateInPlace, _InitBy) -&gt;
+<font color=red>     0..|      false.</font>
+        |  
+        |  open_disc_copies(Tab, InitBy) -&gt;
+<font color=red>     0..|      DumpEts = needs_dump_ets(Tab),</font>
+<font color=red>     0..|      if</font>
+        |  	DumpEts == false; InitBy == startup -&gt;
+<font color=red>     0..|              DclF = mnesia2_lib:tab2dcl(Tab),</font>
+<font color=red>     0..|  	    mnesia2_log:open_log({?MODULE,Tab},</font>
+        |  				mnesia2_log:dcl_log_header(),
+        |  				DclF,
+        |  				mnesia2_lib:exists(DclF),
+        |  				mnesia2_monitor:get_env(auto_repair),
+        |  				read_write),
+<font color=red>     0..|  	    put({?MODULE, Tab}, {opened_dumper, dcl}),</font>
+<font color=red>     0..|  	    true;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    mnesia2_log:ets2dcd(Tab),</font>
+<font color=red>     0..|  	    put({?MODULE, Tab}, already_dumped),</font>
+<font color=red>     0..|  	    false</font>
+        |      end.
+        |  
+        |  needs_dump_ets(Tab) -&gt;
+<font color=red>     0..|      DclF = mnesia2_lib:tab2dcl(Tab),</font>
+<font color=red>     0..|      case file:read_file_info(DclF) of</font>
+        |          {error, enoent} -&gt;
+<font color=red>     0..|              false;</font>
+        |          {ok, DclInfo} -&gt;
+<font color=red>     0..|              DcdF =  mnesia2_lib:tab2dcd(Tab),</font>
+<font color=red>     0..|              case file:read_file_info(DcdF) of</font>
+        |                  {error, Reason} -&gt;
+<font color=red>     0..|                      mnesia2_lib:dbg_out("File ~p info_error ~p ~n",</font>
+        |                                         [DcdF, Reason]),
+<font color=red>     0..|                      true;</font>
+        |                  {ok, DcdInfo} -&gt;
+<font color=red>     0..|                      Mul = case ?catch_val(dc_dump_limit) of</font>
+<font color=red>     0..|                                {'EXIT', _} -&gt; ?DumpToEtsMultiplier;</font>
+<font color=red>     0..|                                Val -&gt; Val</font>
+        |                            end,
+<font color=red>     0..|                      DcdInfo#file_info.size =&lt; (DclInfo#file_info.size * Mul)</font>
+        |              end
+        |      end.
+        |  
+        |  %% Always opens the dcl file for writing overriding already_dumped
+        |  %% mechanismen, used for schema transactions.
+        |  open_dcl(Tab) -&gt;
+<font color=red>     0..|      case get({?MODULE, Tab}) of</font>
+        |      	{opened_dumper, _} -&gt;
+<font color=red>     0..|  	    true;</font>
+        |  	_ -&gt; %% undefined or already_dumped
+<font color=red>     0..|  	    DclF = mnesia2_lib:tab2dcl(Tab),</font>
+<font color=red>     0..|  	    mnesia2_log:open_log({?MODULE,Tab},</font>
+        |  				mnesia2_log:dcl_log_header(),
+        |  				DclF,
+        |  				mnesia2_lib:exists(DclF),
+        |  				mnesia2_monitor:get_env(auto_repair),
+        |  				read_write),
+<font color=red>     0..|  	    put({?MODULE, Tab}, {opened_dumper, dcl}),</font>
+<font color=red>     0..|  	    true</font>
+        |      end.
+        |  
+        |  prepare_open(Tab, UpdateInPlace) -&gt;
+<font color=red>     0..|      Dat =  mnesia2_lib:tab2dat(Tab),</font>
+<font color=red>     0..|      case UpdateInPlace of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Dat;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    Tmp = mnesia2_lib:tab2tmp(Tab),</font>
+<font color=red>     0..|  	    try ok = mnesia2_lib:copy_file(Dat, Tmp)</font>
+        |  	    catch error:Error -&gt;
+<font color=red>     0..|  		    fatal("Cannot copy dets file ~p to ~p: ~p~n",</font>
+        |  			  [Dat, Tmp, Error])
+        |  	    end,
+<font color=red>     0..|  	    Tmp</font>
+        |      end.
+        |  
+        |  del_opened_tab(Tab) -&gt;
+<font color=red>     0..|      erase({?MODULE, Tab}).</font>
+        |  
+        |  close_files(UpdateInPlace, Outcome, InitBy) -&gt; % Update in place
+<font color=red>     0..|      close_files(UpdateInPlace, Outcome, InitBy, get()).</font>
+        |  
+        |  close_files(InPlace, Outcome, InitBy, [{{?MODULE, Tab}, already_dumped} | Tail]) -&gt;
+<font color=red>     0..|      erase({?MODULE, Tab}),</font>
+<font color=red>     0..|      close_files(InPlace, Outcome, InitBy, Tail);</font>
+        |  close_files(InPlace, Outcome, InitBy, [{{?MODULE, Tab}, {opened_dumper, Type}} | Tail]) -&gt;
+<font color=red>     0..|      erase({?MODULE, Tab}),</font>
+<font color=red>     0..|      case val({Tab, storage_type}) of</font>
+        |  	disc_only_copies when InitBy /= startup -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	disc_copies when Tab /= schema -&gt;
+<font color=red>     0..|  	    mnesia2_log:close_log({?MODULE,Tab});</font>
+        |  	Storage -&gt;
+<font color=red>     0..|  	    do_close(InPlace, Outcome, Tab, Type, Storage)</font>
+        |      end,
+<font color=red>     0..|      close_files(InPlace, Outcome, InitBy, Tail);</font>
+        |  
+        |  close_files(InPlace, Outcome, InitBy, [_ | Tail]) -&gt;
+<font color=red>     0..|      close_files(InPlace, Outcome, InitBy, Tail);</font>
+        |  close_files(_, _, _InitBy, []) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %% If storage is unknown during close clean up files, this can happen if timing
+        |  %% is right and dirty_write conflicts with schema operations.
+        |  do_close(_, _, Tab, dcl, unknown) -&gt;
+<font color=red>     0..|      mnesia2_log:close_log({?MODULE,Tab}),</font>
+<font color=red>     0..|      file:delete(mnesia2_lib:tab2dcl(Tab));</font>
+        |  do_close(_, _, Tab, dcl, _) -&gt;  %% To be safe, can it happen?
+<font color=red>     0..|      mnesia2_log:close_log({?MODULE,Tab});</font>
+        |  
+        |  do_close(InPlace, Outcome, Tab, dat, Storage) -&gt;
+<font color=red>     0..|      mnesia2_monitor:close_dets(Tab),</font>
+<font color=red>     0..|      if</font>
+        |  	Storage == unknown, InPlace == true  -&gt;
+<font color=red>     0..|  	    file:delete(mnesia2_lib:tab2dat(Tab));</font>
+        |  	InPlace == true -&gt;
+        |  	    %% Update in place
+<font color=red>     0..|  	    ok;</font>
+        |  	Outcome == ok, Storage /= unknown -&gt;
+        |  	    %% Success: swap tmp files with dat files
+<font color=red>     0..|  	    TabDat = mnesia2_lib:tab2dat(Tab),</font>
+<font color=red>     0..|  	    ok = file:rename(mnesia2_lib:tab2tmp(Tab), TabDat);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    file:delete(mnesia2_lib:tab2tmp(Tab))</font>
+        |      end.
+        |  
+        |  
+        |  ensure_rename(From, To) -&gt;
+<font color=red>     0..|      case mnesia2_lib:exists(From) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    file:rename(From, To);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    case mnesia2_lib:exists(To) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    ok;</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    {error, {rename_failed, From, To}}</font>
+        |  	    end
+        |      end.
+        |  
+        |  insert_cstruct(Tid, Cs, KeepWhereabouts, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Val = mnesia2_schema:insert_cstruct(Tid, Cs, KeepWhereabouts),</font>
+<font color=red>     0..|      {schema, Tab, _} = Val,</font>
+<font color=red>     0..|      S = val({schema, storage_type}),</font>
+<font color=red>     0..|      disc_insert(Tid, S, schema, Tab, Val, write, InPlace, InitBy),</font>
+<font color=red>     0..|      Tab.</font>
+        |  
+        |  delete_cstruct(Tid, Cs, InPlace, InitBy) -&gt;
+<font color=red>     0..|      Val = mnesia2_schema:delete_cstruct(Tid, Cs),</font>
+<font color=red>     0..|      {schema, Tab, _} = Val,</font>
+<font color=red>     0..|      S = val({schema, storage_type}),</font>
+<font color=red>     0..|      disc_insert(Tid, S, schema, Tab, Val, delete, InPlace, InitBy),</font>
+<font color=red>     0..|      Tab.</font>
+        |  
+        |  
+        |  temp_set_master_nodes() -&gt;
+<font color=red>     0..|      Tabs = val({schema, local_tables}),</font>
+<font color=red>     0..|      Masters = [{Tab, (val({Tab, disc_copies}) ++</font>
+        |  		      val({Tab, ram_copies}) ++
+        |  		      val({Tab, disc_only_copies})) -- [node()]}
+<font color=red>     0..|  	       || Tab &lt;- Tabs],</font>
+        |      %% UseDir = false since we don't want to remember these
+        |      %% masternodes and we are running (really soon anyway) since we want this
+        |      %% to be known during table loading.
+<font color=red>     0..|      mnesia2_recover:log_master_nodes(Masters, false, yes),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Raw dump of table. Dumper must have unique access to the ets table.
+        |  
+        |  raw_named_dump_table(Tab, Ftype) -&gt;
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    mnesia2_lib:lock_table(Tab),</font>
+<font color=red>     0..|  	    TmpFname = mnesia2_lib:tab2tmp(Tab),</font>
+<font color=red>     0..|  	    Fname =</font>
+        |  		case Ftype of
+<font color=red>     0..|  		    dat -&gt; mnesia2_lib:tab2dat(Tab);</font>
+<font color=red>     0..|  		    dmp -&gt; mnesia2_lib:tab2dmp(Tab)</font>
+        |  		end,
+<font color=red>     0..|  	    file:delete(TmpFname),</font>
+<font color=red>     0..|  	    file:delete(Fname),</font>
+<font color=red>     0..|  	    TabSize = ?ets_info(Tab, size),</font>
+<font color=red>     0..|  	    TabRef = Tab,</font>
+<font color=red>     0..|  	    DiskType = mnesia2_lib:disk_type(Tab),</font>
+<font color=red>     0..|  	    Args = [{file, TmpFname},</font>
+        |  		    {keypos, 2},
+        |  		    %%		    {ram_file, true},
+        |  		    {estimated_no_objects, TabSize + 256},
+        |  		    {repair, mnesia2_monitor:get_env(auto_repair)},
+        |  		    {type, DiskType}],
+<font color=red>     0..|  	    case mnesia2_lib:dets_sync_open(TabRef, Args) of</font>
+        |  		{ok, TabRef} -&gt;
+<font color=red>     0..|  		    Storage = ram_copies,</font>
+<font color=red>     0..|  		    mnesia2_lib:db_fixtable(Storage, Tab, true),</font>
+        |  
+<font color=red>     0..|  		    try</font>
+<font color=red>     0..|  			ok = raw_dump_table(TabRef, Tab),</font>
+<font color=red>     0..|  			ok = file:rename(TmpFname, Fname)</font>
+        |  		    catch _:Reason -&gt;
+<font color=red>     0..|  			    ?SAFE(file:delete(TmpFname)),</font>
+<font color=red>     0..|  			    exit({"Dump of table to disc failed", Reason})</font>
+        |  		    after
+<font color=red>     0..|  			mnesia2_lib:db_fixtable(Storage, Tab, false),</font>
+<font color=red>     0..|  			mnesia2_lib:dets_sync_close(Tab),</font>
+<font color=red>     0..|  			mnesia2_lib:unlock_table(Tab)</font>
+        |  		    end;
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    mnesia2_lib:unlock_table(Tab),</font>
+<font color=red>     0..|  		    exit({"Open of file before dump to disc failed", Reason})</font>
+        |  	    end;
+        |  	false -&gt;
+<font color=red>     0..|  	    exit({has_no_disc, node()})</font>
+        |      end.
+        |  
+        |  raw_dump_table(DetsRef, EtsRef) -&gt;
+<font color=red>     0..|      dets:from_ets(DetsRef, EtsRef).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Load regulator
+        |  %%
+        |  %% This is a poor mans substitute for a fair scheduler algorithm
+        |  %% in the Erlang emulator. The mnesia2_dumper process performs many
+        |  %% costly BIF invokations and must pay for this. But since the
+        |  %% Emulator does not handle this properly we must compensate for
+        |  %% this with some form of load regulation of ourselves in order to
+        |  %% not steal all computation power in the Erlang Emulator ans make
+        |  %% other processes starve. Hopefully this is a temporary solution.
+        |  
+        |  start_regulator() -&gt;
+<font color=red>     0..|      case mnesia2_monitor:get_env(dump_log_load_regulation) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    nopid;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    N = ?REGULATOR_NAME,</font>
+<font color=red>     0..|  	    case mnesia2_monitor:start_proc(N, ?MODULE, regulator_init, [self()]) of</font>
+        |  		{ok, Pid} -&gt;
+<font color=red>     0..|  		    Pid;</font>
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    fatal("Failed to start ~n: ~p~n", [N, Reason])</font>
+        |  	    end
+        |      end.
+        |  
+        |  regulator_init(Parent) -&gt;
+        |      %% No need for trapping exits.
+        |      %% Using low priority causes the regulation
+<font color=red>     0..|      process_flag(priority, low),</font>
+<font color=red>     0..|      register(?REGULATOR_NAME, self()),</font>
+<font color=red>     0..|      proc_lib:init_ack(Parent, {ok, self()}),</font>
+<font color=red>     0..|      regulator_loop().</font>
+        |  
+        |  regulator_loop() -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{regulate, From} -&gt;
+<font color=red>     0..|  	    From ! {regulated, self()},</font>
+<font color=red>     0..|  	    regulator_loop();</font>
+        |  	{stop, From} -&gt;
+<font color=red>     0..|  	    From ! {stopped, self()},</font>
+<font color=red>     0..|  	    exit(normal)</font>
+        |      end.
+        |  
+        |  regulate(nopid) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  regulate(RegulatorPid) -&gt;
+<font color=red>     0..|      RegulatorPid ! {regulate, self()},</font>
+<font color=red>     0..|      receive</font>
+<font color=red>     0..|  	{regulated, RegulatorPid} -&gt; ok</font>
+        |      end.
+        |  
+        |  val(Var) -&gt;
+<font color=red>     0..|      case ?catch_val(Var) of</font>
+<font color=red>     0..|  	{'EXIT', _} -&gt; mnesia2_lib:other_val(Var);</font>
+<font color=red>     0..|  	Value -&gt; Value</font>
+        |      end.
+</pre>
+</body>
+</html>

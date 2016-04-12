@@ -1,0 +1,1266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test8958@testing-worker-linux-docker-3f5e41c6-3372-linux-16.2016-04-12_08.51.37/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.52.02/mnesia2_recover.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_recover.erl by COVER 2016-04-12 at 08:53:02
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1997-2014. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_recover).
+        |  
+        |  -behaviour(gen_server).
+        |  
+        |  -export([
+        |  	 allow_garb/0,
+        |  	 call/1,
+        |  	 connect_nodes/1,
+        |  	 disconnect/1,
+        |  	 dump_decision_tab/0,
+        |  	 get_master_node_info/0,
+        |  	 get_master_node_tables/0,
+        |  	 get_master_nodes/1,
+        |  	 get_mnesia2_downs/0,
+        |  	 has_mnesia2_down/1,
+        |  	 incr_trans_tid_serial/0,
+        |  	 init/0,
+        |  	 log_decision/1,
+        |           log_dump_overload/1,
+        |  	 log_master_nodes/3,
+        |  	 log_mnesia2_down/1,
+        |  	 log_mnesia2_up/1,
+        |  	 mnesia2_down/1,
+        |  	 note_decision/2,
+        |  	 note_log_decision/2,
+        |  	 outcome/2,
+        |  	 start/0,
+        |  	 next_garb/0,
+        |  	 next_check_overload/0,
+        |  	 still_pending/1,
+        |  	 sync_trans_tid_serial/1,
+        |  	 sync/0,
+        |  	 wait_for_decision/2,
+        |  	 what_happened/3
+        |  	]).
+        |  
+        |  %% gen_server callbacks
+        |  -export([init/1,
+        |  	 handle_call/3,
+        |  	 handle_cast/2,
+        |  	 handle_info/2,
+        |  	 terminate/2,
+        |  	 code_change/3
+        |  	]).
+        |  
+        |  -compile({no_auto_import,[error/2]}).
+        |  
+        |  -include("mnesia2.hrl").
+        |  -import(mnesia2_lib, [set/2, verbose/2, error/2, fatal/2]).
+        |  
+        |  -record(state, {supervisor,
+        |  		unclear_pid,
+        |  		unclear_decision,
+        |  		unclear_waitfor,
+        |  		tm_queue_len = 0,
+        |                  log_dump_overload = false,
+        |  		initiated = false,
+        |  		early_msgs = []
+        |  	       }).
+        |  
+        |  %%-define(DBG(F, A), mnesia2:report_event(list_to_atom(lists:flatten(io_lib:format(F, A))))).
+        |  %%-define(DBG(F, A), io:format("DBG: " ++ F, A)).
+        |  
+        |  -record(transient_decision, {tid, outcome}).
+        |  
+        |  start() -&gt;
+<font color=red>     0..|      gen_server:start_link({local, ?MODULE}, ?MODULE, [self()],</font>
+        |  			  [{timeout, infinity}
+        |  			   %%, {debug, [trace]}
+        |  			  ]).
+        |  
+        |  init() -&gt;
+<font color=red>     0..|      call(init).</font>
+        |  
+        |  next_garb() -&gt;
+<font color=red>     0..|      Pid = whereis(mnesia2_recover),</font>
+<font color=red>     0..|      erlang:send_after(timer:minutes(2), Pid, garb_decisions).</font>
+        |  
+        |  next_check_overload() -&gt;
+<font color=red>     0..|      Pid = whereis(mnesia2_recover),</font>
+<font color=red>     0..|      erlang:send_after(timer:seconds(10), Pid, check_overload).</font>
+        |  
+        |  
+        |  do_check_overload(S) -&gt;
+        |      %% Time to check if mnesia2_tm is overloaded
+<font color=red>     0..|      case whereis(mnesia2_tm) of</font>
+        |      Pid when is_pid(Pid) -&gt;
+<font color=red>     0..|          Threshold = 100,</font>
+<font color=red>     0..|          Prev = S#state.tm_queue_len,</font>
+<font color=red>     0..|          {message_queue_len, Len} =</font>
+        |          process_info(Pid, message_queue_len),
+<font color=red>     0..|          if</font>
+        |          Len &gt; Threshold, Prev &gt; Threshold -&gt;
+<font color=red>     0..|              What = {mnesia2_tm, message_queue_len, [Prev, Len]},</font>
+<font color=red>     0..|              mnesia2_lib:report_system_event({mnesia2_overload, What}),</font>
+<font color=red>     0..|              mnesia2_lib:overload_set(mnesia2_tm, true),</font>
+<font color=red>     0..|              S#state{tm_queue_len = 0};</font>
+        |          Len &gt; Threshold -&gt;
+<font color=red>     0..|              S#state{tm_queue_len = Len};</font>
+        |          true -&gt;
+<font color=red>     0..|              mnesia2_lib:overload_set(mnesia2_tm, false),</font>
+<font color=red>     0..|              S#state{tm_queue_len = 0}</font>
+        |          end;
+        |      undefined -&gt;
+<font color=red>     0..|          S</font>
+        |      end.
+        |  
+        |  allow_garb() -&gt;
+<font color=red>     0..|      cast(allow_garb).</font>
+        |  
+        |  
+        |  %% The transaction log has either been swiched (latest -&gt; previous) or
+        |  %% there is nothing to be dumped. This means that the previous
+        |  %% transaction log only may contain commit records which refers to
+        |  %% transactions noted in the last two of the 'Prev' tables. All other
+        |  %% tables may now be garbed by 'garb_decisions' (after 2 minutes).
+        |  %% Max 10 tables are kept. 
+        |  do_allow_garb() -&gt;
+        |      %% The order of the following stuff is important!
+<font color=red>     0..|      Curr = val(latest_transient_decision),</font>
+        |      %% Don't garb small tables, they are created on every 
+        |      %% dump_log and may be small (empty) for schema transactions
+        |      %% which are dumped twice
+<font color=red>     0..|      case ets:info(Curr, size) &gt; 20 of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Old = val(previous_transient_decisions),</font>
+<font color=red>     0..|  	    Next = create_transient_decision(),</font>
+<font color=red>     0..|  	    {Prev, ReallyOld} = sublist([Curr | Old], 10, []),</font>
+<font color=red>     0..|  	    [?ets_delete_table(Tab) || Tab &lt;- ReallyOld],</font>
+<font color=red>     0..|  	    set(previous_transient_decisions, Prev),</font>
+<font color=red>     0..|  	    set(latest_transient_decision, Next);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end.
+        |      
+        |  sublist([H|R], N, Acc) when N &gt; 0 -&gt;
+<font color=red>     0..|      sublist(R, N-1, [H| Acc]);</font>
+        |  sublist(List, _N, Acc) -&gt;
+<font color=red>     0..|      {lists:reverse(Acc), List}.</font>
+        |  
+        |  do_garb_decisions() -&gt;
+<font color=red>     0..|      case val(previous_transient_decisions) of</font>
+        |  	[First, Second | Rest] -&gt;
+<font color=red>     0..|  	    set(previous_transient_decisions, [First, Second]),</font>
+<font color=red>     0..|  	    [?ets_delete_table(Tab) || Tab &lt;- Rest];</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end.
+        |  
+        |  connect_nodes(Ns) -&gt;
+<font color=red>     0..|      call({connect_nodes, Ns}).</font>
+        |  
+        |  disconnect(Node) -&gt;
+<font color=red>     0..|      call({disconnect, Node}).</font>
+        |  
+        |  log_decision(D) -&gt;
+<font color=red>     0..|      cast({log_decision, D}).</font>
+        |  
+        |  val(Var) -&gt;
+<font color=red>     0..|      case ?catch_val(Var) of</font>
+        |  	{'EXIT', _Reason} -&gt;
+<font color=red>     0..|  	    mnesia2_lib:other_val(Var);</font>
+<font color=red>     0..|  	Value -&gt; Value</font>
+        |      end.
+        |  
+        |  call(Msg) -&gt;
+<font color=red>     0..|      Pid = whereis(?MODULE),</font>
+<font color=red>     0..|      case Pid of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    {error, {node_not_running, node()}};</font>
+        |  	Pid -&gt;
+<font color=red>     0..|  	    link(Pid),</font>
+<font color=red>     0..|  	    Res = gen_server:call(Pid, Msg, infinity),</font>
+<font color=red>     0..|  	    unlink(Pid),</font>
+        |  
+        |              %% We get an exit signal if server dies
+<font color=red>     0..|              receive</font>
+        |                  {'EXIT', Pid, _Reason} -&gt;
+<font color=red>     0..|                      {error, {node_not_running, node()}}</font>
+        |              after 0 -&gt;
+<font color=red>     0..|                      Res</font>
+        |              end
+        |      end.
+        |  
+        |  multicall(Nodes, Msg) -&gt;
+<font color=red>     0..|      rpc:multicall(Nodes, ?MODULE, call, [Msg]).</font>
+        |  
+        |  cast(Msg) -&gt;
+<font color=red>     0..|      case whereis(?MODULE) of</font>
+<font color=red>     0..|  	undefined -&gt; ignore;</font>
+<font color=red>     0..|  	Pid -&gt;  gen_server:cast(Pid, Msg)</font>
+        |      end.
+        |  
+        |  abcast(Nodes, Msg) -&gt;
+<font color=red>     0..|      gen_server:abcast(Nodes, ?MODULE, Msg).</font>
+        |  
+        |  note_decision(Tid, Outcome) -&gt;
+<font color=red>     0..|      Tab = val(latest_transient_decision),</font>
+<font color=red>     0..|      ?ets_insert(Tab, #transient_decision{tid = Tid, outcome = Outcome}).</font>
+        |  
+        |  note_up(Node, _Date, _Time) -&gt;
+<font color=red>     0..|      ?ets_delete(mnesia2_decision, Node).</font>
+        |      
+        |  note_down(Node, Date, Time) -&gt;
+<font color=red>     0..|      ?ets_insert(mnesia2_decision, {mnesia2_down, Node, Date, Time}).</font>
+        |      
+        |  note_master_nodes(Tab, []) -&gt;
+<font color=red>     0..|      ?ets_delete(mnesia2_decision, Tab);</font>
+        |  note_master_nodes(Tab, Nodes) when is_list(Nodes) -&gt;
+<font color=red>     0..|      Master = {master_nodes, Tab, Nodes},</font>
+<font color=red>     0..|      ?ets_insert(mnesia2_decision, Master).</font>
+        |  
+        |  note_outcome(D) when D#decision.disc_nodes == [] -&gt;
+        |  %%    ?DBG("~w: note_tmp_decision: ~w~n", [node(), D]),
+<font color=red>     0..|      note_decision(D#decision.tid, filter_outcome(D#decision.outcome)),</font>
+<font color=red>     0..|      ?ets_delete(mnesia2_decision, D#decision.tid);</font>
+        |  note_outcome(D) when D#decision.disc_nodes /= [] -&gt;
+        |  %%    ?DBG("~w: note_decision: ~w~n", [node(), D]),
+<font color=red>     0..|      ?ets_insert(mnesia2_decision, D).</font>
+        |  
+        |  do_log_decision(D) when D#decision.outcome /= unclear -&gt;
+<font color=red>     0..|      OldD = decision(D#decision.tid),</font>
+<font color=red>     0..|      MergedD = merge_decisions(node(), OldD, D),</font>
+<font color=red>     0..|      do_log_decision(MergedD, true, D);</font>
+        |  do_log_decision(D) -&gt;
+<font color=red>     0..|      do_log_decision(D, false, undefined).</font>
+        |  
+        |  do_log_decision(D, DoTell, NodeD) -&gt;
+<font color=red>     0..|      DiscNs = D#decision.disc_nodes -- [node()],</font>
+<font color=red>     0..|      Outcome = D#decision.outcome,</font>
+<font color=red>     0..|      D2 =</font>
+        |  	case Outcome of
+<font color=red>     0..|  	    aborted -&gt; D#decision{disc_nodes = DiscNs};</font>
+<font color=red>     0..|  	    committed -&gt; D#decision{disc_nodes = DiscNs};</font>
+<font color=red>     0..|  	    _ -&gt; D</font>
+        |  	end,
+<font color=red>     0..|      note_outcome(D2),</font>
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    if</font>
+        |  		DoTell == true, Outcome /= unclear -&gt;
+<font color=red>     0..|  		    tell_im_certain(NodeD#decision.disc_nodes--[node()],D2),</font>
+<font color=red>     0..|  		    tell_im_certain(NodeD#decision.ram_nodes--[node()], D2),</font>
+<font color=red>     0..|  		    mnesia2_log:log(D2);</font>
+        |  		Outcome /= unclear -&gt;
+<font color=red>     0..|  		    mnesia2_log:log(D2);</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    ignore</font>
+        |  	    end;
+        |  	false -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end.
+        |  
+        |  tell_im_certain([], _D) -&gt;
+<font color=red>     0..|      ignore;</font>
+        |  tell_im_certain(Nodes, D) -&gt;
+<font color=red>     0..|      Msg = {im_certain, node(), D},</font>
+        |    %%  mnesia2_lib:verbose("~w: tell: ~w~n", [Msg, Nodes]), 
+<font color=red>     0..|      abcast(Nodes, Msg).</font>
+        |  
+        |  sync() -&gt;
+<font color=red>     0..|      call(sync).</font>
+        |  
+        |  log_mnesia2_up(Node) -&gt;
+<font color=red>     0..|      call({log_mnesia2_up, Node}).</font>
+        |  
+        |  log_mnesia2_down(Node) -&gt;
+<font color=red>     0..|      call({log_mnesia2_down, Node}).</font>
+        |  
+        |  get_mnesia2_downs() -&gt;
+<font color=red>     0..|      Tab = mnesia2_decision,</font>
+<font color=red>     0..|      Pat = {mnesia2_down, '_', '_', '_'},</font>
+<font color=red>     0..|      Downs = ?ets_match_object(Tab, Pat),</font>
+<font color=red>     0..|      [Node || {mnesia2_down, Node, _Date, _Time} &lt;- Downs].</font>
+        |  
+        |  %% Check if we have got a mnesia2_down from Node
+        |  has_mnesia2_down(Node) -&gt;
+<font color=red>     0..|      case ?ets_lookup(mnesia2_decision, Node) of</font>
+        |  	[{mnesia2_down, Node, _Date, _Time}] -&gt;
+<font color=red>     0..|  	    true;</font>
+        |  	[] -&gt;
+<font color=red>     0..|  	    false</font>
+        |      end.
+        |      
+        |  mnesia2_down(Node) -&gt;
+<font color=red>     0..|      case ?catch_val(recover_nodes) of</font>
+        |  	{'EXIT', _} -&gt;
+        |  	    %% Not started yet
+<font color=red>     0..|  	    ignore;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    mnesia2_lib:del(recover_nodes, Node),</font>
+<font color=red>     0..|  	    cast({mnesia2_down, Node})</font>
+        |      end.
+        |  
+        |  log_dump_overload(Flag) when is_boolean(Flag) -&gt;
+<font color=red>     0..|      cast({log_dump_overload, Flag}).</font>
+        |  
+        |  log_master_nodes(Args, UseDir, IsRunning) -&gt;
+<font color=red>     0..|      if</font>
+        |  	IsRunning == yes -&gt;
+<font color=red>     0..|  	    log_master_nodes2(Args, UseDir, IsRunning, ok);</font>
+        |  	UseDir == false -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Name = latest_log,</font>
+<font color=red>     0..|  	    Fname = mnesia2_log:latest_log_file(),</font>
+<font color=red>     0..|  	    Exists = mnesia2_lib:exists(Fname),</font>
+<font color=red>     0..|  	    Repair = mnesia2:system_info(auto_repair),</font>
+<font color=red>     0..|  	    OpenArgs = [{file, Fname}, {name, Name}, {repair, Repair}],</font>
+<font color=red>     0..|  	    case disk_log:open(OpenArgs) of</font>
+        |  		{ok, Name} -&gt;
+<font color=red>     0..|  		    log_master_nodes2(Args, UseDir, IsRunning, ok);</font>
+        |  		{repaired, Name, {recovered,  _R}, {badbytes, _B}}
+        |  		  when Exists == true -&gt;
+<font color=red>     0..|  		    log_master_nodes2(Args, UseDir, IsRunning, ok);</font>
+        |  		{repaired, Name, {recovered,  _R}, {badbytes, _B}}
+        |  		  when Exists == false -&gt;
+<font color=red>     0..|  		    mnesia2_log:write_trans_log_header(),</font>
+<font color=red>     0..|  		    log_master_nodes2(Args, UseDir, IsRunning, ok);</font>
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    {error, Reason}</font>
+        |  	    end
+        |      end.
+        |  
+        |  log_master_nodes2([{Tab, Nodes} | Tail], UseDir, IsRunning, WorstRes) -&gt;
+<font color=red>     0..|      Res = </font>
+        |  	case IsRunning of
+        |  	    yes -&gt;
+<font color=red>     0..|  		R = call({log_master_nodes, Tab, Nodes, UseDir, IsRunning}),</font>
+<font color=red>     0..|  		mnesia2_controller:master_nodes_updated(Tab, Nodes),</font>
+<font color=red>     0..|  		R;</font>
+        |  	    _ -&gt;
+<font color=red>     0..|  		do_log_master_nodes(Tab, Nodes, UseDir, IsRunning)</font>
+        |  	end,
+<font color=red>     0..|      case Res of</font>
+        |  	ok -&gt;
+<font color=red>     0..|  	    log_master_nodes2(Tail, UseDir, IsRunning, WorstRes);</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    log_master_nodes2(Tail, UseDir, IsRunning, {error, Reason})</font>
+        |      end;
+        |  log_master_nodes2([], _UseDir, IsRunning, WorstRes) -&gt;
+<font color=red>     0..|      case IsRunning of</font>
+        |  	yes -&gt;
+<font color=red>     0..|  	    WorstRes;</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    disk_log:close(latest_log),</font>
+<font color=red>     0..|  	    WorstRes</font>
+        |      end.
+        |  
+        |  get_master_node_info() -&gt;
+<font color=red>     0..|      Tab = mnesia2_decision,</font>
+<font color=red>     0..|      Pat = {master_nodes, '_', '_'},</font>
+<font color=red>     0..|      try mnesia2_lib:db_match_object(ram_copies,Tab, Pat)</font>
+<font color=red>     0..|      catch error:_ -&gt; []</font>
+        |      end.
+        |  
+        |  get_master_node_tables() -&gt;
+<font color=red>     0..|      Masters = get_master_node_info(),</font>
+<font color=red>     0..|      [Tab || {master_nodes, Tab, _Nodes} &lt;- Masters].</font>
+        |  
+        |  get_master_nodes(Tab) -&gt;
+<font color=red>     0..|      try ?ets_lookup_element(mnesia2_decision, Tab, 3)</font>
+<font color=red>     0..|      catch error:_ -&gt; []</font>
+        |      end.
+        |  
+        |  %% Determine what has happened to the transaction
+        |  what_happened(Tid, Protocol, Nodes) -&gt;
+<font color=red>     0..|      Default = </font>
+        |  	case Protocol of
+<font color=red>     0..|  	    asym_trans -&gt; aborted;</font>
+<font color=red>     0..|  	    _ -&gt; unclear  %% sym_trans and sync_sym_trans</font>
+        |  	end,
+<font color=red>     0..|      This = node(),</font>
+<font color=red>     0..|      case lists:member(This, Nodes) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    {ok, Outcome} = call({what_happened, Default, Tid}),</font>
+<font color=red>     0..|  	    Others = Nodes -- [This],</font>
+<font color=red>     0..|  	    case filter_outcome(Outcome) of</font>
+<font color=red>     0..|  		unclear -&gt; what_happened_remotely(Tid, Default, Others);</font>
+<font color=red>     0..|  		aborted -&gt; aborted;</font>
+<font color=red>     0..|  		committed -&gt; committed</font>
+        |  	    end;
+        |  	false -&gt;
+<font color=red>     0..|  	    what_happened_remotely(Tid, Default, Nodes)</font>
+        |      end.
+        |  
+        |  what_happened_remotely(Tid, Default, Nodes) -&gt;
+<font color=red>     0..|      {Replies, _} = multicall(Nodes, {what_happened, Default, Tid}),</font>
+<font color=red>     0..|      check_what_happened(Replies, 0, 0).</font>
+        |  
+        |  check_what_happened([H | T], Aborts, Commits) -&gt;
+<font color=red>     0..|      case H of</font>
+        |  	{ok, R} -&gt;
+<font color=red>     0..|  	    case filter_outcome(R) of</font>
+        |  		committed -&gt;
+<font color=red>     0..|  		    check_what_happened(T, Aborts, Commits + 1);</font>
+        |  		aborted -&gt;
+<font color=red>     0..|  		    check_what_happened(T, Aborts + 1, Commits);</font>
+        |  		unclear -&gt;
+<font color=red>     0..|  		    check_what_happened(T, Aborts, Commits)</font>
+        |  	    end;
+        |  	{error, _} -&gt;
+<font color=red>     0..|  	    check_what_happened(T, Aborts, Commits);</font>
+        |  	{badrpc, _} -&gt;
+<font color=red>     0..|  	    check_what_happened(T, Aborts, Commits)</font>
+        |      end;
+        |  check_what_happened([], Aborts, Commits) -&gt;
+<font color=red>     0..|      if</font>
+<font color=red>     0..|  	Aborts == 0, Commits == 0 -&gt; aborted;  % None of the active nodes knows</font>
+<font color=red>     0..|  	Aborts &gt; 0 -&gt; aborted;                 % Someody has aborted</font>
+<font color=red>     0..|  	Aborts == 0, Commits &gt; 0 -&gt; committed  % All has committed</font>
+        |      end.
+        |  
+        |  %% Determine what has happened to the transaction
+        |  %% and possibly wait forever for the decision.
+        |  wait_for_decision(presume_commit, _InitBy) -&gt;
+        |      %% sym_trans
+<font color=red>     0..|      {{presume_commit, self()}, committed};</font>
+        |  
+        |  wait_for_decision(D, InitBy) when D#decision.outcome == presume_abort -&gt;
+<font color=red>     0..|      wait_for_decision(D, InitBy, 0).</font>
+        |      
+        |  wait_for_decision(D, InitBy, N) -&gt; 
+        |      %% asym_trans
+<font color=red>     0..|      Tid = D#decision.tid,</font>
+<font color=red>     0..|      Max = 10,</font>
+<font color=red>     0..|      Outcome = outcome(Tid, D#decision.outcome),</font>
+<font color=red>     0..|      if </font>
+<font color=red>     0..|  	Outcome =:= committed -&gt; {Tid, committed};</font>
+<font color=red>     0..|  	Outcome =:= aborted   -&gt; {Tid, aborted};</font>
+        |  	Outcome =:= presume_abort -&gt; 
+<font color=red>     0..|  	    case N &gt; Max of</font>
+<font color=red>     0..|  		true -&gt; {Tid, aborted};</font>
+        |  		false -&gt; % busy loop for ets decision moving
+<font color=red>     0..|  		    timer:sleep(10),</font>
+<font color=red>     0..|  		    wait_for_decision(D, InitBy, N+1)</font>
+        |  	    end;
+        |  	InitBy /= startup -&gt;
+        |  	    %% Wait a while for active transactions
+        |  	    %% to end and try again
+<font color=red>     0..|  	    timer:sleep(100), </font>
+<font color=red>     0..|  	    wait_for_decision(D, InitBy, N);</font>
+        |  	InitBy == startup -&gt;
+<font color=red>     0..|  	    {ok, Res} = call({wait_for_decision, D}),</font>
+<font color=red>     0..|  	    {Tid, Res}</font>
+        |      end.
+        |  
+        |  still_pending([Tid | Pending]) -&gt;
+<font color=red>     0..|      case filter_outcome(outcome(Tid, unclear)) of</font>
+<font color=red>     0..|  	unclear -&gt; [Tid | still_pending(Pending)];</font>
+<font color=red>     0..|  	_ -&gt; still_pending(Pending)</font>
+        |      end;
+        |  still_pending([]) -&gt;
+<font color=red>     0..|      [].</font>
+        |  
+        |  load_decision_tab() -&gt;
+<font color=red>     0..|      Cont = mnesia2_log:open_decision_tab(),</font>
+<font color=red>     0..|      load_decision_tab(Cont, load_decision_tab),</font>
+<font color=red>     0..|      mnesia2_log:close_decision_tab().</font>
+        |  
+        |  load_decision_tab(Cont, InitBy) -&gt;
+<font color=red>     0..|      case mnesia2_log:chunk_decision_tab(Cont) of</font>
+        |  	{Cont2, Decisions} -&gt;
+<font color=red>     0..|  	    note_log_decisions(Decisions, InitBy),</font>
+<font color=red>     0..|  	    load_decision_tab(Cont2, InitBy);</font>
+        |  	eof -&gt;
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  %% Dumps DECISION.LOG and PDECISION.LOG and removes them.
+        |  %% From now on all decisions are logged in the transaction log file
+        |  convert_old() -&gt;
+<font color=red>     0..|      HasOldStuff = </font>
+        |  	mnesia2_lib:exists(mnesia2_log:previous_decision_log_file()) or
+        |  	mnesia2_lib:exists(mnesia2_log:decision_log_file()),
+<font color=red>     0..|      case HasOldStuff of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    mnesia2_log:open_decision_log(),</font>
+<font color=red>     0..|  	    dump_decision_log(startup),</font>
+<font color=red>     0..|  	    dump_decision_log(startup),</font>
+<font color=red>     0..|  	    mnesia2_log:close_decision_log(),</font>
+<font color=red>     0..|  	    Latest = mnesia2_log:decision_log_file(),</font>
+<font color=red>     0..|  	    ok = file:delete(Latest);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end.
+        |  
+        |  dump_decision_log(InitBy) -&gt;
+        |      %% Assumed to be run in transaction log dumper process
+<font color=red>     0..|      Cont = mnesia2_log:prepare_decision_log_dump(),</font>
+<font color=red>     0..|      perform_dump_decision_log(Cont, InitBy).</font>
+        |  
+        |  perform_dump_decision_log(Cont, InitBy) when InitBy == startup -&gt;
+<font color=red>     0..|      case mnesia2_log:chunk_decision_log(Cont) of</font>
+        |  	{Cont2, Decisions} -&gt;
+<font color=red>     0..|  	    note_log_decisions(Decisions, InitBy),</font>
+<font color=red>     0..|  	    perform_dump_decision_log(Cont2, InitBy);</font>
+        |  	eof -&gt;
+<font color=red>     0..|  	    confirm_decision_log_dump()</font>
+        |      end;
+        |  perform_dump_decision_log(_Cont, _InitBy) -&gt;
+<font color=red>     0..|      confirm_decision_log_dump().</font>
+        |  
+        |  confirm_decision_log_dump() -&gt;
+<font color=red>     0..|      dump_decision_tab(),</font>
+<font color=red>     0..|      mnesia2_log:confirm_decision_log_dump().</font>
+        |  
+        |  dump_decision_tab() -&gt;
+<font color=red>     0..|      Tab = mnesia2_decision,</font>
+<font color=red>     0..|      All = mnesia2_lib:db_match_object(ram_copies,Tab, '_'),</font>
+<font color=red>     0..|      mnesia2_log:save_decision_tab({decision_list, All}).</font>
+        |  
+        |  note_log_decisions([What | Tail], InitBy) -&gt;
+<font color=red>     0..|      note_log_decision(What, InitBy),</font>
+<font color=red>     0..|      note_log_decisions(Tail, InitBy);</font>
+        |  note_log_decisions([], _InitBy) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  note_log_decision(NewD, InitBy) when NewD#decision.outcome == pre_commit -&gt;
+<font color=red>     0..|      note_log_decision(NewD#decision{outcome = unclear}, InitBy);</font>
+        |  
+        |  note_log_decision(NewD, _InitBy) when is_record(NewD, decision) -&gt;
+<font color=red>     0..|      Tid = NewD#decision.tid,</font>
+<font color=red>     0..|      sync_trans_tid_serial(Tid),</font>
+<font color=red>     0..|      note_outcome(NewD);</font>
+        |  note_log_decision({trans_tid, serial, _Serial}, startup) -&gt;
+<font color=red>     0..|      ignore;</font>
+        |  note_log_decision({trans_tid, serial, Serial}, _InitBy) -&gt;
+<font color=red>     0..|      sync_trans_tid_serial(Serial);</font>
+        |  note_log_decision({mnesia2_up, Node, Date, Time}, _InitBy) -&gt;
+<font color=red>     0..|      note_up(Node, Date, Time);</font>
+        |  note_log_decision({mnesia2_down, Node, Date, Time}, _InitBy) -&gt;
+<font color=red>     0..|      note_down(Node, Date, Time);</font>
+        |  note_log_decision({master_nodes, Tab, Nodes}, _InitBy) -&gt;
+<font color=red>     0..|      note_master_nodes(Tab, Nodes);</font>
+        |  note_log_decision(H, _InitBy) when H#log_header.log_kind == decision_log -&gt;
+<font color=red>     0..|      V = mnesia2_log:decision_log_version(),</font>
+<font color=red>     0..|      if</font>
+        |  	H#log_header.log_version == V-&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	H#log_header.log_version == "2.0" -&gt;
+<font color=red>     0..|  	    verbose("Accepting an old version format of decision log: ~p~n",</font>
+        |  		    [V]),
+<font color=red>     0..|  	    ok;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    fatal("Bad version of decision log: ~p~n", [H])</font>
+        |      end;
+        |  note_log_decision(H, _InitBy) when H#log_header.log_kind == decision_tab -&gt;
+<font color=red>     0..|      V = mnesia2_log:decision_tab_version(),</font>
+<font color=red>     0..|      if</font>
+        |  	V == H#log_header.log_version -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    fatal("Bad version of decision tab: ~p~n", [H])</font>
+        |      end;
+        |  note_log_decision({decision_list, ItemList}, InitBy) -&gt;
+<font color=red>     0..|      note_log_decisions(ItemList, InitBy);</font>
+        |  note_log_decision(BadItem, InitBy) -&gt;
+<font color=red>     0..|      exit({"Bad decision log item", BadItem, InitBy}).</font>
+        |  
+        |  trans_tid_serial() -&gt;
+<font color=red>     0..|      ?ets_lookup_element(mnesia2_decision, serial, 3).</font>
+        |  
+        |  set_trans_tid_serial(Val) -&gt;
+<font color=red>     0..|      ?ets_insert(mnesia2_decision, {trans_tid, serial, Val}).</font>
+        |  
+        |  incr_trans_tid_serial() -&gt;
+<font color=red>     0..|      ?ets_update_counter(mnesia2_decision, serial, 1).</font>
+        |  
+        |  sync_trans_tid_serial(ThatCounter) when is_integer(ThatCounter) -&gt;
+<font color=red>     0..|      ThisCounter = trans_tid_serial(),</font>
+<font color=red>     0..|      if</font>
+        |  	ThatCounter &gt; ThisCounter -&gt;
+<font color=red>     0..|  	    set_trans_tid_serial(ThatCounter + 1);</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end;
+        |  sync_trans_tid_serial(Tid) -&gt;
+<font color=red>     0..|      sync_trans_tid_serial(Tid#tid.counter).</font>
+        |  
+        |  
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %%% Callback functions from gen_server
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: init/1
+        |  %% Returns: {ok, State}          |
+        |  %%          {ok, State, Timeout} |
+        |  %%          {stop, Reason}
+        |  %%----------------------------------------------------------------------
+        |  init([Parent]) -&gt;
+<font color=red>     0..|      process_flag(trap_exit, true),</font>
+<font color=red>     0..|      mnesia2_lib:verbose("~p starting: ~p~n", [?MODULE, self()]),</font>
+<font color=red>     0..|      set(latest_transient_decision, create_transient_decision()),</font>
+<font color=red>     0..|      set(previous_transient_decisions, []),</font>
+<font color=red>     0..|      set(recover_nodes, []),</font>
+<font color=red>     0..|      State = #state{supervisor = Parent},</font>
+<font color=red>     0..|      {ok, State}.</font>
+        |  
+        |  create_transient_decision() -&gt;
+<font color=red>     0..|      ?ets_new_table(mnesia2_transient_decision, [{keypos, 2}, set, public]).</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: handle_call/3
+        |  %% Returns: {reply, Reply, State}          |
+        |  %%          {reply, Reply, State, Timeout} |
+        |  %%          {noreply, State}               |
+        |  %%          {noreply, State, Timeout}      |
+        |  %%          {stop, Reason, Reply, State}   | (terminate/2 is called)
+        |  %%----------------------------------------------------------------------
+        |  
+        |  handle_call(init, From, State) when State#state.initiated == false -&gt;
+<font color=red>     0..|      Args = [{keypos, 2}, set, public, named_table],</font>
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    ?ets_new_table(mnesia2_decision, Args),</font>
+<font color=red>     0..|  	    set_trans_tid_serial(0),</font>
+<font color=red>     0..|  	    TabFile = mnesia2_log:decision_tab_file(),</font>
+<font color=red>     0..|  	    case mnesia2_lib:exists(TabFile) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    load_decision_tab();</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    ignore</font>
+        |  	    end,
+<font color=red>     0..|  	    convert_old(),</font>
+<font color=red>     0..|  	    mnesia2_dumper:opt_dump_log(scan_decisions);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ?ets_new_table(mnesia2_decision, Args),</font>
+<font color=red>     0..|  	    set_trans_tid_serial(0)</font>
+        |      end,
+<font color=red>     0..|      handle_early_msgs(State, From);</font>
+        |  
+        |  handle_call(Msg, From, State) when State#state.initiated == false -&gt;
+        |      %% Buffer early messages
+<font color=red>     0..|      Msgs = State#state.early_msgs,</font>
+<font color=red>     0..|      {noreply, State#state{early_msgs = [{call, Msg, From} | Msgs]}};</font>
+        |  
+        |  handle_call({disconnect, Node}, _From, State) -&gt;
+<font color=red>     0..|      mnesia2_monitor:disconnect(Node),</font>
+<font color=red>     0..|      mnesia2_lib:del(recover_nodes, Node),</font>
+<font color=red>     0..|      {reply, ok, State};</font>
+        |  
+        |  handle_call({connect_nodes, Ns}, From, State) -&gt;
+        |      %% Determine which nodes we should try to connect
+<font color=red>     0..|      AlreadyConnected = val(recover_nodes),</font>
+<font color=red>     0..|      {_, Nodes} = mnesia2_lib:search_delete(node(), Ns),</font>
+<font color=red>     0..|      Check = Nodes -- AlreadyConnected,</font>
+<font color=red>     0..|      case mnesia2_monitor:negotiate_protocol(Check) of</font>
+        |  	busy -&gt; 
+        |  	    %% monitor is disconnecting some nodes retry 
+        |  	    %% the req (to avoid deadlock).
+<font color=red>     0..|  	    erlang:send_after(2, self(), {connect_nodes,Ns,From}),</font>
+<font color=red>     0..|  	    {noreply, State};</font>
+        |  	[] -&gt;
+        |  	    %% No good noodes to connect to!
+        |  	    %% We can't use reply here because this function can be
+        |  	    %% called from handle_info
+<font color=red>     0..|  	    gen_server:reply(From, {[], AlreadyConnected}),</font>
+<font color=red>     0..|  	    {noreply, State};</font>
+        |  	ProbablyGoodNodes -&gt;
+        |  	    %% Now we have agreed upon a protocol with some new nodes
+        |  	    %% and we may use them when we recover transactions.
+        |  	    %%
+        |  	    %% Just in case Mnesia2 was stopped on some of those nodes
+        |  	    %% between the protocol negotiation and now, we check one
+        |  	    %% more time the state of Mnesia2.
+        |  	    %%
+        |  	    %% Of course, there is still a chance that mnesia2_down
+        |  	    %% events occur during this check and we miss them. To
+        |  	    %% prevent it, handle_cast({mnesia2_down, ...}, ...) removes
+        |  	    %% the down node again, in addition to mnesia2_down/1.
+        |  	    %%
+        |  	    %% See a comment in handle_cast({mnesia2_down, ...}, ...).
+<font color=red>     0..|  	    Verify = fun(N) -&gt;</font>
+<font color=red>     0..|  			     Run = mnesia2_lib:is_running(N),</font>
+<font color=red>     0..|  			     Run =:= yes orelse Run =:= starting</font>
+        |  		     end,
+<font color=red>     0..|  	    GoodNodes = [N || N &lt;- ProbablyGoodNodes, Verify(N)],</font>
+        |  
+<font color=red>     0..|  	    mnesia2_lib:add_list(recover_nodes, GoodNodes),</font>
+<font color=red>     0..|  	    cast({announce_all, GoodNodes}),</font>
+<font color=red>     0..|  	    case get_master_nodes(schema) of</font>
+        |  		[] -&gt;
+<font color=red>     0..|  		    Context = starting_partitioned_network,</font>
+<font color=red>     0..|  		    mnesia2_monitor:detect_inconcistency(GoodNodes, Context);</font>
+        |  		_ -&gt; %% If master_nodes is set ignore old inconsistencies
+<font color=red>     0..|  		    ignore</font>
+        |  	    end,
+<font color=red>     0..|  	    gen_server:reply(From, {GoodNodes, AlreadyConnected}),</font>
+<font color=red>     0..|  	    {noreply,State}</font>
+        |      end;
+        |  
+        |  handle_call({what_happened, Default, Tid}, _From, State) -&gt;
+<font color=red>     0..|      sync_trans_tid_serial(Tid),</font>
+<font color=red>     0..|      Outcome = outcome(Tid, Default),</font>
+<font color=red>     0..|      {reply, {ok, Outcome}, State};</font>
+        |  
+        |  handle_call({wait_for_decision, D}, From, State) -&gt;
+<font color=red>     0..|      Recov = val(recover_nodes),</font>
+<font color=red>     0..|      AliveRam = (mnesia2_lib:intersect(D#decision.ram_nodes, Recov) -- [node()]),</font>
+<font color=red>     0..|      RemoteDisc = D#decision.disc_nodes -- [node()],</font>
+<font color=red>     0..|      if</font>
+        |  	AliveRam == [], RemoteDisc == [] -&gt;
+        |  	    %% No more else to wait for and we may safely abort
+<font color=red>     0..|  	    {reply, {ok, aborted}, State};</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    verbose("Transaction ~p is unclear. "</font>
+        |  		    "Wait for disc nodes: ~w ram: ~w~n",
+        |  		    [D#decision.tid, RemoteDisc, AliveRam]),
+<font color=red>     0..|  	    AliveDisc = mnesia2_lib:intersect(RemoteDisc, Recov),</font>
+<font color=red>     0..|  	    Msg = {what_decision, node(), D},</font>
+<font color=red>     0..|  	    abcast(AliveRam, Msg),</font>
+<font color=red>     0..|  	    abcast(AliveDisc, Msg),</font>
+<font color=red>     0..|  	    case val(max_wait_for_decision) of</font>
+        |  		infinity -&gt;
+<font color=red>     0..|  		    ignore;</font>
+        |  		MaxWait -&gt;
+<font color=red>     0..|  		    ForceMsg =  {force_decision, D#decision.tid},</font>
+<font color=red>     0..|  		    {ok, _} = timer:send_after(MaxWait, ForceMsg)</font>
+        |  	    end,
+<font color=red>     0..|  	    State2 = State#state{unclear_pid = From,</font>
+        |  				 unclear_decision = D,
+        |  				 unclear_waitfor = (RemoteDisc ++ AliveRam)},
+<font color=red>     0..|  	    {noreply, State2}</font>
+        |      end;
+        |  
+        |  handle_call({log_mnesia2_up, Node}, _From, State) -&gt;
+<font color=red>     0..|      do_log_mnesia2_up(Node),</font>
+<font color=red>     0..|      {reply, ok, State};</font>
+        |  
+        |  handle_call({log_mnesia2_down, Node}, _From, State) -&gt;
+<font color=red>     0..|      do_log_mnesia2_down(Node),</font>
+<font color=red>     0..|      {reply, ok, State};</font>
+        |  
+        |  handle_call({log_master_nodes, Tab, Nodes, UseDir, IsRunning}, _From, State) -&gt;
+<font color=red>     0..|      do_log_master_nodes(Tab, Nodes, UseDir, IsRunning),</font>
+<font color=red>     0..|      {reply, ok, State};</font>
+        |  
+        |  handle_call(sync, _From, State) -&gt;
+<font color=red>     0..|      {reply, ok, State};</font>
+        |  
+        |  handle_call(Msg, _From, State) -&gt;
+<font color=red>     0..|      error("~p got unexpected call: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|      {noreply, State}.</font>
+        |  
+        |  do_log_mnesia2_up(Node) -&gt;
+<font color=red>     0..|      Yoyo = {mnesia2_up, Node, Date = date(), Time = time()},</font>
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    mnesia2_log:append(latest_log, Yoyo),</font>
+<font color=red>     0..|  	    disk_log:sync(latest_log);</font>
+        |  	false  -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      note_up(Node, Date, Time).</font>
+        |  
+        |  do_log_mnesia2_down(Node) -&gt;
+<font color=red>     0..|      Yoyo = {mnesia2_down, Node, Date = date(), Time = time()},</font>
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    mnesia2_log:append(latest_log, Yoyo),</font>
+<font color=red>     0..|  	    disk_log:sync(latest_log);</font>
+        |  	false  -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      note_down(Node, Date, Time).</font>
+        |  
+        |  do_log_master_nodes(Tab, Nodes, UseDir, IsRunning) -&gt;
+<font color=red>     0..|      Master = {master_nodes, Tab, Nodes},</font>
+<font color=red>     0..|      Res = </font>
+        |  	case UseDir of
+        |  	    true -&gt;
+<font color=red>     0..|  		LogRes = mnesia2_log:append(latest_log, Master),</font>
+<font color=red>     0..|  		disk_log:sync(latest_log),</font>
+<font color=red>     0..|  		LogRes;</font>
+        |  	    false  -&gt;
+<font color=red>     0..|  		ok</font>
+        |  	end,
+<font color=red>     0..|      case IsRunning of</font>
+        |  	yes -&gt;
+<font color=red>     0..|  	    note_master_nodes(Tab, Nodes);</font>
+        |  	_NotRunning -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end,
+<font color=red>     0..|      Res.</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: handle_cast/2
+        |  %% Returns: {noreply, State}          |
+        |  %%          {noreply, State, Timeout} |
+        |  %%          {stop, Reason, State}            (terminate/2 is called)
+        |  %%----------------------------------------------------------------------
+        |  
+        |  handle_cast(Msg, State) when State#state.initiated == false -&gt;
+        |      %% Buffer early messages
+<font color=red>     0..|      Msgs = State#state.early_msgs,</font>
+<font color=red>     0..|      {noreply, State#state{early_msgs = [{cast, Msg} | Msgs]}};</font>
+        |  
+        |  handle_cast({im_certain, Node, NewD}, State) -&gt;
+<font color=red>     0..|      OldD = decision(NewD#decision.tid),</font>
+<font color=red>     0..|      MergedD = merge_decisions(Node, OldD, NewD),    </font>
+<font color=red>     0..|      do_log_decision(MergedD, false, undefined),</font>
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_cast({log_decision, D}, State) -&gt;
+<font color=red>     0..|      do_log_decision(D),</font>
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_cast(allow_garb, State) -&gt;
+<font color=red>     0..|      do_allow_garb(),</font>
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_cast({decisions, Node, Decisions}, State) -&gt;
+<font color=red>     0..|      mnesia2_lib:add(recover_nodes, Node),</font>
+<font color=red>     0..|      State2 = add_remote_decisions(Node, Decisions, State),</font>
+<font color=red>     0..|      {noreply, State2};</font>
+        |  
+        |  handle_cast({what_decision, Node, OtherD}, State) -&gt;
+<font color=red>     0..|      Tid = OtherD#decision.tid,</font>
+<font color=red>     0..|      sync_trans_tid_serial(Tid),</font>
+<font color=red>     0..|      Decision = </font>
+        |  	case decision(Tid) of
+<font color=red>     0..|  	    no_decision -&gt; OtherD;</font>
+<font color=red>     0..|  	    MyD when is_record(MyD, decision) -&gt; MyD</font>
+        |  	end,
+<font color=red>     0..|      announce([Node], [Decision], [], true),</font>
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_cast({mnesia2_down, Node}, State) -&gt;
+        |      %% The node was already removed from recover_nodes in mnesia2_down/1,
+        |      %% but we do it again here in the mnesia2_recover process, in case
+        |      %% another event incorrectly added it back. This can happen during
+        |      %% Mnesia2 startup which takes time betweenthe connection, the
+        |      %% protocol negotiation and the merge of the schema.
+        |      %%
+        |      %% See a comment in handle_call({connect_nodes, ...), ...).
+<font color=red>     0..|      mnesia2_lib:del(recover_nodes, Node),</font>
+<font color=red>     0..|      case State#state.unclear_decision of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    {noreply, State};</font>
+        |  	D -&gt;
+<font color=red>     0..|  	    case lists:member(Node, D#decision.ram_nodes) of</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    {noreply, State};</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    State2 = add_remote_decision(Node, D, State),</font>
+<font color=red>     0..|  		    {noreply, State2}</font>
+        |  		end
+        |      end;
+        |  
+        |  handle_cast({announce_all, Nodes}, State) -&gt;
+<font color=red>     0..|      announce_all(Nodes),</font>
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_cast({log_dump_overload, Flag}, State) when is_boolean(Flag) -&gt;
+<font color=red>     0..|      Prev = State#state.log_dump_overload,</font>
+<font color=red>     0..|      Overload = Prev orelse Flag,</font>
+<font color=red>     0..|      mnesia2_lib:overload_set(mnesia2_dump_log, Overload),</font>
+<font color=red>     0..|      {noreply, State#state{log_dump_overload = Flag}};</font>
+        |  
+        |  handle_cast(Msg, State) -&gt;
+<font color=red>     0..|      error("~p got unexpected cast: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|      {noreply, State}.</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: handle_info/2
+        |  %% Returns: {noreply, State}          |
+        |  %%          {noreply, State, Timeout} |
+        |  %%          {stop, Reason, State}            (terminate/2 is called)
+        |  %%----------------------------------------------------------------------
+        |  
+        |  %% No need for buffering
+        |  %% handle_info(Msg, State) when State#state.initiated == false -&gt;
+        |  %%     %% Buffer early messages
+        |  %%     Msgs = State#state.early_msgs,
+        |  %%     {noreply, State#state{early_msgs = [{info, Msg} | Msgs]}};
+        |  
+        |  handle_info({connect_nodes, Ns, From}, State) -&gt;
+<font color=red>     0..|      handle_call({connect_nodes,Ns},From,State);</font>
+        |  
+        |  handle_info(check_overload, S) -&gt;
+<font color=red>     0..|      State2 = do_check_overload(S),</font>
+<font color=red>     0..|      next_check_overload(),</font>
+<font color=red>     0..|      {noreply, State2};</font>
+        |  
+        |  handle_info(garb_decisions, State) -&gt;
+<font color=red>     0..|      do_garb_decisions(),</font>
+<font color=red>     0..|      next_garb(),</font>
+<font color=red>     0..|      {noreply, State};</font>
+        |  
+        |  handle_info({force_decision, Tid}, State) -&gt;
+        |      %% Enforce a transaction recovery decision,
+        |      %% if we still are waiting for the outcome
+        |      
+<font color=red>     0..|      case State#state.unclear_decision of</font>
+        |  	U when U#decision.tid == Tid -&gt;
+<font color=red>     0..|  	    verbose("Decided to abort transaction ~p since "</font>
+        |  		    "max_wait_for_decision has been exceeded~n",
+        |  		    [Tid]),
+<font color=red>     0..|  	    D = U#decision{outcome = aborted},</font>
+<font color=red>     0..|  	    State2 = add_remote_decision(node(), D, State),</font>
+<font color=red>     0..|  	    {noreply, State2};</font>
+        |  	_ -&gt;
+<font color=red>     0..|  	    {noreply, State}</font>
+        |      end;
+        |  
+        |  handle_info({'EXIT', Pid, R}, State) when Pid == State#state.supervisor -&gt;
+<font color=red>     0..|      mnesia2_lib:dbg_out("~p was ~p~n",[?MODULE, R]),</font>
+<font color=red>     0..|      {stop, shutdown, State};</font>
+        |  
+        |  handle_info(Msg, State) -&gt;
+<font color=red>     0..|      error("~p got unexpected info: ~p~n", [?MODULE, Msg]),</font>
+<font color=red>     0..|      {noreply, State}.</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: terminate/2
+        |  %% Purpose: Shutdown the server
+        |  %% Returns: any (ignored by gen_server)
+        |  %%----------------------------------------------------------------------
+        |  
+        |  terminate(Reason, State) -&gt;
+<font color=red>     0..|      mnesia2_monitor:terminate_proc(?MODULE, Reason, State).</font>
+        |  
+        |  %%----------------------------------------------------------------------
+        |  %% Func: code_change/3
+        |  %% Purpose: Upgrade process when its code is to be changed
+        |  %% Returns: {ok, NewState}
+        |  %%----------------------------------------------------------------------
+        |  code_change(_OldVsn, {state,
+        |                        Supervisor,
+        |                        Unclear_pid,
+        |                        Unclear_decision,
+        |                        Unclear_waitfor,
+        |                        Tm_queue_len,
+        |                        Initiated,
+        |                        Early_msgs
+        |                       }, _Extra) -&gt;
+<font color=red>     0..|      {ok, #state{supervisor = Supervisor,</font>
+        |                  unclear_pid = Unclear_pid,
+        |                  unclear_decision = Unclear_decision,
+        |                  unclear_waitfor = Unclear_waitfor,
+        |                  tm_queue_len = Tm_queue_len,
+        |                  initiated = Initiated,
+        |                  early_msgs = Early_msgs}};
+        |  code_change(_OldVsn, #state{} = State, _Extra) -&gt;
+<font color=red>     0..|      {ok, State}.</font>
+        |  
+        |  %%%----------------------------------------------------------------------
+        |  %%% Internal functions
+        |  %%%----------------------------------------------------------------------
+        |  
+        |  handle_early_msgs(State, From) -&gt;
+<font color=red>     0..|      Res = do_handle_early_msgs(State#state.early_msgs,</font>
+        |  			       State#state{early_msgs = [],
+        |  					   initiated = true}),
+<font color=red>     0..|      gen_server:reply(From, ok),</font>
+<font color=red>     0..|      Res.</font>
+        |  
+        |  do_handle_early_msgs([Msg | Msgs], State) -&gt;
+        |      %% The messages are in reverted order
+<font color=red>     0..|      case do_handle_early_msgs(Msgs, State) of</font>
+        |  %%         {stop, Reason, Reply, State2} -&gt;
+        |  %% 	    {stop, Reason, Reply, State2};
+        |          {stop, Reason, State2} -&gt;
+<font color=red>     0..|  	    {stop, Reason, State2};</font>
+        |  	{noreply, State2} -&gt;
+<font color=red>     0..|  	    handle_early_msg(Msg, State2)</font>
+        |      end;
+        |  
+        |  do_handle_early_msgs([], State) -&gt;
+<font color=red>     0..|      {noreply, State}.</font>
+        |      
+        |  handle_early_msg({call, Msg, From}, State) -&gt;
+<font color=red>     0..|      case handle_call(Msg, From, State) of</font>
+        |  	{reply, R, S} -&gt;
+<font color=red>     0..|  	    gen_server:reply(From, R),</font>
+<font color=red>     0..|  	    {noreply, S};</font>
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end;
+        |  handle_early_msg({cast, Msg}, State) -&gt;
+<font color=red>     0..|      handle_cast(Msg, State);</font>
+        |  handle_early_msg({info, Msg}, State) -&gt;
+<font color=red>     0..|      handle_info(Msg, State).</font>
+        |  
+        |  tabs() -&gt;
+<font color=red>     0..|      Curr = val(latest_transient_decision),    % Do not miss any trans even</font>
+<font color=red>     0..|      Prev = val(previous_transient_decisions), % if the tabs are switched</font>
+<font color=red>     0..|      [Curr, mnesia2_decision | Prev].           % Ordered by hit probability</font>
+        |  
+        |  decision(Tid) -&gt;
+<font color=red>     0..|      decision(Tid, tabs()).</font>
+        |  
+        |  decision(Tid, [Tab | Tabs]) -&gt;
+<font color=red>     0..|      try ?ets_lookup(Tab, Tid) of</font>
+        |  	[D] when is_record(D, decision) -&gt;
+<font color=red>     0..|  	    D;</font>
+        |  	[C] when is_record(C, transient_decision) -&gt;
+<font color=red>     0..|  	    #decision{tid = C#transient_decision.tid,</font>
+        |  		      outcome =  C#transient_decision.outcome,
+        |  		      disc_nodes = [],
+        |  		      ram_nodes = []
+        |  		     };
+        |  	[] -&gt;
+<font color=red>     0..|  	    decision(Tid, Tabs)</font>
+        |      catch error:_ -&gt;
+        |  	    %% Recently switched transient decision table
+<font color=red>     0..|  	    decision(Tid, Tabs)</font>
+        |      end;
+        |  decision(_Tid, []) -&gt;
+<font color=red>     0..|      no_decision.</font>
+        |  
+        |  outcome(Tid, Default) -&gt;
+<font color=red>     0..|      outcome(Tid, Default, tabs()).</font>
+        |  
+        |  outcome(Tid, Default, [Tab | Tabs]) -&gt;
+<font color=red>     0..|      try ?ets_lookup_element(Tab, Tid, 3)</font>
+<font color=red>     0..|      catch error:_ -&gt; outcome(Tid, Default, Tabs)</font>
+        |      end;
+        |  outcome(_Tid, Default, []) -&gt;
+<font color=red>     0..|      Default.</font>
+        |  
+        |  filter_outcome(Val) -&gt;
+<font color=red>     0..|      case Val of</font>
+<font color=red>     0..|  	unclear -&gt; unclear;</font>
+<font color=red>     0..|  	aborted -&gt; aborted;</font>
+<font color=red>     0..|  	presume_abort -&gt; aborted;</font>
+<font color=red>     0..|  	committed -&gt; committed;</font>
+<font color=red>     0..|  	pre_commit -&gt; unclear</font>
+        |      end.
+        |  
+        |  filter_aborted(D) when D#decision.outcome == presume_abort -&gt;
+<font color=red>     0..|      D#decision{outcome = aborted};</font>
+        |  filter_aborted(D) -&gt;
+<font color=red>     0..|      D.</font>
+        |    
+        |  %% Merge old decision D with new (probably remote) decision
+        |  merge_decisions(Node, D, NewD0) -&gt;
+<font color=red>     0..|      NewD = filter_aborted(NewD0),</font>
+<font color=red>     0..|      if</font>
+        |  	D == no_decision, node() /= Node -&gt;
+        |  	    %% We did not know anything about this txn
+<font color=red>     0..|  	    NewD#decision{disc_nodes = []};</font>
+        |  	D == no_decision -&gt;
+<font color=red>     0..|  	    NewD;</font>
+        |  	is_record(D, decision) -&gt;
+<font color=red>     0..|  	    DiscNs = D#decision.disc_nodes -- ([node(), Node]),</font>
+<font color=red>     0..|  	    OldD = filter_aborted(D#decision{disc_nodes = DiscNs}),</font>
+        |  %%	    mnesia2_lib:dbg_out("merge ~w: NewD = ~w~n D = ~w~n OldD = ~w~n", 
+        |  %%			       [Node, NewD, D, OldD]),
+<font color=red>     0..|  	    if</font>
+        |  		OldD#decision.outcome == unclear,
+        |  		NewD#decision.outcome == unclear -&gt;
+<font color=red>     0..|  		    D;</font>
+        |  
+        |  		OldD#decision.outcome == NewD#decision.outcome -&gt;
+        |  		    %% We have come to the same decision
+<font color=red>     0..|  		    OldD;</font>
+        |  
+        |  		OldD#decision.outcome == committed,
+        |  		NewD#decision.outcome == aborted -&gt;
+        |  		    %% Interesting! We have already committed,
+        |  		    %% but someone else has aborted. Now we
+        |  		    %% have a nice little inconcistency. The
+        |  		    %% other guy (or some one else) has 
+        |  		    %% enforced a recovery decision when
+        |  		    %% max_wait_for_decision was exceeded.
+        |  		    %% We will pretend that we have obeyed
+        |  		    %% the forced recovery decision, but we
+        |  		    %% will also generate an event in case the
+        |  		    %% application wants to do something clever.
+<font color=red>     0..|  		    Msg = {inconsistent_database, bad_decision, Node},</font>
+<font color=red>     0..|  		    mnesia2_lib:report_system_event(Msg),</font>
+<font color=red>     0..|  		    OldD#decision{outcome = aborted};</font>
+        |  
+        |  		OldD#decision.outcome == aborted -&gt;
+        |  		    %% aborted overrrides anything
+<font color=red>     0..|  		    OldD#decision{outcome = aborted};</font>
+        |  
+        |  		NewD#decision.outcome == aborted -&gt;
+        |  		    %% aborted overrrides anything
+<font color=red>     0..|  		    OldD#decision{outcome = aborted};</font>
+        |  
+        |  		OldD#decision.outcome == committed,
+        |  		NewD#decision.outcome == unclear -&gt;
+        |  		    %% committed overrides unclear
+<font color=red>     0..|  		    OldD#decision{outcome = committed};</font>
+        |  
+        |  		OldD#decision.outcome == unclear,
+        |  		NewD#decision.outcome == committed -&gt;
+        |  		    %% committed overrides unclear
+<font color=red>     0..|  		    OldD#decision{outcome = committed}</font>
+        |  	    end
+        |      end.
+        |  
+        |  add_remote_decisions(Node, [D | Tail], State) when is_record(D, decision) -&gt;
+<font color=red>     0..|      State2 = add_remote_decision(Node, D, State),</font>
+<font color=red>     0..|      add_remote_decisions(Node, Tail, State2);</font>
+        |  
+        |  add_remote_decisions(Node, [C | Tail], State)
+        |          when is_record(C, transient_decision) -&gt;
+<font color=red>     0..|      D = #decision{tid = C#transient_decision.tid,</font>
+        |  		  outcome = C#transient_decision.outcome,
+        |  		  disc_nodes = [],
+        |  		  ram_nodes = []},
+<font color=red>     0..|      State2 = add_remote_decision(Node, D, State),</font>
+<font color=red>     0..|      add_remote_decisions(Node, Tail, State2);</font>
+        |  
+        |  add_remote_decisions(Node, [{mnesia2_down, _, _, _} | Tail], State) -&gt;
+<font color=red>     0..|      add_remote_decisions(Node, Tail, State);</font>
+        |  
+        |  add_remote_decisions(Node, [{trans_tid, serial, Serial} | Tail], State) -&gt;
+<font color=red>     0..|      sync_trans_tid_serial(Serial),</font>
+<font color=red>     0..|      case State#state.unclear_decision of</font>
+        |  	undefined -&gt;
+<font color=red>     0..|  	    ignored;</font>
+        |  	D -&gt;
+<font color=red>     0..|  	    case lists:member(Node, D#decision.ram_nodes) of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    ignore;</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    abcast([Node], {what_decision, node(), D})</font>
+        |  	    end
+        |      end,
+<font color=red>     0..|      add_remote_decisions(Node, Tail, State);</font>
+        |  
+        |  add_remote_decisions(_Node, [], State) -&gt;
+<font color=red>     0..|      State.</font>
+        |  
+        |  add_remote_decision(Node, NewD, State) -&gt;
+<font color=red>     0..|      Tid = NewD#decision.tid,</font>
+<font color=red>     0..|      OldD = decision(Tid),</font>
+<font color=red>     0..|      D = merge_decisions(Node, OldD, NewD),</font>
+<font color=red>     0..|      do_log_decision(D, false, undefined),</font>
+<font color=red>     0..|      Outcome = D#decision.outcome,</font>
+<font color=red>     0..|      if</font>
+        |  	OldD == no_decision -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	Outcome == unclear -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    case lists:member(node(), NewD#decision.disc_nodes) or</font>
+        |  		 lists:member(node(), NewD#decision.ram_nodes) of
+        |  		true -&gt;
+<font color=red>     0..|  		    tell_im_certain([Node], D);</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    ignore</font>
+        |  	    end
+        |      end,
+<font color=red>     0..|      case State#state.unclear_decision of</font>
+        |  	U when U#decision.tid == Tid -&gt;
+<font color=red>     0..|  	    WaitFor = State#state.unclear_waitfor -- [Node],</font>
+<font color=red>     0..|  	    if</font>
+        |  		Outcome == unclear, WaitFor == [] -&gt;
+        |  		    %% Everybody are uncertain, lets abort
+<font color=red>     0..|  		    NewOutcome = aborted,</font>
+<font color=red>     0..|  		    CertainD = D#decision{outcome = NewOutcome, </font>
+        |  					  disc_nodes = [],
+        |  					  ram_nodes = []},
+<font color=red>     0..|  		    tell_im_certain(D#decision.disc_nodes, CertainD),</font>
+<font color=red>     0..|  		    tell_im_certain(D#decision.ram_nodes, CertainD),</font>
+<font color=red>     0..|  		    do_log_decision(CertainD, false, undefined),</font>
+<font color=red>     0..|  		    verbose("Decided to abort transaction ~p "</font>
+        |  			    "since everybody are uncertain ~p~n",
+        |  			    [Tid, CertainD]),
+<font color=red>     0..|  		    gen_server:reply(State#state.unclear_pid, {ok, NewOutcome}),</font>
+<font color=red>     0..|  		    State#state{unclear_pid = undefined,</font>
+        |  				unclear_decision = undefined,
+        |  				unclear_waitfor = undefined};
+        |  		Outcome /= unclear -&gt;
+<font color=red>     0..|  		    verbose("~p told us that transaction ~p was ~p~n",</font>
+        |  			    [Node, Tid, Outcome]),
+<font color=red>     0..|  		    gen_server:reply(State#state.unclear_pid, {ok, Outcome}),</font>
+<font color=red>     0..|  		    State#state{unclear_pid = undefined,</font>
+        |  				unclear_decision = undefined,
+        |  				unclear_waitfor = undefined};
+        |  		Outcome == unclear -&gt;
+<font color=red>     0..|  		    State#state{unclear_waitfor = WaitFor}</font>
+        |  	    end;
+        |  	_ -&gt;
+<font color=red>     0..|  	    State</font>
+        |      end.
+        |  
+        |  announce_all([]) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  announce_all(ToNodes) -&gt;
+<font color=red>     0..|      Tid = trans_tid_serial(),</font>
+<font color=red>     0..|      announce(ToNodes, [{trans_tid,serial,Tid}], [], false).</font>
+        |      
+        |  announce(ToNodes, [Head | Tail], Acc, ForceSend) -&gt;
+<font color=red>     0..|      Acc2 = arrange(ToNodes, Head, Acc, ForceSend),</font>
+<font color=red>     0..|      announce(ToNodes, Tail, Acc2, ForceSend);</font>
+        |  
+        |  announce(_ToNodes, [], Acc, _ForceSend) -&gt;
+<font color=red>     0..|      send_decisions(Acc).</font>
+        |  
+        |  send_decisions([{Node, Decisions} | Tail]) -&gt;
+<font color=red>     0..|      abcast([Node], {decisions, node(), Decisions}),</font>
+<font color=red>     0..|      send_decisions(Tail);</font>
+        |  send_decisions([]) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  arrange([To | ToNodes], D, Acc, ForceSend) when is_record(D, decision) -&gt;
+<font color=red>     0..|      NeedsAdd = (ForceSend or</font>
+        |  		lists:member(To, D#decision.disc_nodes) or
+        |  		lists:member(To, D#decision.ram_nodes)),
+<font color=red>     0..|      case NeedsAdd of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Acc2 = add_decision(To, D, Acc),</font>
+<font color=red>     0..|  	    arrange(ToNodes, D, Acc2, ForceSend);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    arrange(ToNodes, D, Acc, ForceSend)</font>
+        |      end;
+        |  
+        |  arrange([To | ToNodes], {trans_tid, serial, Serial}, Acc, ForceSend) -&gt;
+        |      %% Do the lamport thing plus release the others
+        |      %% from uncertainity.
+<font color=red>     0..|      Acc2 = add_decision(To, {trans_tid, serial, Serial}, Acc),</font>
+<font color=red>     0..|      arrange(ToNodes, {trans_tid, serial, Serial}, Acc2, ForceSend);</font>
+        |  
+        |  arrange([], _Decision, Acc, _ForceSend) -&gt;
+<font color=red>     0..|      Acc.</font>
+        |  
+        |  add_decision(Node, Decision, [{Node, Decisions} | Tail]) -&gt;
+<font color=red>     0..|      [{Node, [Decision | Decisions]} | Tail];</font>
+        |  add_decision(Node, Decision, [Head | Tail]) -&gt;
+<font color=red>     0..|      [Head | add_decision(Node, Decision, Tail)];</font>
+        |  add_decision(Node, Decision, []) -&gt;
+<font color=red>     0..|      [{Node, [Decision]}].</font>
+        |  
+</pre>
+</body>
+</html>
