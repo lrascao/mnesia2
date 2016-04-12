@@ -1,0 +1,1049 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test1313@testing-worker-linux-docker-a2f23725-3371-linux-4.2016-04-12_08.54.07/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.54.31/mnesia2_log.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_log.erl by COVER 2016-04-12 at 08:55:30
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1996-2016. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %%
+        |  %% This module administers three kinds of log files:
+        |  %%
+        |  %% 1 The transaction log
+        |  %%   mnesia2_tm appends to the log (via mnesia2_log) at the
+        |  %%   end of each transaction (or dirty write) and
+        |  %%   mnesia2_dumper reads the log and performs the ops in
+        |  %%   the dat files. The dump_log is done  at startup and
+        |  %%   at intervals controlled by the user.
+        |  %%
+        |  %% 2 The mnesia2_down log
+        |  %%   mnesia2_tm appends to the log (via mnesia2_log) when it
+        |  %%   realizes that mnesia2 goes up or down on another node.
+        |  %%   mnesia2_init reads the log (via mnesia2_log) at startup.
+        |  %%
+        |  %% 3 The backup log
+        |  %%   mnesia2_schema produces one tiny log when the schema is
+        |  %%   initially created. mnesia2_schema also reads the log
+        |  %%   when the user wants tables (possibly incl the schema)
+        |  %%   to be restored. mnesia2_log appends to the log when the
+        |  %%   user wants to produce a real backup.
+        |  %%
+        |  %%   The actual access to the backup media is performed via the
+        |  %%   mnesia2_backup module for both read and write. mnesia2_backup
+        |  %%   uses the disk_log (*), BUT the user may write an own module
+        |  %%   with the same interface as mnesia2_backup and configure
+        |  %%   Mnesia2 so the alternate module performs the actual accesses
+        |  %%   to the backup media. This means that the user may put the
+        |  %%   backup on medias that Mnesia2 does not know about possibly on
+        |  %%   hosts where Erlang is not running.
+        |  %%
+        |  %% All these logs have to some extent a common structure.
+        |  %% They are all using the disk_log module (*) for the basic
+        |  %% file structure. The disk_log has a repair feature that
+        |  %% can be used to skip erroneous log records if one comes to
+        |  %% the conclusion that it is more important to reuse some
+        |  %% of the log records than the risque of obtaining inconsistent
+        |  %% data. If the data becomes inconsistent it is solely up to the
+        |  %% application to make it consistent again. The automatic
+        |  %% reparation of the disk_log is very powerful, but use it
+        |  %% with extreme care.
+        |  %%
+        |  %% First in all Mnesia2's log file is a mnesia2 log header.
+        |  %% It contains a list with a log_header record as single
+        |  %% element. The structure of the log_header may never be
+        |  %% changed since it may be written to very old backup files.
+        |  %% By holding this record definition stable we can be
+        |  %% able to comprahend backups from timepoint 0. It also
+        |  %% allows us to use the backup format as an interchange
+        |  %% format between Mnesia2 releases.
+        |  %%
+        |  %% An op-list is a list of tuples with arity 3. Each tuple
+        |  %% has this structure: {Oid, Recs, Op} where Oid is the tuple
+        |  %% {Tab, Key}, Recs is a (possibly empty) list of records and
+        |  %% Op is an atom.
+        |  %%
+        |  %% The log file structure for the transaction log is as follows.
+        |  %%
+        |  %%    After the mnesia2 log section follows an extended record section
+        |  %%    containing op-lists. There are several values that Op may
+        |  %%    have, such as write, delete, update_counter, delete_object,
+        |  %%    and replace. There is no special end of section marker.
+        |  %%
+        |  %%    +-----------------+
+        |  %%    | mnesia2 log head |
+        |  %%    +-----------------+
+        |  %%    | extended record |
+        |  %%    | section         |
+        |  %%    +-----------------+
+        |  %%
+        |  %% The log file structure for the mnesia2_down log is as follows.
+        |  %%
+        |  %%    After the mnesia2 log section follows a mnesia2_down section
+        |  %%    containg lists with yoyo records as single element.
+        |  %%
+        |  %%    +-----------------+
+        |  %%    | mnesia2 log head |
+        |  %%    +-----------------+
+        |  %%    | mnesia2_down     |
+        |  %%    | section         |
+        |  %%    +-----------------+
+        |  %%
+        |  %% The log file structure for the backup log is as follows.
+        |  %%
+        |  %%    After the mnesia2 log section follows a schema section
+        |  %%    containing record lists. A record list is a list of tuples
+        |  %%    where {schema, Tab} is interpreted as a delete_table(Tab) and
+        |  %%    {schema, Tab, CreateList} are interpreted as create_table.
+        |  %%
+        |  %%    The record section also contains record lists. In this section
+        |  %%    {Tab, Key} is interpreted as delete({Tab, Key}) and other tuples
+        |  %%    as write(Tuple). There is no special end of section marker.
+        |  %%
+        |  %%    +-----------------+
+        |  %%    | mnesia2 log head |
+        |  %%    +-----------------+
+        |  %%    | schema section  |
+        |  %%    +-----------------+
+        |  %%    | record section  |
+        |  %%    +-----------------+
+        |  %%
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  -module(mnesia2_log).
+        |  
+        |  -export([
+        |  	 append/2,
+        |  	 backup/1,
+        |  	 backup/2,
+        |  	 backup_checkpoint/2,
+        |  	 backup_checkpoint/3,
+        |  	 backup_log_header/0,
+        |  	 backup_master/2,
+        |  	 chunk_decision_log/1,
+        |  	 chunk_decision_tab/1,
+        |  	 chunk_log/1,
+        |  	 chunk_log/2,
+        |  	 close_decision_log/0,
+        |  	 close_decision_tab/0,
+        |  	 close_log/1,
+        |  	 unsafe_close_log/1,
+        |  	 confirm_log_dump/1,
+        |  	 confirm_decision_log_dump/0,
+        |  	 previous_log_file/0,
+        |  	 previous_decision_log_file/0,
+        |  	 latest_log_file/0,
+        |  	 decision_log_version/0,
+        |  	 decision_log_file/0,
+        |  	 decision_tab_file/0,
+        |  	 decision_tab_version/0,
+        |  	 dcl_version/0,
+        |  	 dcd_version/0,
+        |  	 ets2dcd/1,
+        |  	 ets2dcd/2,
+        |  	 dcd2ets/1,
+        |  	 dcd2ets/2,
+        |  	 init/0,
+        |  	 init_log_dump/0,
+        |  	 log/1,
+        |  	 slog/1,
+        |  	 log_decision/1,
+        |  	 log_files/0,
+        |  	 open_decision_log/0,
+        |  	 trans_log_header/0,
+        |  	 open_decision_tab/0,
+        |  	 dcl_log_header/0,
+        |  	 dcd_log_header/0,
+        |  	 open_log/4,
+        |  	 open_log/6,
+        |  	 prepare_decision_log_dump/0,
+        |  	 prepare_log_dump/1,
+        |  	 save_decision_tab/1,
+        |  	 purge_all_logs/0,
+        |  	 purge_some_logs/0,
+        |  	 stop/0,
+        |  	 tab_copier/3,
+        |  	 version/0,
+        |  	 view/0,
+        |  	 view/1,
+        |  	 write_trans_log_header/0
+        |  	]).
+        |  
+        |  
+        |  -compile({no_auto_import,[error/2]}).
+        |  
+        |  -include("mnesia2.hrl").
+        |  -import(mnesia2_lib, [val/1, dir/1]).
+        |  -import(mnesia2_lib, [exists/1, fatal/2, error/2, dbg_out/2]).
+        |  
+<font color=red>     0..|  trans_log_header() -&gt; log_header(trans_log, version()).</font>
+   168..|  backup_log_header() -&gt; log_header(backup_log, "1.2").
+<font color=red>     0..|  decision_log_header() -&gt; log_header(decision_log, decision_log_version()).</font>
+<font color=red>     0..|  decision_tab_header() -&gt; log_header(decision_tab, decision_tab_version()).</font>
+<font color=red>     0..|  dcl_log_header() -&gt; log_header(dcl_log, dcl_version()).</font>
+<font color=red>     0..|  dcd_log_header() -&gt; log_header(dcd_log, dcd_version()).</font>
+        |  
+        |  log_header(Kind, Version) -&gt;
+   168..|      #log_header{log_version=Version,
+        |  		log_kind=Kind,
+        |  		mnesia2_version=mnesia2:system_info(version),
+        |  		node=node(),
+        |  		now=mnesia2_time:timestamp()}.
+        |  
+<font color=red>     0..|  version() -&gt; "4.3".</font>
+        |  
+<font color=red>     0..|  decision_log_version() -&gt; "3.0".</font>
+        |  
+<font color=red>     0..|  decision_tab_version() -&gt; "1.0".</font>
+        |  
+<font color=red>     0..|  dcl_version() -&gt; "1.0".</font>
+<font color=red>     0..|  dcd_version() -&gt; "1.0".</font>
+        |  
+        |  append(Log, Bin) when is_binary(Bin) -&gt;
+<font color=red>     0..|      disk_log:balog(Log, Bin);</font>
+        |  append(Log, Term) -&gt;
+<font color=red>     0..|      disk_log:alog(Log, Term).</font>
+        |  
+        |  %% Synced append
+        |  sappend(Log, Bin) when is_binary(Bin) -&gt;
+<font color=red>     0..|      ok = disk_log:blog(Log, Bin);</font>
+        |  sappend(Log, Term) -&gt;
+<font color=red>     0..|      ok = disk_log:log(Log, Term).</font>
+        |  
+        |  %% Write commit records to the latest_log
+        |  log(C) when  C#commit.disc_copies == [],
+        |               C#commit.disc_only_copies  == [],
+        |               C#commit.schema_ops == [] -&gt;
+<font color=red>     0..|      ignore;</font>
+        |  log(C) -&gt;
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |          true -&gt;
+<font color=red>     0..|  	    if</font>
+        |  		is_record(C, commit) -&gt;
+<font color=red>     0..|  		    C2 =  C#commit{ram_copies = [], snmp = []},</font>
+<font color=red>     0..|  		    append(latest_log, C2);</font>
+        |  		true -&gt;
+        |  		    %% Either a commit record as binary
+        |  		    %% or some decision related info
+<font color=red>     0..|  		    append(latest_log, C)</font>
+        |  	    end,
+<font color=red>     0..|  	    mnesia2_dumper:incr_log_writes();</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end.
+        |  
+        |  %% Synced
+        |  
+        |  slog(C) when  C#commit.disc_copies == [],
+        |               C#commit.disc_only_copies  == [],
+        |               C#commit.schema_ops == [] -&gt;
+<font color=red>     0..|      ignore;</font>
+        |  slog(C) -&gt;
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |          true -&gt;
+<font color=red>     0..|  	    if</font>
+        |  		is_record(C, commit) -&gt;
+<font color=red>     0..|  		    C2 =  C#commit{ram_copies = [], snmp = []},</font>
+<font color=red>     0..|  		    sappend(latest_log, C2);</font>
+        |  		true -&gt;
+        |  		    %% Either a commit record as binary
+        |  		    %% or some decision related info
+<font color=red>     0..|  		    sappend(latest_log, C)</font>
+        |  	    end,
+<font color=red>     0..|  	    mnesia2_dumper:incr_log_writes();</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ignore</font>
+        |      end.
+        |  
+        |  
+        |  %% Stuff related to the file LOG
+        |  
+        |  %% Returns a list of logfiles. The oldest is first.
+<font color=red>     0..|  log_files() -&gt; [previous_log_file(),</font>
+        |  		latest_log_file(),
+        |  		decision_tab_file()
+        |  	       ].
+        |  
+<font color=red>     0..|  latest_log_file() -&gt; dir(latest_log_name()).</font>
+        |  
+<font color=red>     0..|  previous_log_file() -&gt; dir("PREVIOUS.LOG").</font>
+        |  
+<font color=red>     0..|  decision_log_file() -&gt; dir(decision_log_name()).</font>
+        |  
+<font color=red>     0..|  decision_tab_file() -&gt; dir(decision_tab_name()).</font>
+        |  
+<font color=red>     0..|  previous_decision_log_file() -&gt; dir("PDECISION.LOG").</font>
+        |  
+<font color=red>     0..|  latest_log_name() -&gt; "LATEST.LOG".</font>
+        |  
+<font color=red>     0..|  decision_log_name() -&gt; "DECISION.LOG".</font>
+        |  
+<font color=red>     0..|  decision_tab_name() -&gt; "DECISION_TAB.LOG".</font>
+        |  
+        |  init() -&gt;
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Prev = previous_log_file(),</font>
+<font color=red>     0..|  	    verify_no_exists(Prev),</font>
+        |  
+<font color=red>     0..|  	    Latest = latest_log_file(),</font>
+<font color=red>     0..|  	    verify_no_exists(Latest),</font>
+        |  
+<font color=red>     0..|  	    Header = trans_log_header(),</font>
+<font color=red>     0..|  	    open_log(latest_log, Header, Latest);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  verify_no_exists(Fname) -&gt;
+<font color=red>     0..|      case exists(Fname) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    fatal("Log file exists: ~p~n", [Fname])</font>
+        |      end.
+        |  
+        |  open_log(Name, Header, Fname) -&gt;
+<font color=red>     0..|      Exists = exists(Fname),</font>
+<font color=red>     0..|      open_log(Name, Header, Fname, Exists).</font>
+        |  
+        |  open_log(Name, Header, Fname, Exists) -&gt;
+<font color=red>     0..|      Repair = mnesia2_monitor:get_env(auto_repair),</font>
+<font color=red>     0..|      open_log(Name, Header, Fname, Exists, Repair).</font>
+        |  
+        |  open_log(Name, Header, Fname, Exists, Repair) -&gt;
+<font color=red>     0..|      case Name == previous_log of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    open_log(Name, Header, Fname, Exists, Repair, read_only);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    open_log(Name, Header, Fname, Exists, Repair, read_write)</font>
+        |      end.
+        |  
+        |  open_log(Name, Header, Fname, Exists, Repair, Mode) -&gt;
+<font color=red>     0..|      Args = [{file, Fname}, {name, Name}, {repair, Repair}, {mode, Mode}],</font>
+        |  %%    io:format("~p:open_log: ~p ~p~n", [?MODULE, Name, Fname]),
+<font color=red>     0..|      case mnesia2_monitor:open_log(Args) of</font>
+        |  	{ok, Log} when Exists == true -&gt;
+<font color=red>     0..|  	    Log;</font>
+        |  	{ok, Log} -&gt;
+<font color=red>     0..|  	    write_header(Log, Header),</font>
+<font color=red>     0..|  	    Log;</font>
+        |  	{repaired, Log, _, {badbytes, 0}} when Exists == true -&gt;
+<font color=red>     0..|  	    Log;</font>
+        |  	{repaired, Log, _, {badbytes, 0}} -&gt;
+<font color=red>     0..|  	    write_header(Log, Header),</font>
+<font color=red>     0..|  	    Log;</font>
+        |  	{repaired, Log, _Recover, BadBytes} -&gt;
+<font color=red>     0..|  	    mnesia2_lib:important("Data may be missing, log ~p repaired: Lost ~p bytes~n",</font>
+        |  				 [Fname, BadBytes]),
+<font color=red>     0..|  	    Log;</font>
+        |  	{error, Reason = {file_error, _Fname, emfile}} -&gt;
+<font color=red>     0..|  	    fatal("Cannot open log file ~p: ~p~n", [Fname, Reason]);</font>
+        |  	{error, Reason} when Repair == true -&gt;
+<font color=red>     0..|  	    file:delete(Fname),</font>
+<font color=red>     0..|  	    mnesia2_lib:important("Data may be missing, Corrupt logfile deleted: ~p, ~p ~n",</font>
+        |  				 [Fname, Reason]),
+        |  	    %% Create a new
+<font color=red>     0..|  	    open_log(Name, Header, Fname, false, false, read_write);</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    fatal("Cannot open log file ~p: ~p~n", [Fname, Reason])</font>
+        |      end.
+        |  
+        |  write_header(Log, Header) -&gt;
+<font color=red>     0..|      append(Log, Header).</font>
+        |  
+        |  write_trans_log_header() -&gt;
+<font color=red>     0..|      write_header(latest_log, trans_log_header()).</font>
+        |  
+        |  stop() -&gt;
+<font color=red>     0..|      case mnesia2_monitor:use_dir() of</font>
+        |          true -&gt;
+<font color=red>     0..|  	    close_log(latest_log);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  close_log(Log) -&gt;
+        |  %%    io:format("mnesia2_log:close_log ~p~n", [Log]),
+        |  %%    io:format("mnesia2_log:close_log ~p~n", [Log]),
+<font color=red>     0..|      case disk_log:sync(Log) of</font>
+<font color=red>     0..|  	ok -&gt; ok;</font>
+        |  	{error, {read_only_mode, Log}} -&gt;
+<font color=red>     0..|  	    ok;</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    mnesia2_lib:important("Failed syncing ~p to_disk reason ~p ~n",</font>
+        |  				 [Log, Reason])
+        |      end,
+<font color=red>     0..|      mnesia2_monitor:close_log(Log).</font>
+        |  
+        |  unsafe_close_log(Log) -&gt;
+        |  %%    io:format("mnesia2_log:close_log ~p~n", [Log]),
+<font color=red>     0..|      mnesia2_monitor:unsafe_close_log(Log).</font>
+        |  
+        |  
+        |  purge_some_logs() -&gt;
+<font color=red>     0..|      mnesia2_monitor:unsafe_close_log(latest_log),</font>
+<font color=red>     0..|      _ = file:delete(latest_log_file()),</font>
+<font color=red>     0..|      _ = file:delete(decision_tab_file()),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  purge_all_logs() -&gt;
+<font color=red>     0..|      _ = file:delete(previous_log_file()),</font>
+<font color=red>     0..|      _ = file:delete(latest_log_file()),</font>
+<font color=red>     0..|      _ = file:delete(decision_tab_file()),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  %% Prepare dump by renaming the open logfile if possible
+        |  %% Returns a tuple on the following format: {Res, OpenLog}
+        |  %% where OpenLog is the file descriptor to log file, ready for append
+        |  %% and Res is one of the following: already_dumped, needs_dump or {error, Reason}
+        |  prepare_log_dump(InitBy) -&gt;
+<font color=red>     0..|      Diff = mnesia2_dumper:get_log_writes() -</font>
+        |             mnesia2_lib:read_counter(trans_log_writes_prev),
+<font color=red>     0..|      if</font>
+        |  	Diff == 0, InitBy /= startup -&gt;
+<font color=red>     0..|  	    already_dumped;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    case mnesia2_monitor:use_dir() of</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    Prev = previous_log_file(),</font>
+<font color=red>     0..|  		    prepare_prev(Diff, InitBy, Prev, exists(Prev));</font>
+        |  		false -&gt;
+<font color=red>     0..|  		    already_dumped</font>
+        |  	    end
+        |      end.
+        |  
+        |  prepare_prev(Diff, _, _, true) -&gt;
+<font color=red>     0..|      {needs_dump, Diff};</font>
+        |  prepare_prev(Diff, startup, Prev, false) -&gt;
+<font color=red>     0..|      Latest = latest_log_file(),</font>
+<font color=red>     0..|      case exists(Latest) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    case file:rename(Latest, Prev) of</font>
+        |  		ok -&gt;
+<font color=red>     0..|  		    {needs_dump, Diff};</font>
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    {error, Reason}</font>
+        |  	    end;
+        |  	false -&gt;
+<font color=red>     0..|  	    already_dumped</font>
+        |      end;
+        |  prepare_prev(Diff, _InitBy, Prev, false) -&gt;
+<font color=red>     0..|      Head = trans_log_header(),</font>
+<font color=red>     0..|      case mnesia2_monitor:reopen_log(latest_log, Prev, Head) of</font>
+        |  	ok -&gt;
+<font color=red>     0..|  	    {needs_dump, Diff};</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    Latest = latest_log_file(),</font>
+<font color=red>     0..|  	    {error, {"Cannot rename log file",</font>
+        |  		     [Latest, Prev, Reason]}}
+        |      end.
+        |  
+        |  %% Init dump and return PrevLogFileDesc or exit.
+        |  init_log_dump() -&gt;
+<font color=red>     0..|      Fname = previous_log_file(),</font>
+<font color=red>     0..|      open_log(previous_log, trans_log_header(), Fname),</font>
+<font color=red>     0..|      start.</font>
+        |  
+        |  
+        |  chunk_log(Cont) -&gt;
+<font color=red>     0..|      chunk_log(previous_log, Cont).</font>
+        |  
+        |  chunk_log(_Log, eof) -&gt;
+<font color=red>     0..|      eof;</font>
+        |  chunk_log(Log, Cont) -&gt;
+<font color=red>     0..|      case disk_log:chunk(Log, Cont) of</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    fatal("Possibly truncated ~p file: ~p~n",</font>
+        |  		  [Log, Reason]);
+        |  	{C2, Chunk, _BadBytes} -&gt;
+        |  	    %% Read_only case, should we warn about the bad log file?
+        |  	    %% BUGBUG Should we crash if Repair == false ??
+        |  	    %% We got to check this !!
+<font color=red>     0..|  	    mnesia2_lib:important("~p repaired, lost ~p bad bytes~n", [Log, _BadBytes]),</font>
+<font color=red>     0..|  	    {C2, Chunk};</font>
+        |  	Other -&gt;
+<font color=red>     0..|  	    Other</font>
+        |      end.
+        |  
+        |  %% Confirms the dump by closing prev log and delete the file
+        |  confirm_log_dump(Updates) -&gt;
+<font color=red>     0..|      case mnesia2_monitor:close_log(previous_log) of</font>
+        |  	ok -&gt;
+<font color=red>     0..|  	    file:delete(previous_log_file()),</font>
+<font color=red>     0..|  	    mnesia2_lib:incr_counter(trans_log_writes_prev, Updates),</font>
+<font color=red>     0..|  	    dumped;</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Decision log
+        |  
+        |  open_decision_log() -&gt;
+<font color=red>     0..|      Latest = decision_log_file(),</font>
+<font color=red>     0..|      open_log(decision_log, decision_log_header(), Latest),</font>
+<font color=red>     0..|      start.</font>
+        |  
+        |  prepare_decision_log_dump() -&gt;
+<font color=red>     0..|      Prev = previous_decision_log_file(),</font>
+<font color=red>     0..|      prepare_decision_log_dump(exists(Prev), Prev).</font>
+        |  
+        |  prepare_decision_log_dump(false, Prev) -&gt;
+<font color=red>     0..|      Head = decision_log_header(),</font>
+<font color=red>     0..|      case mnesia2_monitor:reopen_log(decision_log, Prev, Head) of</font>
+        |  	ok -&gt;
+<font color=red>     0..|  	    prepare_decision_log_dump(true, Prev);</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    fatal("Cannot rename decision log file ~p -&gt; ~p: ~p~n",</font>
+        |  		     [decision_log_file(), Prev, Reason])
+        |      end;
+        |  prepare_decision_log_dump(true, Prev) -&gt;
+<font color=red>     0..|      open_log(previous_decision_log, decision_log_header(), Prev),</font>
+<font color=red>     0..|      start.</font>
+        |  
+        |  chunk_decision_log(Cont) -&gt;
+        |      %% dbg_out("chunk log ~p~n", [Cont]),
+<font color=red>     0..|      chunk_log(previous_decision_log, Cont).</font>
+        |  
+        |  %% Confirms dump of the decision log
+        |  confirm_decision_log_dump() -&gt;
+<font color=red>     0..|      case mnesia2_monitor:close_log(previous_decision_log) of</font>
+        |  	ok -&gt;
+<font color=red>     0..|  	    file:delete(previous_decision_log_file());</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    fatal("Cannot confirm decision log dump: ~p~n",</font>
+        |  		  [Reason])
+        |      end.
+        |  
+        |  save_decision_tab(Decisions) -&gt;
+<font color=red>     0..|      Log = decision_tab,</font>
+<font color=red>     0..|      Tmp = mnesia2_lib:dir("DECISION_TAB.TMP"),</font>
+<font color=red>     0..|      file:delete(Tmp),</font>
+<font color=red>     0..|      open_log(Log, decision_tab_header(), Tmp),</font>
+<font color=red>     0..|      append(Log, Decisions),</font>
+<font color=red>     0..|      close_log(Log),</font>
+<font color=red>     0..|      TabFile = decision_tab_file(),</font>
+<font color=red>     0..|      ok = file:rename(Tmp, TabFile).</font>
+        |  
+        |  open_decision_tab() -&gt;
+<font color=red>     0..|      TabFile = decision_tab_file(),</font>
+<font color=red>     0..|      open_log(decision_tab, decision_tab_header(), TabFile),</font>
+<font color=red>     0..|      start.</font>
+        |  
+        |  close_decision_tab() -&gt;
+<font color=red>     0..|      close_log(decision_tab).</font>
+        |  
+        |  chunk_decision_tab(Cont) -&gt;
+        |      %% dbg_out("chunk tab ~p~n", [Cont]),
+<font color=red>     0..|      chunk_log(decision_tab, Cont).</font>
+        |  
+        |  close_decision_log() -&gt;
+<font color=red>     0..|      close_log(decision_log).</font>
+        |  
+        |  log_decision(Decision) -&gt;
+<font color=red>     0..|      append(decision_log, Decision).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Debug functions
+        |  
+        |  view() -&gt;
+<font color=red>     0..|      lists:foreach(fun(F) -&gt; view(F) end, log_files()).</font>
+        |  
+        |  view(File) -&gt;
+<font color=red>     0..|      mnesia2_lib:show("*****  ~p ***** ~n", [File]),</font>
+<font color=red>     0..|      case exists(File) of</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    nolog;</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    N = view_only,</font>
+<font color=red>     0..|  	    Args = [{file, File}, {name, N}, {mode, read_only}],</font>
+<font color=red>     0..|  	    case disk_log:open(Args) of</font>
+        |  		{ok, N} -&gt;
+<font color=red>     0..|  		    view_file(start, N);</font>
+        |  		{repaired, _, _, _} -&gt;
+<font color=red>     0..|  		    view_file(start, N);</font>
+        |  		{error, Reason} -&gt;
+<font color=red>     0..|  		    error("Cannot open log ~p: ~p~n", [File, Reason])</font>
+        |  	    end
+        |      end.
+        |  
+        |  view_file(C, Log) -&gt;
+<font color=red>     0..|      case disk_log:chunk(Log, C) of</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    error("** Possibly truncated FILE ~p~n", [Reason]),</font>
+<font color=red>     0..|  	    error;</font>
+        |  	eof -&gt;
+<font color=red>     0..|  	    disk_log:close(Log),</font>
+<font color=red>     0..|  	    eof;</font>
+        |  	{C2, Terms, _BadBytes} -&gt;
+<font color=red>     0..|  	    dbg_out("Lost ~p bytes in ~p ~n", [_BadBytes, Log]),</font>
+<font color=red>     0..|  	    lists:foreach(fun(X) -&gt; mnesia2_lib:show("~p~n", [X]) end,</font>
+        |  			  Terms),
+<font color=red>     0..|  	    view_file(C2, Log);</font>
+        |  	{C2, Terms} -&gt;
+<font color=red>     0..|  	    lists:foreach(fun(X) -&gt; mnesia2_lib:show("~p~n", [X]) end,</font>
+        |  			  Terms),
+<font color=red>     0..|  	    view_file(C2, Log)</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Backup
+        |  
+        |  -record(backup_args, {name, module, opaque, scope, prev_name, tables, cookie}).
+        |  
+        |  backup(Opaque) -&gt;
+     1..|      backup(Opaque, []).
+        |  
+        |  backup(Opaque, Mod) when is_atom(Mod) -&gt;
+<font color=red>     0..|      backup(Opaque, [{module, Mod}]);</font>
+        |  backup(Opaque, Args) when is_list(Args) -&gt;
+        |      %% Backup all tables with max redundancy
+     1..|      CpArgs = [{ram_overrides_dump, false}, {max, val({schema, tables})}],
+<font color=red>     0..|      case mnesia2_checkpoint:activate(CpArgs) of</font>
+        |  	{ok, Name, _Nodes} -&gt;
+<font color=red>     0..|  	    Res = backup_checkpoint(Name, Opaque, Args),</font>
+<font color=red>     0..|  	    mnesia2_checkpoint:deactivate(Name),</font>
+<font color=red>     0..|  	    Res;</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end.
+        |  
+        |  backup_checkpoint(Name, Opaque) -&gt;
+<font color=red>     0..|      backup_checkpoint(Name, Opaque, []).</font>
+        |  
+        |  backup_checkpoint(Name, Opaque, Mod) when is_atom(Mod) -&gt;
+<font color=red>     0..|      backup_checkpoint(Name, Opaque, [{module, Mod}]);</font>
+        |  backup_checkpoint(Name, Opaque, Args) when is_list(Args) -&gt;
+<font color=red>     0..|      DefaultMod = mnesia2_monitor:get_env(backup_module),</font>
+<font color=red>     0..|      B = #backup_args{name = Name,</font>
+        |  		     module = DefaultMod,
+        |  		     opaque = Opaque,
+        |  		     scope = global,
+        |  		     tables = all,
+        |  		     prev_name = Name},
+<font color=red>     0..|      case check_backup_args(Args, B) of</font>
+        |  	{ok, B2} -&gt;
+        |  	    %% Decentralized backup
+        |  	    %% Incremental
+        |  
+<font color=red>     0..|  	    Self = self(),</font>
+<font color=red>     0..|  	    Pid = spawn_link(?MODULE, backup_master, [Self, B2]),</font>
+<font color=red>     0..|  	    receive</font>
+<font color=red>     0..|  		{Pid, Self, Res} -&gt; Res</font>
+        |  	    end;
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    {error, Reason}</font>
+        |      end.
+        |  
+        |  check_backup_args([Arg | Tail], B) -&gt;
+<font color=red>     0..|      try check_backup_arg_type(Arg, B) of</font>
+        |  	B2 -&gt;
+<font color=red>     0..|  	    check_backup_args(Tail, B2)</font>
+        |      catch error:_ -&gt;
+<font color=red>     0..|  	    {error, {badarg, Arg}}</font>
+        |      end;
+        |  
+        |  check_backup_args([], B) -&gt;
+<font color=red>     0..|      {ok, B}.</font>
+        |  
+        |  check_backup_arg_type(Arg, B) -&gt;
+<font color=red>     0..|      case Arg of</font>
+        |  	{scope, global} -&gt;
+<font color=red>     0..|  	    B#backup_args{scope = global};</font>
+        |  	{scope, local} -&gt;
+<font color=red>     0..|  	    B#backup_args{scope = local};</font>
+        |  	{module, Mod} -&gt;
+<font color=red>     0..|  	    Mod2 = mnesia2_monitor:do_check_type(backup_module, Mod),</font>
+<font color=red>     0..|  	    B#backup_args{module = Mod2};</font>
+        |  	{incremental, Name} -&gt;
+<font color=red>     0..|  	    B#backup_args{prev_name = Name};</font>
+        |  	{tables, Tabs} when is_list(Tabs) -&gt;
+<font color=red>     0..|  	    B#backup_args{tables = Tabs}</font>
+        |      end.
+        |  
+        |  backup_master(ClientPid, B) -&gt;
+<font color=red>     0..|      process_flag(trap_exit, true),</font>
+<font color=red>     0..|      try do_backup_master(B) of</font>
+        |  	Res -&gt;
+<font color=red>     0..|  	    ClientPid ! {self(), ClientPid, Res}</font>
+        |      catch _:Reason -&gt;
+<font color=red>     0..|  	    ClientPid ! {self(), ClientPid, {error, {'EXIT', Reason}}}</font>
+        |      end,
+<font color=red>     0..|      unlink(ClientPid),</font>
+<font color=red>     0..|      exit(normal).</font>
+        |  
+        |  do_backup_master(B) -&gt;
+<font color=red>     0..|      Name = B#backup_args.name,</font>
+<font color=red>     0..|      B2 = safe_apply(B, open_write, [B#backup_args.opaque]),</font>
+<font color=red>     0..|      B3 = safe_write(B2, [backup_log_header()]),</font>
+<font color=red>     0..|      case mnesia2_checkpoint:tables_and_cookie(Name) of</font>
+        |  	{ok, AllTabs, Cookie} -&gt;
+<font color=red>     0..|  	    Tabs = select_tables(AllTabs, B3),</font>
+<font color=red>     0..|  	    B4 = B3#backup_args{cookie = Cookie},</font>
+        |  	    %% Always put schema first in backup file
+<font color=red>     0..|  	    B5 = backup_schema(B4, Tabs),</font>
+<font color=red>     0..|  	    B6 = lists:foldl(fun backup_tab/2, B5, Tabs -- [schema]),</font>
+<font color=red>     0..|  	    safe_apply(B6, commit_write, [B6#backup_args.opaque]),</font>
+<font color=red>     0..|  	    ok;</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    abort_write(B3, {?MODULE, backup_master}, [B], {error, Reason})</font>
+        |      end.
+        |  
+        |  select_tables(AllTabs, B) -&gt;
+<font color=red>     0..|      Tabs =</font>
+        |  	case B#backup_args.tables of
+<font color=red>     0..|  	    all -&gt; AllTabs;</font>
+<font color=red>     0..|  	    SomeTabs when is_list(SomeTabs) -&gt; SomeTabs</font>
+        |  	end,
+<font color=red>     0..|      case B#backup_args.scope of</font>
+        |  	global -&gt;
+<font color=red>     0..|  	    Tabs;</font>
+        |  	local -&gt;
+<font color=red>     0..|  	    Name = B#backup_args.name,</font>
+<font color=red>     0..|  	    [T || T &lt;- Tabs, mnesia2_checkpoint:most_local_node(Name, T) == {ok, node()}]</font>
+        |      end.
+        |  
+        |  safe_write(B, []) -&gt;
+<font color=red>     0..|      B;</font>
+        |  safe_write(B, Recs) -&gt;
+<font color=red>     0..|      safe_apply(B, write, [B#backup_args.opaque, Recs]).</font>
+        |  
+        |  backup_schema(B, Tabs) -&gt;
+<font color=red>     0..|      case lists:member(schema, Tabs) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    backup_tab(schema, B);</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    Defs = [{schema, T, mnesia2_schema:get_create_list(T)} || T &lt;- Tabs],</font>
+<font color=red>     0..|  	    safe_write(B, Defs)</font>
+        |      end.
+        |  
+        |  safe_apply(B, write, [_, Items]) when Items == [] -&gt;
+<font color=red>     0..|      B;</font>
+        |  safe_apply(B, What, Args) -&gt;
+<font color=red>     0..|      Abort = abort_write_fun(B, What, Args),</font>
+<font color=red>     0..|      receive</font>
+<font color=red>     0..|  	{'EXIT', Pid, R} -&gt; Abort({'EXIT', Pid, R})</font>
+        |      after 0 -&gt;
+<font color=red>     0..|  	    Mod = B#backup_args.module,</font>
+<font color=red>     0..|  	    try apply(Mod, What, Args) of</font>
+<font color=red>     0..|  		{ok, Opaque} -&gt; B#backup_args{opaque=Opaque};</font>
+<font color=red>     0..|  		{error, R} -&gt; Abort(R)</font>
+<font color=red>     0..|  	    catch _:R -&gt; Abort(R)</font>
+        |  	    end
+        |      end.
+        |  
+        |  -spec abort_write_fun(_, _, _) -&gt; fun((_) -&gt; no_return()).
+        |  abort_write_fun(B, What, Args) -&gt;
+<font color=red>     0..|      fun(R) -&gt; abort_write(B, What, Args, R) end.</font>
+        |  
+        |  abort_write(B, What, Args, Reason) -&gt;
+<font color=red>     0..|      Mod = B#backup_args.module,</font>
+<font color=red>     0..|      Opaque = B#backup_args.opaque,</font>
+<font color=red>     0..|      dbg_out("Failed to perform backup. M=~p:F=~p:A=~p -&gt; ~p~n",</font>
+        |  	    [Mod, What, Args, Reason]),
+<font color=red>     0..|      try apply(Mod, abort_write, [Opaque]) of</font>
+<font color=red>     0..|  	{ok, _Res} -&gt; throw({error, Reason})</font>
+        |      catch _:Other -&gt;
+<font color=red>     0..|  	    error("Failed to abort backup. ~p:~p~p -&gt; ~p~n",</font>
+        |  		  [Mod, abort_write, [Opaque], Other]),
+<font color=red>     0..|  	    throw({error, Reason})</font>
+        |      end.
+        |  
+        |  backup_tab(Tab, B) -&gt;
+<font color=red>     0..|      Name = B#backup_args.name,</font>
+<font color=red>     0..|      case mnesia2_checkpoint:most_local_node(Name, Tab) of</font>
+        |  	{ok, Node} when Node == node() -&gt;
+<font color=red>     0..|  	    tab_copier(self(), B, Tab);</font>
+        |  	{ok, Node} -&gt;
+<font color=red>     0..|  	    RemoteB = B,</font>
+<font color=red>     0..|  	    Pid = spawn_link(Node, ?MODULE, tab_copier, [self(), RemoteB, Tab]),</font>
+<font color=red>     0..|  	    RecName = val({Tab, record_name}),</font>
+<font color=red>     0..|  	    tab_receiver(Pid, B, Tab, RecName, 0);</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    abort_write(B, {?MODULE, backup_tab}, [Tab, B], {error, Reason})</font>
+        |      end.
+        |  
+        |  tab_copier(Pid, B, Tab) when is_record(B, backup_args) -&gt;
+        |      %% Intentional crash at exit
+<font color=red>     0..|      Name = B#backup_args.name,</font>
+<font color=red>     0..|      PrevName = B#backup_args.prev_name,</font>
+<font color=red>     0..|      {FirstName, FirstSource} = select_source(Tab, Name, PrevName),</font>
+        |  
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, tab_copier, pre}, [{name, Name}, {tab, Tab}]),</font>
+<font color=red>     0..|      Res = handle_more(Pid, B, Tab, FirstName, FirstSource, Name),</font>
+<font color=red>     0..|      ?eval_debug_fun({?MODULE, tab_copier, post}, [{name, Name}, {tab, Tab}]),</font>
+        |  
+<font color=red>     0..|      handle_last(Pid, Res).</font>
+        |  
+        |  select_source(Tab, Name, PrevName) -&gt;
+<font color=red>     0..|      if</font>
+        |  	Tab == schema -&gt;
+        |  	    %% Always full backup of schema
+<font color=red>     0..|  	    {Name, table};</font>
+        |  	Name == PrevName -&gt;
+        |  	    %% Full backup
+<font color=red>     0..|  	    {Name, table};</font>
+        |  	true -&gt;
+        |  	    %% Wants incremental backup
+<font color=red>     0..|  	    case mnesia2_checkpoint:most_local_node(PrevName, Tab) of</font>
+        |  		{ok, Node} when Node == node() -&gt;
+        |  		    %% Accept incremental backup
+<font color=red>     0..|  		    {PrevName, retainer};</font>
+        |  		_ -&gt;
+        |  		    %% Do a full backup anyway
+<font color=red>     0..|  		    dbg_out("Incremental backup escalated to full backup: ~p~n", [Tab]),</font>
+<font color=red>     0..|  		    {Name, table}</font>
+        |  	    end
+        |      end.
+        |  
+        |  handle_more(Pid, B, Tab, FirstName, FirstSource, Name) -&gt;
+<font color=red>     0..|      Acc = {0, B},</font>
+<font color=red>     0..|      case {mnesia2_checkpoint:really_retain(Name, Tab),</font>
+        |  	  mnesia2_checkpoint:really_retain(FirstName, Tab)} of
+        |  	{true, true} -&gt;
+<font color=red>     0..|  	    Acc2 = iterate(B, FirstName, Tab, Pid, FirstSource, latest, first, Acc),</font>
+<font color=red>     0..|  	    iterate(B, Name, Tab, Pid, retainer, checkpoint, last, Acc2);</font>
+        |  	{false, false}-&gt;
+        |  	    %% Put the dumped file in the backup
+        |  	    %% instead of the ram table. Does
+        |  	    %% only apply to ram_copies.
+<font color=red>     0..|  	    iterate(B, Name, Tab, Pid, retainer, checkpoint, last, Acc);</font>
+        |  	Bad -&gt;
+<font color=red>     0..|  	    Reason = {"Checkpoints for incremental backup must have same "</font>
+        |  		      "setting of ram_overrides_dump",
+        |  		      Tab, Name, FirstName, Bad},
+<font color=red>     0..|  	    abort_write(B, {?MODULE, backup_tab}, [Tab, B], {error, Reason})</font>
+        |      end.
+        |  
+        |  handle_last(Pid, {_Count, B}) when Pid == self() -&gt;
+<font color=red>     0..|      B;</font>
+        |  handle_last(Pid, _Acc) -&gt;
+<font color=red>     0..|      unlink(Pid),</font>
+<font color=red>     0..|      Pid ! {self(), {last, {ok, dummy}}},</font>
+<font color=red>     0..|      exit(normal).</font>
+        |  
+        |  iterate(B, Name, Tab, Pid, Source, Age, Pass, Acc) -&gt;
+<font color=red>     0..|      Fun =</font>
+        |  	if
+        |  	    Pid == self() -&gt;
+<font color=red>     0..|  		RecName = val({Tab, record_name}),</font>
+<font color=red>     0..|  		fun(Recs, A) -&gt; copy_records(RecName, Tab, Recs, A) end;</font>
+        |  	    true -&gt;
+<font color=red>     0..|  		fun(Recs, A) -&gt; send_records(Pid, Tab, Recs, Pass, A) end</font>
+        |  	end,
+<font color=red>     0..|      case mnesia2_checkpoint:iterate(Name, Tab, Fun, Acc, Source, Age) of</font>
+        |  	{ok, Acc2} -&gt;
+<font color=red>     0..|  	    Acc2;</font>
+        |  	{error, Reason} -&gt;
+<font color=red>     0..|  	    R = {error, {"Tab copier iteration failed", Reason}},</font>
+<font color=red>     0..|  	    abort_write(B, {?MODULE, iterate}, [self(), B, Tab], R)</font>
+        |      end.
+        |  
+        |  copy_records(_RecName, _Tab, [], Acc) -&gt;
+<font color=red>     0..|      Acc;</font>
+        |  copy_records(RecName, Tab, Recs, {Count, B}) -&gt;
+<font color=red>     0..|      Recs2 = rec_filter(B, Tab, RecName, Recs),</font>
+<font color=red>     0..|      B2 = safe_write(B, Recs2),</font>
+<font color=red>     0..|      {Count + 1, B2}.</font>
+        |  
+        |  send_records(Pid, Tab, Recs, Pass, {Count, B}) -&gt;
+<font color=red>     0..|      receive</font>
+        |  	{Pid, more, Count} -&gt;
+<font color=red>     0..|  	    if</font>
+        |  		Pass == last, Recs == [] -&gt;
+<font color=red>     0..|  		    {Count, B};</font>
+        |  		true -&gt;
+<font color=red>     0..|  		    Next = Count + 1,</font>
+<font color=red>     0..|  		    Pid ! {self(), {more, Next, Recs}},</font>
+<font color=red>     0..|  		    {Next, B}</font>
+        |  	    end;
+        |  	Msg -&gt;
+<font color=red>     0..|  	    exit({send_records_unexpected_msg, Tab, Msg})</font>
+        |      end.
+        |  
+        |  tab_receiver(Pid, B, Tab, RecName, Slot) -&gt;
+<font color=red>     0..|      Pid ! {self(), more, Slot},</font>
+<font color=red>     0..|      receive</font>
+        |  	{Pid, {more, Next, Recs}} -&gt;
+<font color=red>     0..|  	    Recs2 = rec_filter(B, Tab, RecName, Recs),</font>
+<font color=red>     0..|  	    B2 = safe_write(B, Recs2),</font>
+<font color=red>     0..|  	    tab_receiver(Pid, B2, Tab, RecName, Next);</font>
+        |  
+        |  	{Pid, {last, {ok,_}}} -&gt;
+<font color=red>     0..|  	    B;</font>
+        |  
+        |  	{'EXIT', Pid, {error, R}} -&gt;
+<font color=red>     0..|  	    Reason = {error, {"Tab copier crashed", R}},</font>
+<font color=red>     0..|  	    abort_write(B, {?MODULE, remote_tab_sender}, [self(), B, Tab], Reason);</font>
+        |  	{'EXIT', Pid, R} -&gt;
+<font color=red>     0..|  	    Reason = {error, {"Tab copier crashed", {'EXIT', R}}},</font>
+<font color=red>     0..|  	    abort_write(B, {?MODULE, remote_tab_sender}, [self(), B, Tab], Reason);</font>
+        |  	Msg -&gt;
+<font color=red>     0..|  	    R = {error, {"Tab receiver got unexpected msg", Msg}},</font>
+<font color=red>     0..|  	    abort_write(B, {?MODULE, remote_tab_sender}, [self(), B, Tab], R)</font>
+        |      end.
+        |  
+        |  rec_filter(B, schema, _RecName, Recs) -&gt;
+<font color=red>     0..|      try mnesia2_bup:refresh_cookie(Recs, B#backup_args.cookie)</font>
+        |      catch throw:{error, _Reason} -&gt;
+        |  	    %% No schema table cookie
+<font color=red>     0..|  	    Recs</font>
+        |      end;
+        |  rec_filter(_B, Tab, Tab, Recs) -&gt;
+<font color=red>     0..|      Recs;</font>
+        |  rec_filter(_B, Tab, _RecName, Recs) -&gt;
+<font color=red>     0..|      [setelement(1, Rec, Tab) || Rec &lt;- Recs].</font>
+        |  
+        |  ets2dcd(Tab) -&gt;
+<font color=red>     0..|      ets2dcd(Tab, dcd).</font>
+        |  
+        |  ets2dcd(Tab, Ftype) -&gt;
+<font color=red>     0..|      Fname =</font>
+        |  	case Ftype of
+<font color=red>     0..|  	    dcd -&gt; mnesia2_lib:tab2dcd(Tab);</font>
+<font color=red>     0..|  	    dmp -&gt; mnesia2_lib:tab2dmp(Tab)</font>
+        |  	end,
+<font color=red>     0..|      TmpF = mnesia2_lib:tab2tmp(Tab),</font>
+<font color=red>     0..|      file:delete(TmpF),</font>
+<font color=red>     0..|      Log  = open_log({Tab, ets2dcd}, dcd_log_header(), TmpF, false),</font>
+<font color=red>     0..|      mnesia2_lib:db_fixtable(ram_copies, Tab, true),</font>
+<font color=red>     0..|      ok   = ets2dcd(mnesia2_lib:db_init_chunk(ram_copies, Tab, 1000), Tab, Log),</font>
+<font color=red>     0..|      mnesia2_lib:db_fixtable(ram_copies, Tab, false),</font>
+<font color=red>     0..|      close_log(Log),</font>
+<font color=red>     0..|      ok = file:rename(TmpF, Fname),</font>
+        |      %% Remove old log data which is now in the new dcd.
+        |      %% No one else should be accessing this file!
+<font color=red>     0..|      file:delete(mnesia2_lib:tab2dcl(Tab)),</font>
+<font color=red>     0..|      ok.</font>
+        |  
+        |  ets2dcd('$end_of_table', _Tab, _Log) -&gt;
+<font color=red>     0..|      ok;</font>
+        |  ets2dcd({Recs, Cont}, Tab, Log) -&gt;
+<font color=red>     0..|      ok = disk_log:log_terms(Log, Recs),</font>
+<font color=red>     0..|      ets2dcd(mnesia2_lib:db_chunk(ram_copies, Cont), Tab, Log).</font>
+        |  
+        |  dcd2ets(Tab) -&gt;
+<font color=red>     0..|      dcd2ets(Tab, mnesia2_monitor:get_env(auto_repair)).</font>
+        |  
+        |  dcd2ets(Tab, Rep) -&gt;
+<font color=red>     0..|      Dcd = mnesia2_lib:tab2dcd(Tab),</font>
+<font color=red>     0..|      case mnesia2_lib:exists(Dcd) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Log = open_log({Tab, dcd2ets}, dcd_log_header(), Dcd,</font>
+        |  			   true, Rep, read_only),
+<font color=red>     0..|  	    Data = chunk_log(Log, start),</font>
+<font color=red>     0..|  	    ok = insert_dcdchunk(Data, Log, Tab),</font>
+<font color=red>     0..|  	    close_log(Log),</font>
+<font color=red>     0..|  	    load_dcl(Tab, Rep);</font>
+        |  	false -&gt; %% Handle old dets files, and conversion from disc_only to disc.
+<font color=red>     0..|  	    Fname = mnesia2_lib:tab2dat(Tab),</font>
+<font color=red>     0..|  	    Type = val({Tab, setorbag}),</font>
+<font color=red>     0..|  	    case mnesia2_lib:dets_to_ets(Tab, Tab, Fname, Type, Rep, yes) of</font>
+        |  		loaded -&gt;
+<font color=red>     0..|  		    ets2dcd(Tab),</font>
+<font color=red>     0..|  		    file:delete(Fname),</font>
+<font color=red>     0..|  		    0;</font>
+        |  		{error, Error} -&gt;
+<font color=red>     0..|  		    erlang:error({"Failed to load table from disc", [Tab, Error]})</font>
+        |  	    end
+        |      end.
+        |  
+        |  insert_dcdchunk({Cont, [LogH | Rest]}, Log, Tab)
+        |    when is_record(LogH, log_header),
+        |         LogH#log_header.log_kind == dcd_log,
+        |         LogH#log_header.log_version &gt;= "1.0" -&gt;
+<font color=red>     0..|      insert_dcdchunk({Cont, Rest}, Log, Tab);</font>
+        |  
+        |  insert_dcdchunk({Cont, Recs}, Log, Tab) -&gt;
+<font color=red>     0..|      true = ets:insert(Tab, Recs),</font>
+<font color=red>     0..|      insert_dcdchunk(chunk_log(Log, Cont), Log, Tab);</font>
+        |  insert_dcdchunk(eof, _Log, _Tab) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  load_dcl(Tab, Rep) -&gt;
+<font color=red>     0..|      FName = mnesia2_lib:tab2dcl(Tab),</font>
+<font color=red>     0..|      case mnesia2_lib:exists(FName) of</font>
+        |  	true -&gt;
+<font color=red>     0..|  	    Name = {load_dcl,Tab},</font>
+<font color=red>     0..|  	    open_log(Name,</font>
+        |  		     dcl_log_header(),
+        |  		     FName,
+        |  		     true,
+        |  		     Rep,
+        |  		     read_only),
+<font color=red>     0..|  	    FirstChunk = chunk_log(Name, start),</font>
+<font color=red>     0..|              N = insert_logchunk(FirstChunk, Name, 0),</font>
+<font color=red>     0..|  	    close_log(Name),</font>
+<font color=red>     0..|  	    N;</font>
+        |  	false -&gt;
+<font color=red>     0..|  	    0</font>
+        |      end.
+        |  
+        |  insert_logchunk({C2, Recs}, Tab, C) -&gt;
+<font color=red>     0..|      N = add_recs(Recs, C),</font>
+<font color=red>     0..|      insert_logchunk(chunk_log(Tab, C2), Tab, C+N);</font>
+        |  insert_logchunk(eof, _Tab, C) -&gt;
+<font color=red>     0..|      C.</font>
+        |  
+        |  add_recs([{{Tab, _Key}, Val, write} | Rest], N) -&gt;
+<font color=red>     0..|      true = ets:insert(Tab, Val),</font>
+<font color=red>     0..|      add_recs(Rest, N+1);</font>
+        |  add_recs([{{Tab, Key}, _Val, delete} | Rest], N) -&gt;
+<font color=red>     0..|      true = ets:delete(Tab, Key),</font>
+<font color=red>     0..|      add_recs(Rest, N+1);</font>
+        |  add_recs([{{Tab, _Key}, Val, delete_object} | Rest], N) -&gt;
+<font color=red>     0..|      true = ets:match_delete(Tab, Val),</font>
+<font color=red>     0..|      add_recs(Rest, N+1);</font>
+        |  add_recs([{{Tab, Key}, Val, update_counter} | Rest], N) -&gt;
+<font color=red>     0..|      {RecName, Incr} = Val,</font>
+<font color=red>     0..|      try</font>
+<font color=red>     0..|  	CounterVal = ets:update_counter(Tab, Key, Incr),</font>
+<font color=red>     0..|  	true = (CounterVal &gt;= 0)</font>
+        |      catch
+        |  	error:_ when Incr &lt; 0 -&gt;
+<font color=red>     0..|  	    Zero = {RecName, Key, 0},</font>
+<font color=red>     0..|  	    true = ets:insert(Tab, Zero);</font>
+        |  	error:_ -&gt;
+<font color=red>     0..|  	    Zero = {RecName, Key, Incr},</font>
+<font color=red>     0..|  	    true = ets:insert(Tab, Zero)</font>
+        |      end,
+<font color=red>     0..|      add_recs(Rest, N+1);</font>
+        |  add_recs([LogH|Rest], N)
+        |    when is_record(LogH, log_header),
+        |         LogH#log_header.log_kind == dcl_log,
+        |         LogH#log_header.log_version &gt;= "1.0" -&gt;
+<font color=red>     0..|      add_recs(Rest, N);</font>
+        |  add_recs([{{Tab, _Key}, _Val, clear_table} | Rest], N) -&gt;
+<font color=red>     0..|      Size = ets:info(Tab, size),</font>
+<font color=red>     0..|      true = ets:delete_all_objects(Tab),</font>
+<font color=red>     0..|      add_recs(Rest, N+Size);</font>
+        |  add_recs([], N) -&gt;
+<font color=red>     0..|      N.</font>
+</pre>
+</body>
+</html>
