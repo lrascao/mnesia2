@@ -24,13 +24,11 @@
 -export([start_link/1,
          pool_name/1]).
 
--export([init_buffer_sender/4,
-         async_dirty_sender_loop/4,
-         init_async_dirty_tm_sender_loop/3]).
+-export([init_buffer_sender/3,
+         async_dirty_sender_loop/3,
+         init_async_dirty_tm_sender_loop/2]).
 
 -import(mnesia2_lib, [verbose/2]).
-
--define(NUM_ASYNC_DIRTY_TM_SENDER, 3).
 
 -record(buffer_log, {fn,
                      fnum=0,
@@ -41,7 +39,6 @@
                      newtxns=[]}).
 -record(buffer_log_send, {parent,
                           node,
-                          num,
                           logname,
                           fnum,
                           fn,
@@ -55,9 +52,9 @@
 
 -include("mnesia2.hrl").
 
-start_link([Node, Num, Parent]) ->
+start_link([Node, Parent]) ->
     Pid = spawn_link(?MODULE, init_async_dirty_tm_sender_loop,
-                       [Node, Num, Parent]),
+                       [Node, Parent]),
     {ok, Pid}.
 
 pool_name(Node) ->
@@ -66,25 +63,28 @@ pool_name(Node) ->
 
 async_dirty_send(_Node, []) ->
     ok;
-async_dirty_send(Node, [{TmName, Txn} | Tail]) ->
-    erlang:send({TmName, Node}, Txn),
+async_dirty_send(Node, [{Key, Txn} | Tail]) ->
+    RemoteTmPid = mnesia2_tm:recruit_aux_worker(Key, Node),
+    lager:debug("sending(blocking) txn ~p to ~p @ ~p",
+      [Txn, RemoteTmPid, Node]),
+    erlang:send(RemoteTmPid, Txn),
     async_dirty_send(Node, Tail).
 
-init_async_dirty_tm_sender_loop(Node, Num, Parent) ->
+init_async_dirty_tm_sender_loop(Node, Parent) ->
     case check_remote_tm(Node) of
         ok ->
-            async_dirty_sender_loop(Node, Num, Parent, []);
+            async_dirty_sender_loop(Node, Parent, []);
         _ ->
             timer:sleep(60*1000),
-            init_async_dirty_tm_sender_loop(Node, Num, Parent)
+            init_async_dirty_tm_sender_loop(Node, Parent)
     end.
 
-init_buffer_sender(Parent, Node, Num, LogName) ->
-    open_async_dirty_buffer_log(#buffer_log_send{parent=Parent, node=Node, num=Num,
+init_buffer_sender(Parent, Node, LogName) ->
+    open_async_dirty_buffer_log(#buffer_log_send{parent=Parent, node=Node,
                                                  logname=LogName, fnum=0, runmode=running,
-                                                 starttime=os:timestamp()}).
+                                                 starttime=mnesia2_time:timestamp()}).
 
-async_dirty_sender_loop(Node, Num, Parent, Mode) ->
+async_dirty_sender_loop(Node, Parent, Mode) ->
     Timeout = case Mode of
           [] ->
               % normal mode: wait for txns to forward (non-blocking sends)
@@ -102,9 +102,10 @@ async_dirty_sender_loop(Node, Num, Parent, Mode) ->
               % queued mode: retry sending queued txns after a brief wait
               100
           end,
+    timer:sleep(crypto:rand_uniform(0, 500)),
     {Txns, Msg} = async_dirty_dequeue(Timeout, []),
-    verbose("dequeued txns: ~p, msg: ~p, mode: ~p",
-        [Txns, Msg, Mode]),
+    lager:debug("(~p) dequeued txns: ~p, msg: ~p, mode: ~p",
+                    [self(), Txns, Msg, Mode]),
     TxBacklogThreshold = mnesia2_lib:val(async_dirty_tx_backlog_threshold),
     Mode1 = case Mode of
         Buffered when is_list(Buffered) ->
@@ -121,7 +122,7 @@ async_dirty_sender_loop(Node, Num, Parent, Mode) ->
                    RemTxns;
                true ->
                    % need to start buffering on disk
-                   LogName = atom_to_list(node_num_to_async_dirty_tm_sender_log(Node, Num)),
+                   LogName = atom_to_list(node_num_to_async_dirty_tm_sender_log(Node)),
                    LogFile = lists:flatten(io_lib:format("~s.~4.10.0b", [LogName, 0])),
                case prim_file:open(mnesia2_lib:dir(LogFile),
                                    [raw, binary, append]) of
@@ -129,7 +130,7 @@ async_dirty_sender_loop(Node, Num, Parent, Mode) ->
                        prim_file:truncate(WF),
                        BufferMode = append_buffer_log(#buffer_log{fn=LogName, wf=WF}, RemTxns),
                        NewPid = spawn_link(?MODULE, init_buffer_sender,
-                                           [self(), Node, Num, LogName]),
+                                           [self(), Node, LogName]),
                        verbose("~s: START async_dirty_sender buffer log (reader=~p)",
                             [LogName, NewPid]),
                        verbose("~s: OPEN-WRITE async_dirty_sender buffer log (seq=~b)",
@@ -195,13 +196,19 @@ async_dirty_sender_loop(Node, Num, Parent, Mode) ->
             verbose("mnesia2_tm async_dirty sender unknown message: ~1000p~n", [Other]),
             Mode1
         end,
-    ?MODULE:async_dirty_sender_loop(Node, Num, Parent, Mode2).
+    ?MODULE:async_dirty_sender_loop(Node, Parent, Mode2).
+
+node_num_to_async_dirty_tm_sender_log(Node) ->
+    list_to_atom("buffer_sender_" ++
+                 integer_to_list(erlang:phash2(self())) ++
+                 "_"
+                 ++ atom_to_list(Node)).
 
 % dequeue all the txns in the message queue
 async_dirty_dequeue(Timeout, List) ->
     receive
-        {async_dirty, TmName, Txn} ->
-            async_dirty_dequeue(0, [{TmName, Txn} | List]);
+        {async_dirty, Key, Txn} ->
+            async_dirty_dequeue(0, [{Key, Txn} | List]);
         Other ->
             {lists:reverse(List), Other}
         after Timeout ->
@@ -223,7 +230,7 @@ open_async_dirty_buffer_log(Log) ->
     end.
 
 async_dirty_buffer_sender(#buffer_log_send{parent=Parent, rf=RF, fnum=FNum, filepos=FilePos, rtxns=[], runmode=RunMode} = Log) ->
-    Runtime = timer:now_diff(os:timestamp(), Log#buffer_log_send.starttime),
+    Runtime = timer:now_diff(mnesia2_time:timestamp(), Log#buffer_log_send.starttime),
     BufferSize = mnesia2_lib:val(async_dirty_buffer_size),
     %% buffer minimum run time is in milliseconds, convert it to micro
     %% since it's to be compared with the output if timer:now_diff/2
@@ -356,9 +363,11 @@ append_buffer_log(Mode = #buffer_log{wtxns=WTxns, wtxnsize=WTxnSize, newtxns=[Tx
 
 send_buffer_log_try(_Node, []) ->
     [];
-send_buffer_log_try(Node, [{TmName, Txn} | Tail] = Txns) ->
-    verbose("sending txn ~p to ~p", [Txn, {TmName, Node}]),
-    case erlang:send_nosuspend({TmName, Node}, Txn) of
+send_buffer_log_try(Node, [{Key, Txn} | Tail] = Txns) ->
+    RemoteTmPid = mnesia2_tm:recruit_aux_worker(Key, Node),
+    lager:debug("(async_dirty_sender, ~p) sending(unblocking) txn ~p to remote mnesia2_tm ~p @ ~p",
+      [self(), Txn, RemoteTmPid, Node]),
+    case erlang:send_nosuspend(RemoteTmPid, Txn) of
     true ->
         send_buffer_log_try(Node, Tail);
     false ->
@@ -366,22 +375,16 @@ send_buffer_log_try(Node, [{TmName, Txn} | Tail] = Txns) ->
     end.
 
 check_remote_tm(Node) ->
-    TmName = mnesia2_tm:num_to_async_dirty_tm_name(1),
-    try sys:get_status({TmName, Node}, 10000) of
-    {status, _Pid, _Mod, _Stuff} ->
-        ok;
-    Other ->
-        verbose("bad remote mnesia2_tm response (node=~p): ~1000p~n", [Node, Other]),
-        {error, invalid_response}
+    RemoteTmPid = mnesia2_tm:recruit_aux_worker(Node),
+    try sys:get_status(RemoteTmPid, 10000) of
+      {status, _Pid, _Mod, _Stuff} ->
+          ok;
+      Other ->
+          verbose("bad remote mnesia2_tm response (node=~p): ~1000p~n", [Node, Other]),
+          {error, invalid_response}
     catch
-    _:Err ->
-        verbose("** ERROR ** Possible OTP version mismatch: remote ~p not responding (node=~p): ~1000p~n",
-            [TmName, Node, Err]),
-        {error, Err}
+      _:Err ->
+          verbose("** ERROR ** Possible OTP version mismatch: remote ~p not responding (node=~p): ~1000p~n",
+              [RemoteTmPid, Node, Err]),
+          {error, Err}
     end.
-
-node_num_to_async_dirty_tm_sender_log(Node, Num) ->
-    list_to_atom("ms" ++
-                 integer_to_list(((Num-1) rem ?NUM_ASYNC_DIRTY_TM_SENDER)+1) ++
-                 "_"
-                 ++ atom_to_list(Node)).

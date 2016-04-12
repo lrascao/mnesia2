@@ -63,7 +63,7 @@
 	 foldl/3, foldl/4, foldr/3, foldr/4,
 
 	 %% Dirty access regardless of activities - Updates
-	 dirty_write/1, dirty_write/2,
+	 dirty_write/1, dirty_write/2, dirty_write/3,
 	 dirty_delete/1, dirty_delete/2,
 	 dirty_delete_object/1, dirty_delete_object/2,
 	 dirty_update_counter/2, dirty_update_counter/3,
@@ -361,6 +361,7 @@ non_transaction(_State, Fun, Args, _ActivityKind, _Mod) ->
 async_dirty(Fun) ->
     async_dirty(Fun, []).
 async_dirty(Fun, Args) ->
+    lager:debug("(~p, ~p) requested an async_dirty op", [node(), self()]),
     non_transaction(get(mnesia2_activity_state), Fun, Args, async_dirty, ?DEFAULT_ACCESS).
 
 sync_dirty(Fun) ->
@@ -550,7 +551,7 @@ write(Tid, Ts, Tab, Val, LockKind)
 	    end,
 	    write_to_store(Tab, Store, Oid, Val);
 	Protocol ->
-	    do_dirty_write(Protocol, Tab, Val)
+	    do_dirty_write(Protocol, Tab, Val, [])
     end;
 write(_Tid, _Ts, Tab, Val, LockKind) ->
     abort({bad_type, Tab, Val, LockKind}).
@@ -1539,26 +1540,31 @@ index_read(_Tid, _Ts, Tab, _Key, _Attr, _LockKind) ->
 
 dirty_write(Val) when is_tuple(Val), tuple_size(Val) > 2  ->
     Tab = element(1, Val),
-    dirty_write(Tab, Val);
+    dirty_write(Tab, Val, []);
 dirty_write(Val) ->
     abort({bad_type, Val}).
 
 dirty_write(Tab, Val) ->
-    do_dirty_write(async_dirty, Tab, Val).
+    dirty_write(Tab, Val, []).
 
-do_dirty_write(SyncMode, Tab, Val)
+dirty_write(Tab, Val, Opts) ->
+    do_dirty_write(async_dirty, Tab, Val, Opts).
+
+do_dirty_write(SyncMode, Tab, Val, Opts)
   when is_atom(Tab), Tab /= schema, is_tuple(Val), tuple_size(Val) > 2 ->
     case ?catch_val({Tab, record_validation}) of
 	{RecName, Arity, _Type}
 	when tuple_size(Val) == Arity, RecName == element(1, Val) ->
 	    Oid = {Tab, element(2, Val)},
-	    mnesia2_tm:dirty(SyncMode, {Oid, Val, write});
+        lager:debug("calling mnesia2_tm:dirty(~p, {~p, ~p, write}, ~p)",
+            [SyncMode, Oid, Val, Opts]),
+	    mnesia2_tm:dirty(SyncMode, {Oid, Val, write}, Opts);
 	{'EXIT', _} ->
 	    abort({no_exists, Tab});
 	_ ->
 	    abort({bad_type, Val})
     end;
-do_dirty_write(_SyncMode, Tab, Val) ->
+do_dirty_write(_SyncMode, Tab, Val, _Opts) ->
     abort({bad_type, Tab, Val}).
 
 dirty_delete({Tab, Key}) ->
@@ -2208,6 +2214,10 @@ system_info2(dc_dump_limit) ->  mnesia2_monitor:get_env(dc_dump_limit);
 system_info2(send_compressed) -> mnesia2_monitor:get_env(send_compressed);
 system_info2(send_max_packets) -> mnesia2_monitor:get_env(send_max_packets);
 system_info2(send_max_transfer_size) -> mnesia2_monitor:get_env(send_max_transfer_size);
+system_info2(check_overload_period) -> mnesia2_monitor:get_env(check_overload_period);
+system_info2(overload_tm_queue_len_threshold) -> mnesia2_monitor:get_env(overload_tm_queue_len_threshold);
+system_info2(async_dirty_n_tm) -> mnesia2_monitor:get_env(async_dirty_n_tm);
+system_info2(async_dirty_n_sender) -> mnesia2_monitor:get_env(async_dirty_n_sender);
 system_info2(async_dirty_buffer_size) -> mnesia2_monitor:get_env(async_dirty_buffer_size);
 system_info2(async_dirty_max_buffer_file_size) -> mnesia2_monitor:get_env(async_dirty_max_buffer_file_size);
 system_info2(async_dirty_tx_backlog_threshold) -> mnesia2_monitor:get_env(async_dirty_tx_backlog_threshold);

@@ -98,3 +98,6 @@ distclean: clean
 	- rm -rvf deps
 
 rebuild: distclean deps compile dialyze
+
+shell: deps compile
+	erl -name test$(shell bash -c 'echo $$RANDOM') -pa ebin -pa deps/*/ebin -s mnesia2

@@ -74,10 +74,9 @@
 		unclear_decision,
 		unclear_waitfor,
 		tm_queue_len = 0,
-                log_dump_overload = false,
+        log_dump_overload = false,
 		initiated = false,
-		early_msgs = []
-	       }).
+		early_msgs = []}).
 
 %%-define(DBG(F, A), mnesia2:report_event(list_to_atom(lists:flatten(io_lib:format(F, A))))).
 %%-define(DBG(F, A), io:format("DBG: " ++ F, A)).
@@ -99,17 +98,18 @@ next_garb() ->
 
 next_check_overload() ->
     Pid = whereis(mnesia2_recover),
-    erlang:send_after(timer:seconds(10), Pid, check_overload).
+    T = timer:seconds(mnesia2_monitor:get_env(check_overload_period)),
+    erlang:send_after(T, Pid, check_overload).
 
 
 do_check_overload(S) ->
     %% Time to check if mnesia2_tm is overloaded
     case whereis(mnesia2_tm) of
     Pid when is_pid(Pid) ->
-        Threshold = 100,
+        Threshold = mnesia2_monitor:get_env(overload_tm_queue_len_threshold),
         Prev = S#state.tm_queue_len,
         {message_queue_len, Len} =
-        process_info(Pid, message_queue_len),
+            process_info(Pid, message_queue_len),
         if
         Len > Threshold, Prev > Threshold ->
             What = {mnesia2_tm, message_queue_len, [Prev, Len]},

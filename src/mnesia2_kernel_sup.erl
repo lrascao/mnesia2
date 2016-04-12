@@ -38,15 +38,15 @@ init([]) ->
     ProcLib = [mnesia2_monitor, proc_lib],
     Flags = {one_for_all, 0, timer:hours(24)}, % Trust the top supervisor
     Workers = [worker_spec(mnesia2_monitor, timer:seconds(3), [gen_server]),
-	       worker_spec(mnesia2_subscr, timer:seconds(3), [gen_server]),
-	       worker_spec(mnesia2_locker, timer:seconds(3), ProcLib),
-	       worker_spec(mnesia2_recover, timer:minutes(3), [gen_server]),
-	       worker_spec(mnesia2_tm, timer:seconds(30), ProcLib),
-	       supervisor_spec(mnesia2_checkpoint_sup),
-	       supervisor_spec(mnesia2_snmp_sup),
-	       worker_spec(mnesia2_controller, timer:seconds(3), [gen_server]),
-	       worker_spec(mnesia2_late_loader, timer:seconds(3), ProcLib)
-         ] ++ mnesia2_tm:get_aux_workers(),
+	           worker_spec(mnesia2_subscr, timer:seconds(3), [gen_server]),
+	           worker_spec(mnesia2_locker, timer:seconds(3), ProcLib),
+    	       worker_spec(mnesia2_recover, timer:minutes(3), [gen_server]),
+    	       worker_spec(mnesia2_tm, timer:seconds(30), ProcLib),
+    	       supervisor_spec(mnesia2_checkpoint_sup),
+    	       supervisor_spec(mnesia2_snmp_sup),
+    	       worker_spec(mnesia2_controller, timer:seconds(3), [gen_server]),
+    	       worker_spec(mnesia2_late_loader, timer:seconds(3), ProcLib)
+              ] ++ mnesia2_tm:get_aux_workers_spec(),
     {ok, {Flags, Workers}}.
 
 worker_spec(Name, KillAfter, Modules) ->

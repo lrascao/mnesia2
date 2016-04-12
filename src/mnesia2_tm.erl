@@ -24,10 +24,11 @@
 -export([
 	 start/0,
 	 init/1,
+	 start_link/1,
 	 non_transaction/5,
 	 transaction/6,
 	 commit_participant/5,
-	 dirty/2,
+	 dirty/2, dirty/3,
 	 display_info/2,
 	 do_update_op/3,
 	 get_info/1,
@@ -47,20 +48,15 @@
 
 %% sys callback functions
 -export([system_continue/3,
-	 system_terminate/4,
-	 system_code_change/4
-	]).
+	 	 system_terminate/4,
+	 	 system_code_change/4]).
 
 -export([mnesia2_up/1,
+	 	 get_aux_workers_spec/0,
 	 	 get_aux_workers/0,
-	 	 start_async_dirty_tm/1,
-		 init_async_dirty_tm/2]).
-
--export([num_to_async_dirty_tm_name/1]).
-
--define(NUM_ASYNC_DIRTY_TM, 32).
--define(NUM_ASYNC_DIRTY_TM_MODULUS, 17).
--define(NUM_ASYNC_DIRTY_TM_SENDER, 3).
+	 	 get_aux_workers/1,
+	 	 recruit_aux_worker/1, recruit_aux_worker/2,
+		 init_async_dirty_tm/0]).
 
 -define(PDQ_DEQ_CHECK_COUNT, 100).
 
@@ -74,8 +70,7 @@
 		participants = gb_trees:empty(),
 		supervisor,
 		dirty_queue = [], fixed_tabs = [],
-		msg_queue = [], msg_rqueue = [],
-		async_dirty_tm}).
+		msg_queue = [], msg_rqueue = []}).
 %% Format on coordinators is [{Tid, EtsTabList} .....
 
 -record(prep, {protocol = sym_trans,
@@ -94,8 +89,12 @@
 start() ->
     mnesia2_monitor:start_proc(?MODULE, ?MODULE, init, [self()]).
 
+start_link([]) ->
+    Pid = spawn_link(?MODULE, init_async_dirty_tm, []),
+    {ok, Pid}.
+
 mnesia2_up (Node) ->
-	?MODULE ! {mnesia2_up, Node}.
+	send(?MODULE, {mnesia2_up, Node}).
 
 init(Parent) ->
     register(?MODULE, self()),
@@ -141,25 +140,25 @@ init(Parent) ->
     proc_lib:init_ack(Parent, {ok, self()}),
     doit_loop(#state{supervisor = Parent}).
 
-get_aux_workers () ->
-    [ {num_to_async_dirty_tm_name(I),
-    	{?MODULE, start_async_dirty_tm, [I]},
-    	permanent,
-    	timer:hours(24),
-    	worker,
-    	[?MODULE, proc_lib, mnesia2_monitor]} || I <- lists:seq(1, ?NUM_ASYNC_DIRTY_TM) ].
+pool_name() ->
+    list_to_atom("mnesia2_tm_pool").
 
-start_async_dirty_tm (I) ->
-    mnesia2_monitor:start_proc(num_to_async_dirty_tm_name(I),
-    						   ?MODULE,
-    						   init_async_dirty_tm,
-    						   [I, self()]).
+get_aux_workers_spec() ->
+	AuxWorkersPoolSize = mnesia2_monitor:get_env(async_dirty_n_tm),
+	[poolgirl:child_spec(pool_name(),
+						[{name, {local, pool_name()}},
+						 {worker_module, mnesia2_tm},
+						 {size, AuxWorkersPoolSize}])].
 
-init_async_dirty_tm (I, Parent) ->
-    register(num_to_async_dirty_tm_name(I), self()),
+get_aux_workers() ->
+	poolgirl:get_workers(pool_name()).
+
+get_aux_workers(Node) ->
+	req({?MODULE, Node}, get_aux_workers).
+
+init_async_dirty_tm() ->
     process_flag(trap_exit, true),
-    proc_lib:init_ack(Parent, {ok, self()}),
-    doit_loop(#state{supervisor = Parent, async_dirty_tm = I}).
+    doit_loop(#state{supervisor = undefined}).
 
 val(Var) ->
     case ?catch_val(Var) of
@@ -176,12 +175,35 @@ reply(From, R, State) ->
     reply(From, R),
     doit_loop(State).
 
+send(Pid, Msg) when is_pid(Pid) ->
+	lager:debug("(~p) sending to ~p: ~p",
+		[self(), Pid, Msg]),
+	Pid ! Msg;
+send({Where, Node}, Msg) ->
+	lager:debug("(~p) sending to ~p: ~p",
+		[self(), {Where, Node}, Msg]),
+	erlang:send({Where, Node}, Msg);
+send(Where, Msg) ->
+	lager:debug("(~p) sending to ~p: ~p",
+		[self(), Where, Msg]),
+	erlang:send(Where, Msg).
+
+req({Where, Node}, R) ->
+	Ref = make_ref(),
+	send({Where, Node}, {{self(), Ref}, R}),
+	rec(undefined, Ref);
+req(Pid, R) when is_pid(Pid) ->
+	Ref = make_ref(),
+	send(Pid, {{self(), Ref}, R}),
+	rec(Pid, Ref);
 req(Where, R) ->
     case whereis(Where) of
 		undefined ->
 		    {error, {node_not_running, node()}};
 		Pid when is_pid(Pid) ->
 		    Ref = make_ref(),
+			lager:debug("(~p) sending to ~p(~p): ~p",
+				[self(), Where, Pid, R]),
 		    Pid ! {{self(), Ref}, R},
 		    rec(Pid, Ref)
     end.
@@ -230,7 +252,7 @@ mnesia2_down(Node) ->
 	undefined ->
 	    mnesia2_monitor:mnesia2_down(?MODULE, Node);
 	Pid ->
-	    Pid ! {mnesia2_down, Node},
+		send(Pid, {mnesia2_down, Node}),
 	    ok
     end.
 
@@ -241,21 +263,26 @@ prepare_checkpoint(Cp) ->
     req({prepare_checkpoint,Cp}).
 
 block_tab(Tab) ->
-    req(tab_to_async_dirty_tm_name_old(Tab), {block_tab, Tab}),
-    req(tab_to_async_dirty_tm_name(Tab), {block_tab, Tab}),
+    req(recruit_aux_worker(), {block_tab, Tab}),
     req({block_tab, Tab}).
 
 unblock_tab(Tab) ->
-    req(tab_to_async_dirty_tm_name_old(Tab), {unblock_tab, Tab}),
-    req(tab_to_async_dirty_tm_name(Tab), {unblock_tab, Tab}),
+    req(recruit_aux_worker(), {unblock_tab, Tab}),
     req({unblock_tab, Tab}).
 
-doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=Sup}=State0) ->
+doit_loop(#state{coordinators=Coordinators,
+				 participants=Participants,
+				 supervisor=Sup}=State0) ->
+    SelfNode = node(),
+    Self = self(),
     {RecvMsg, State} = tm_dequeue(State0),
+	lager:debug("(mnesia2_tm(~p) got msg ~p",
+		[Self, RecvMsg]),
     case RecvMsg of
 	{_From, {async_dirty, Tid, Commit, Tab}} ->
 	    case mnesia2_tab:is_blocked(Tab) of
 		false ->
+			lager:debug("do_async_dirty(~p, ~p, ~p)", [Tid, Commit, Tab]),
 		    do_async_dirty(Tid, Commit, Tab),
 		    doit_loop(State);
 		true ->
@@ -298,11 +325,11 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
 	    Pid =
 		case Protocol of
 		    asym_trans when node(Tid#tid.pid) /= node() ->
-			Args = [tmpid(From), Tid, Commit, DiscNs, RamNs],
-			spawn_link(?MODULE, commit_participant, Args);
+				Args = [tmpid(From), Tid, Commit, DiscNs, RamNs],
+				spawn_link(?MODULE, commit_participant, Args);
 		    _ when node(Tid#tid.pid) /= node() -> %% *_sym_trans
-			reply(From, {vote_yes, Tid}),
-			nopid
+				reply(From, {vote_yes, Tid}),
+				nopid
 		end,
 	    P = #participant{tid = Tid,
 			     pid = Pid,
@@ -335,7 +362,7 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
 			    do_commit(Tid, Commit),
 			    if
 				P#participant.protocol == sync_sym_trans ->
-				    Tid#tid.pid ! {?MODULE, node(), {committed, Tid}};
+					send(Tid#tid.pid, {?MODULE, node(), {committed, Tid}});
 				true ->
 				    ignore
 			    end,
@@ -345,7 +372,7 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
 			    doit_loop(State#state{participants=
 						  gb_trees:delete(Tid,Participants)});
 			Pid when is_pid(Pid) ->
-			    Pid ! {Tid, committed},
+				send(Pid, {Tid, committed}),
 			    ?eval_debug_fun({?MODULE, do_commit, post}, [{tid, Tid}, {pid, Pid}]),
 			    doit_loop(State)
 		    end
@@ -373,7 +400,7 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
 			    do_abort(Tid, Commit),
 			    if
 				P#participant.protocol == sync_sym_trans ->
-				    Tid#tid.pid ! {?MODULE, node(), {aborted, Tid}};
+					send(Tid#tid.pid, {?MODULE, node(), {aborted, Tid}});
 				true ->
 				    ignore
 			    end,
@@ -383,7 +410,7 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
 			    doit_loop(State#state{participants=
 						  gb_trees:delete(Tid,Participants)});
 			Pid when is_pid(Pid) ->
-			    Pid ! {Tid, {do_abort, Reason}},
+				send(Pid, {Tid, {do_abort, Reason}}),
 			    ?eval_debug_fun({?MODULE, do_abort, post},
 					    [{tid, Tid}, {pid, Pid}]),
 			    doit_loop(State)
@@ -449,14 +476,35 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
 	    reply(From, {info, gb_trees:values(Participants),
 			 gb_trees:to_list(Coordinators)}, State);
 
-	{mnesia2_up, Node} ->
-	    verbose("Got mnesia2_up from ~p, starting ~p async_dirty senders ...~n",
-	    	[Node, ?NUM_ASYNC_DIRTY_TM_SENDER]),
+	{mnesia2_up, SelfNode} ->
+	    verbose("Got mnesia2_up from ~p~n", [SelfNode]),
+	    doit_loop(State);
+
+	{mnesia2_up, Node} when is_atom(Node) ->
+	    verbose("Got mnesia2_up from ~p, obtaining remote aux worker pool list...~n",
+	    	[Node]),
+	    %% we have a new node connected to us, obtain from it it's
+	    %% pid list of aux tm workers and add it to a local pool
+	    %% that pool will be used to allocate tm aux workers when
+	    %% we need to a message to one
+	    spawn_link(fun() ->
+	    			ensure_remote_aux_worker_pool(Node),
+	    			%% after obtaining the list of remote workers
+	    			%% we can proceed
+	    			send(?MODULE, {mnesia2_up, {got_remote_worker_pool, Node}})
+	    		   end),
+	    doit_loop(State);
+
+	{mnesia2_up, {got_remote_worker_pool, Node}} ->
+		DirtySendersPoolSize = mnesia2_monitor:get_env(async_dirty_n_sender),
+	    verbose("Got remote worker pool ~p, starting ~p async_dirty senders ...~n",
+	    	[Node, DirtySendersPoolSize]),
+	    %% start the pool of async dirty sender workers
 	    {ok, Pid} =
 		    poolgirl:start_link([{name, {local, mnesia2_async_dirty_sender:pool_name(Node)}},
 		    					 {worker_module, mnesia2_async_dirty_sender},
-		    					 {size, ?NUM_ASYNC_DIRTY_TM_SENDER}],
-		    					[Node, 1, self()]),
+		    					 {size, DirtySendersPoolSize}],
+		    					[Node, self()]),
 		tmlink(Pid),
 	    doit_loop(State);
 
@@ -528,6 +576,10 @@ doit_loop(#state{coordinators=Coordinators,participants=Participants,supervisor=
 		    reply(From, node(), NewState)
 	    end;
 
+	{From, get_aux_workers} ->
+		L = get_aux_workers(),
+	    reply(From, {ok, L}, State);
+
 	{system, From, Msg} ->
 	    dbg_out("~p got {system, ~p, ~p}~n", [?MODULE, From, Msg]),
 	    sys:handle_system_msg(Msg, From, Sup, ?MODULE, [], State);
@@ -563,47 +615,71 @@ do_sync_dirty(From, Tid, Commit, _Tab) ->
     ?eval_debug_fun({?MODULE, sync_dirty, pre}, [{tid, Tid}]),
     Res = do_dirty(Tid, Commit),
     ?eval_debug_fun({?MODULE, sync_dirty, post}, [{tid, Tid}]),
-    From ! {?MODULE, node(), {dirty_res, Res}}.
+    send(From, {?MODULE, node(), {dirty_res, Res}}).
 
 do_async_dirty(Tid, Commit, _Tab) ->
     ?eval_debug_fun({?MODULE, async_dirty, pre}, [{tid, Tid}]),
     do_dirty(Tid, Commit),
     ?eval_debug_fun({?MODULE, async_dirty, post}, [{tid, Tid}]).
 
-tab_to_async_dirty_tm_name (Tab) when is_atom(Tab) ->
-	num_to_async_dirty_tm_name(tab_to_async_dirty_tm_num(Tab)).
+pool_name(Node) ->
+    list_to_atom("mnesia2_tm_pool@" ++
+                 atom_to_list(Node)).
 
-tab_to_async_dirty_tm_name_old (Tab) when is_atom(Tab) ->
-    num_to_async_dirty_tm_name(tab_to_async_dirty_tm_num_old(Tab)).
+ensure_remote_aux_worker_pool(Node) ->
+    try sys:get_status({?MODULE, Node}, 10000) of
+      {status, _Pid, _Mod, _Stuff} ->
+		%% the remote mnesia tm is working fine
+		%% so request from it the complete list of aux workers
+		{ok, RemoteAuxWorkers} = mnesia2_tm:get_aux_workers(Node),
+		verbose("remote node ~p aux tm workers: ~p\n",
+		  	[Node, RemoteAuxWorkers]),
+		%% we now create a local pg2 pool
+		ok = poolgirl_pg2:create(pool_name(Node)),
+		%% and add each of the aux workers to it
+		lists:foreach(fun(AuxWorker) ->
+						poolgirl_pg2:join(pool_name(Node), AuxWorker)
+					  end, RemoteAuxWorkers),
+      	ok;
+      Other ->
+          verbose("bad remote mnesia2_tm response (node=~p): ~1000p~n", [Node, Other]),
+          {error, invalid_response}
+    catch
+      _:Err ->
+          verbose("** ERROR ** Possible OTP version mismatch: remote ~p not responding (node=~p): ~1000p~n",
+              [?MODULE, Node, Err]),
+          {error, Err}
+    end.
 
-num_to_async_dirty_tm_name (N) when is_integer(N) ->
-    list_to_atom("mnesia2_tm_" ++ integer_to_list(N)).
+recruit_pool_worker(PoolName) ->
+	poolgirl_pg2:get_closest_pid(PoolName).
 
-tab_to_async_dirty_tm_num (Tab) ->
-    (tab_to_frag_num(Tab) rem ?NUM_ASYNC_DIRTY_TM_MODULUS) + 1.
+recruit_pool_worker(Key, PoolName) ->
+	%% get the total list of members for the pool
+	case poolgirl_pg2:get_members(PoolName) of
+		{error, _} -> undefined;
+		[] -> undefined;
+		Members ->
+			%% hash the key into a number, do a modulo on the member list
+			%% and get indexed pid, this should be consistent
+			%% ie. the same key always yields the same process id
+			Index = (erlang:phash2(Key) rem length(Members)) + 1,
+			lists:nth(Index, Members)
+	end.
 
-tab_to_async_dirty_tm_num_old (Tab) ->
-    ((tab_to_frag_num(Tab)-1) rem ?NUM_ASYNC_DIRTY_TM) + 1.
+recruit_async_dirty_sender(Key, Node) ->
+	recruit_pool_worker(Key, mnesia2_async_dirty_sender:pool_name(Node)).
 
-tab_to_frag_num (Tab) when is_atom(Tab) ->
-    tab_to_frag_num(atom_to_list(Tab));
-tab_to_frag_num ([]) ->
-    1;
-tab_to_frag_num ([$_ | S]) ->
-    case S of
-	[$f, $r, $a, $g | NS] ->
-	    try list_to_integer(NS) of
-		N ->
-		    N
-	    catch
-		_:_ ->
-		    tab_to_frag_num(S)
-	    end;
-	_ ->
-	    tab_to_frag_num(S)
-    end;
-tab_to_frag_num ([_ | S]) ->
-    tab_to_frag_num(S).
+recruit_aux_worker() ->
+	poolgirl_pg2:get_closest_pid(pool_name()).
+
+recruit_aux_worker(Node) ->
+	recruit_aux_worker(undefined, Node).
+
+recruit_aux_worker(undefined, Node) ->
+	recruit_pool_worker(pool_name(Node));
+recruit_aux_worker(Key, Node) ->
+	recruit_pool_worker(Key, pool_name(Node)).
 
 %% Process items in fifo order
 process_dirty_queue (Tab, State) ->
@@ -675,7 +751,7 @@ handle_exit(Pid, _Reason, State) when node(Pid) /= node() ->
     doit_loop(State);
 
 handle_exit(Pid, _Reason, State)
-		when Pid == State#state.supervisor, State#state.async_dirty_tm == undefined ->
+		when Pid == State#state.supervisor ->
     %% Our supervisor has died, time to stop
     do_stop(State);
 
@@ -1050,7 +1126,7 @@ restart(Mod, Tid, Ts, Fun, Args, Factor0, Retries0, Type, Why) ->
 	    intercept_friends(Tid, Ts),
 	    Store = Ts#tidstore.store,
 	    Nodes = get_elements(nodes,Store),
-	    ?MODULE ! {self(), {restart, Tid, Store}},
+	    send(?MODULE, {self(), {restart, Tid, Store}}),
 	    mnesia2_locker:send_release_tid(Nodes, Tid),
 	    timer:sleep(SleepTime),
 	    mnesia2_locker:receive_release_tid_acc(Nodes, Tid),
@@ -1089,7 +1165,7 @@ return_abort(Fun, Args, Reason)  ->
     if
 	Level == 1 ->
 	    mnesia2_locker:async_release_tid(Nodes, Tid),
-	    ?MODULE ! {delete_transaction, Tid},
+	    send(?MODULE, {delete_transaction, Tid}),
 	    erase(mnesia2_activity_state),
 	    flush_downs(),
 	    ?SAFE(unlink(whereis(?MODULE))),
@@ -1176,7 +1252,7 @@ intercept_best_friend([{stop,Fun} | R],Ignore) ->
     ?CATCH(Fun()),
     intercept_best_friend(R,Ignore);
 intercept_best_friend([Pid | R],false) ->
-    Pid ! {activity_ended, undefined, self()},
+	send(Pid, {activity_ended, undefined, self()}),
     wait_for_best_friend(Pid, 0),
     intercept_best_friend(R,true);
 intercept_best_friend([_|R],true) ->
@@ -1194,27 +1270,32 @@ wait_for_best_friend(Pid, Timeout) ->
     end.
 
 dirty(Protocol, Item) ->
+	dirty(Protocol, Item, []).
+
+dirty(Protocol, Item, Opts) ->
     {{Tab, Key}, _Val, _Op} = Item,
     Tid = {dirty, self()},
     Prep = prepare_items(Tid, Tab, Key, [Item], #prep{protocol= Protocol}),
     CR =  Prep#prep.records,
     case Protocol of
-	async_dirty ->
-	    %% Send commit records to the other involved nodes,
-	    %% but do only wait for one node to complete.
-	    %% Preferrably, the local node if possible.
+		async_dirty ->
+		    %% Send commit records to the other involved nodes,
+		    %% but do only wait for one node to complete.
+		    %% Preferrably, the local node if possible.
 
-	    ReadNode = val({Tab, where_to_read}),
-	    {WaitFor, FirstRes} = async_send_dirty(Tid, CR, Tab, ReadNode),
-	    rec_dirty(WaitFor, FirstRes);
+		    ReadNode = val({Tab, where_to_read}),
+        	lager:debug("calling async_send_dirty(~p, ~p, ~p, ~p, ~p, ~p})",
+            	[Tid, CR, Tab, Key, ReadNode, Opts]),
+		    {WaitFor, FirstRes} = async_send_dirty(Tid, CR, Tab, Key, ReadNode, Opts),
+		    rec_dirty(WaitFor, FirstRes);
 
-	sync_dirty ->
-	    %% Send commit records to the other involved nodes,
-	    %% and wait for all nodes to complete
-	    {WaitFor, FirstRes} = sync_send_dirty(Tid, CR, Tab, []),
-	    rec_dirty(WaitFor, FirstRes);
-	_ ->
-	    mnesia2:abort({bad_activity, Protocol})
+		sync_dirty ->
+		    %% Send commit records to the other involved nodes,
+		    %% and wait for all nodes to complete
+		    {WaitFor, FirstRes} = sync_send_dirty(Tid, CR, Tab, Key, []),
+		    rec_dirty(WaitFor, FirstRes);
+		_ ->
+		    mnesia2:abort({bad_activity, Protocol})
     end.
 
 %% This is the commit function, The first thing it does,
@@ -1351,7 +1432,7 @@ prepare_items(Tid, Tab, Key, Items, Prep) ->
 		[] -> mnesia2:abort({no_exists, Tab});
 		{blocked, _} ->
 		    unblocked = req({unblock_me, Tab}),
-		    unblocked = req(tab_to_async_dirty_tm_name(Tab), {unblock_me, Tab}),
+		    unblocked = req(recruit_aux_worker(), {unblock_me, Tab}),
 		    prepare_items(Tid, Tab, Key, Items, Prep);
 		_ ->
 		    Majority = needs_majority(Tab, Prep),
@@ -1486,7 +1567,7 @@ multi_commit(read_only, _Maj = [], Tid, CR, _Store) ->
     rpc:abcast(RamNs -- [node()], ?MODULE, Msg),
     mnesia2_recover:note_decision(Tid, committed),
     mnesia2_locker:release_tid(Tid),
-    ?MODULE ! {delete_transaction, Tid},
+    send(?MODULE, {delete_transaction, Tid}),
     do_commit;
 
 multi_commit(sym_trans, _Maj = [], Tid, CR, Store) ->
@@ -1533,7 +1614,7 @@ multi_commit(sym_trans, _Maj = [], Tid, CR, Store) ->
 	    mnesia2_recover:note_decision(Tid, committed),
 	    do_dirty(Tid, Local),
 	    mnesia2_locker:release_tid(Tid),
-	    ?MODULE ! {delete_transaction, Tid};
+	    send(?MODULE, {delete_transaction, Tid});
 	{do_abort, _Reason} ->
 	    mnesia2_recover:note_decision(Tid, aborted)
     end,
@@ -1565,7 +1646,7 @@ multi_commit(sync_sym_trans, _Maj = [], Tid, CR, Store) ->
 	    %% Just wait for completion result is ignore.
 	    rec_all(WaitFor, Tid, ignore, []),
 	    mnesia2_locker:release_tid(Tid),
-	    ?MODULE ! {delete_transaction, Tid};
+	    send(?MODULE, {delete_transaction, Tid});
 	{do_abort, _Reason} ->
 	    mnesia2_recover:note_decision(Tid, aborted)
     end,
@@ -1733,7 +1814,7 @@ rec_acc_pre_commit([], Tid, Store, {Commit,OrigC}, Res, DumperMode, GoodPids, Sc
 			    [{tid, Tid}]),
 	    sync_schema_commit(Tid, Store, SchemaAckPids),
 	    mnesia2_locker:release_tid(Tid),
-	    ?MODULE ! {delete_transaction, Tid};
+	    send(?MODULE, {delete_transaction, Tid});
 
 	{do_abort, Reason} ->
 	    tell_participants(GoodPids, {Tid, {do_abort, Reason}}),
@@ -1768,7 +1849,7 @@ sync_schema_commit(Tid, Store, [Pid | Tail]) ->
     end.
 
 tell_participants([Pid | Pids], Msg) ->
-    Pid ! Msg,
+	send(Pid, Msg),
     tell_participants(Pids, Msg);
 tell_participants([], _Msg) ->
     ok.
@@ -1869,7 +1950,7 @@ commit_participant(Coord, Tid, Bin, C0, DiscNs, _RamNs) ->
 	    mnesia2_schema:undo_prepare_commit(Tid, C0)
     end,
     mnesia2_locker:release_tid(Tid),
-    ?MODULE ! {delete_transaction, Tid},
+    send(?MODULE, {delete_transaction, Tid}),
     unlink(whereis(?MODULE)),
     exit(normal).
 
@@ -1887,6 +1968,8 @@ do_abort(Tid, Commit) ->
     Commit.
 
 do_dirty(Tid, Commit) when Commit#commit.schema_ops == [] ->
+	lager:debug("do_dirty Tid: ~p, Commit: ~p ",
+		[Tid, Commit]),
     mnesia2_log:log(Commit),
     do_commit(Tid, Commit).
 
@@ -1898,6 +1981,8 @@ do_commit(Tid, C) ->
 do_commit(Tid, Bin, DumperMode) when is_binary(Bin) ->
     do_commit(Tid, binary_to_term(Bin), DumperMode);
 do_commit(Tid, C, DumperMode) ->
+	lager:debug("committing ~p, C: ~p, DumperMode: ~p ",
+		[Tid, C, DumperMode]),
     mnesia2_dumper:update(Tid, C#commit.schema_ops, DumperMode),
     R  = do_snmp(Tid, C#commit.snmp),
     R2 = do_update(Tid, ram_copies, C#commit.ram_copies, R),
@@ -2085,49 +2170,58 @@ ram_only_ops(N, _Ops) ->
     not lists:member(N, val({schema, disc_copies})).
 
 %% Returns {WaitFor, Res}
-sync_send_dirty(Tid, [Head | Tail], Tab, WaitFor) ->
+sync_send_dirty(Tid, [Head | Tail], Tab, Key, WaitFor) ->
     Node = Head#commit.node,
     if
 	Node == node() ->
-	    {WF, _} = sync_send_dirty(Tid, Tail, Tab, WaitFor),
+	    {WF, _} = sync_send_dirty(Tid, Tail, Tab, Key, WaitFor),
 	    Res =  do_dirty(Tid, Head),
 	    {WF, Res};
 	true ->
-    	    {?MODULE, Node} ! {self(), {sync_dirty, Tid, Head, Tab}},
-	    sync_send_dirty(Tid, Tail, Tab, [Node | WaitFor])
+		Pid = recruit_aux_worker(Key, Node),
+		send(Pid, {self(), {sync_dirty, Tid, Head, Tab}}),
+	    sync_send_dirty(Tid, Tail, Tab, Key, [Node | WaitFor])
     end;
-sync_send_dirty(_Tid, [], _Tab, WaitFor) ->
+sync_send_dirty(_Tid, [], _Tab, _Key, WaitFor) ->
     {WaitFor, {'EXIT', {aborted, {node_not_running, WaitFor}}}}.
 
 %% Returns {WaitFor, Res}
-async_send_dirty(_Tid, _Nodes, Tab, nowhere) ->
+async_send_dirty(_Tid, _Nodes, Tab, _Key, nowhere, _Opts) ->
     {[], {'EXIT', {aborted, {no_exists, Tab}}}};
-async_send_dirty(Tid, Nodes, Tab, ReadNode) ->
-    async_send_dirty(Tid, Nodes, Tab, ReadNode, [], ok).
+async_send_dirty(Tid, Nodes, Tab, Key, ReadNode, Opts) ->
+    async_send_dirty(Tid, Nodes, Tab, Key, ReadNode, [], ok, Opts).
 
-async_send_dirty(_Tid, [], _Tab, _ReadNode, WaitFor, Res) ->
+async_send_dirty(_Tid, [], _Tab, _Key, _ReadNode, WaitFor, Res, _Opts) ->
     {WaitFor, Res};
-async_send_dirty(Tid, [Head | Tail], Tab, ReadNode, WaitFor, Res) ->
+async_send_dirty(Tid, [Head | Tail], Tab, Key, ReadNode, WaitFor, Res, Opts) ->
     Node = Head#commit.node,
     if
 	ReadNode == Node, Node == node() ->
+		lager:debug("do_dirty(~p, ~p)", [Tid, Head]),
 	    NewRes =  do_dirty(Tid, Head),
-	    async_send_dirty(Tid, Tail, Tab, ReadNode, WaitFor, NewRes);
+	    async_send_dirty(Tid, Tail, Tab, Key, ReadNode, WaitFor, NewRes, Opts);
 	ReadNode == Node ->
-	    {?MODULE, Node} ! {self(), {sync_dirty, Tid, Head, Tab}},
+		Pid0 = recruit_aux_worker(Key, Node),
+		send(Pid0, {self(), {sync_dirty, Tid, Head, Tab}}),
 	    NewRes = {'EXIT', {aborted, {node_not_running, Node}}},
-	    async_send_dirty(Tid, Tail, Tab, ReadNode, [Node | WaitFor], NewRes);
+	    async_send_dirty(Tid, Tail, Tab, Key, ReadNode, [Node | WaitFor], NewRes, Opts);
 	true ->
-	    TmName = tab_to_async_dirty_tm_name(Tab),
 	    Txn = {self(), {async_dirty, Tid, Head, Tab}},
-	    poolgirl:transaction(mnesia2_async_dirty_sender:pool_name(Node),
-	    		fun(undefined) ->
-				    	% assume there are no async_dirty tm's; send to mnesia2_tm
-					    {?MODULE, Node} ! Txn;
-	    			(Pid) when is_pid(Pid) ->
-		    			Pid ! {async_dirty, TmName, Txn}
-	    		end),
-	    async_send_dirty(Tid, Tail, Tab, ReadNode, WaitFor, Res)
+	    RecruitWorker = proplists:get_value(recruit_worker, Opts, false),
+	    case RecruitWorker of
+			true ->
+				Pid1 = recruit_async_dirty_sender(Key, Node),
+				lager:debug("(~p, ~p), sending ~p to async dirty sender ~p",
+					[node(), self(), Txn, Pid1]),
+				send(Pid1, {async_dirty, Key, Txn});
+	    	false ->
+				lager:debug("(~p, ~p), sending ~p to local mnesia2_tm",
+					[node(), self(), Txn]),
+		    	% assume there are no async_dirty tm's; send to mnesia2_tm
+		    	Pid2 = recruit_aux_worker(Key, Node),
+		    	send(Pid2, Txn)
+	    end,
+	    async_send_dirty(Tid, Tail, Tab, Key, ReadNode, WaitFor, Res, Opts)
     end.
 
 rec_dirty([Node | Tail], Res) when Node /= node() ->
@@ -2183,7 +2277,7 @@ ask_commit(Protocol, Tid, [Head | Tail], DiscNs, RamNs, WaitFor, Local) ->
 	true ->
 	    Bin = opt_term_to_binary(Protocol, Head, DiscNs++RamNs),
 	    Msg = {ask_commit, Protocol, Tid, Bin, DiscNs, RamNs},
-	    {?MODULE, Node} ! {self(), Msg},
+	    send({?MODULE, Node}, {self(), Msg}),
 	    ask_commit(Protocol, Tid, Tail, DiscNs, RamNs, [Node | WaitFor], Local)
     end;
 ask_commit(_Protocol, _Tid, [], _DiscNs, _RamNs, WaitFor, Local) ->
@@ -2240,7 +2334,7 @@ get_info(Timeout) ->
 	undefined ->
 	    {timeout, Timeout};
 	Pid ->
-	    Pid ! {self(), info},
+		send(Pid, {self(), info}),
 	    receive
 		{?MODULE, _, {info, Part, Coord}} ->
 		    {info, Part, Coord}
@@ -2375,7 +2469,7 @@ send_mnesia2_down(Tid, Store, Node) ->
     send_to_pids([Tid#tid.pid | get_elements(friends,Store)], Msg).
 
 send_to_pids([Pid | Pids], Msg) when is_pid(Pid) ->
-    Pid ! Msg,
+	send(Pid, Msg),
     send_to_pids(Pids, Msg);
 send_to_pids([_ | Pids], Msg) ->
     send_to_pids(Pids, Msg);
@@ -2434,7 +2528,9 @@ tell_outcome(Tid, Protocol, Node, CheckNodes, TellNodes) ->
 
 do_stop(#state{coordinators = Coordinators}) ->
     Msg = {mnesia2_down, node()},
-    lists:foreach(fun({Tid, _}) -> Tid#tid.pid ! Msg end, gb_trees:to_list(Coordinators)),
+    lists:foreach(fun({Tid, _}) ->
+    				send(Tid#tid.pid, Msg)
+    			  end, gb_trees:to_list(Coordinators)),
     mnesia2_checkpoint:stop(),
     mnesia2_log:stop(),
     exit(shutdown).
