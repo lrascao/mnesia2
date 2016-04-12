@@ -1,0 +1,1526 @@
+--- Test run on 2016/04/12 08:50:47 ---
+Converting "/home/travis/build/lrascao/mnesia2/." to "/home/travis/build/lrascao/mnesia2" and re-inserting with add_patha/1
+
+
+Common Test v1.8.2 starting (cwd is /home/travis/build/lrascao/mnesia2)
+
+
+Common Test: Running make in test directories...
+Recompile: mnesia2_extra_light_SUITE
+Recompile: ts_install_cth
+Recompile: mt
+Recompile: mnesia2_trans_access_test
+Recompile: mnesia2_tpcb
+Recompile: mnesia2_test_lib
+Recompile: mnesia2_schema_recovery_test
+mnesia2_schema_recovery_test.erl:261: Warning: variable 'Bad' is unused
+Recompile: mnesia2_registry_test
+Recompile: mnesia2_recovery_test
+mnesia2_recovery_test.erl:1571: Warning: variable 'Config' is unused
+Recompile: mnesia2_qlc_test
+Recompile: mnesia2_nice_coverage_test
+Recompile: mnesia2_meter
+Recompile: mnesia2_measure_test
+Recompile: mnesia2_majority_test
+Recompile: mnesia2_isolation_test
+Recompile: mnesia2_install_test
+Recompile: mnesia2_inconsistent_database_test
+Recompile: mnesia2_frag_test
+Recompile: mnesia2_frag_hash_test
+Recompile: mnesia2_examples_test
+Recompile: mnesia2_evil_coverage_test
+Recompile: mnesia2_evil_backup
+Recompile: mnesia2_durability_test
+Recompile: mnesia2_dirty_access_test
+Recompile: mnesia2_dbn_meters
+Recompile: mnesia2_cost
+Recompile: mnesia2_consistency_test
+Recompile: mnesia2_config_test
+Recompile: mnesia2_config_event
+Recompile: mnesia2_config_backup
+Recompile: mnesia2_atomicity_test
+
+CWD set to: "/home/travis/build/lrascao/mnesia2/logs/ct_run.test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4.2016-04-12_08.50.47"
+
+TEST INFO: 1 test(s), 52 case(s) in 1 suite(s)
+
+Cover compiling 'mnesia2' (32 files) - this may take some time... done
+
+Testing lrascao.mnesia2.mnesia2_extra_light_SUITE: Starting test, 52 test cases
+
+----------------------------------------------------
+2016-04-12 08:51:14.735
+starting test group: extra_light
+
+
+----------------------------------------------------
+2016-04-12 08:51:14.761
+starting test group: install
+
+
+----------------------------------------------------
+2016-04-12 08:51:14.842
+starting test case: silly_durability
+
+08:51:14.935 [info] Application lager started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:14.935 [info] Application poolgirl started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:14.968 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.494.0>
+08:51:14.989 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.562.0>
+
+----------------------------------------------------
+2016-04-12 08:51:14.994
+ending test case: silly_durability
+
+
+----------------------------------------------------
+2016-04-12 08:51:15.019
+starting test case: silly_move
+
+08:51:15.377 [error] CRASH REPORT Process <0.553.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:15.377 [info] Application mnesia2 exited with reason: killed
+08:51:15.468 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.672.0>
+08:51:15.470 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:15.708 [info] Application lager started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:15.708 [info] Application poolgirl started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:15.777 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.99.0>
+
+----------------------------------------------------
+2016-04-12 08:51:16.330
+ending test case: silly_move
+
+
+----------------------------------------------------
+2016-04-12 08:51:16.356
+starting test case: silly_upgrade
+
+08:51:16.358 [error] gen_server mnesia2_recover terminated with reason: killed
+08:51:16.358 [error] CRASH REPORT Process mnesia2_recover with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:16.359 [error] Supervisor mnesia2_sup had child mnesia2_kernel_sup started with mnesia2_kernel_sup:start() at <0.94.0> exit with reason killed in context child_terminated
+08:51:16.362 [error] gen_server <0.729.0> terminated with reason: killed
+08:51:16.362 [error] CRASH REPORT Process <0.729.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:16.363 [error] CRASH REPORT Process <0.663.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:16.364 [info] Application mnesia2 exited with reason: killed
+08:51:16.359 [error] Supervisor mnesia2_sup had child mnesia2_kernel_sup started with mnesia2_kernel_sup:start() at <0.94.0> exit with reason reached_max_restart_intensity in context shutdown
+08:51:16.359 [error] gen_server mnesia2_subscr terminated with reason: killed
+08:51:16.359 [error] CRASH REPORT Process mnesia2_subscr with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:16.359 [error] gen_server mnesia2_monitor terminated with reason: killed
+08:51:16.360 [info] Application mnesia2 exited with reason: shutdown
+08:51:16.425 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.800.0>
+08:51:16.427 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:16.430 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.215.0>
+08:51:16.675 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** ERROR ** (ignoring core) ** FATAL ** A fallback is installed and Mnesia2 must be restarted. Forcing shutdown after mnesia2_down from 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'...
+
+08:51:16.675 [error] Supervisor mnesia2_kernel_sup had child mnesia2_locker started with mnesia2_locker:start() at <0.798.0> exit with reason killed in context child_terminated
+08:51:16.675 [error] Supervisor mnesia2_kernel_sup had child mnesia2_locker started with mnesia2_locker:start() at <0.798.0> exit with reason reached_max_restart_intensity in context shutdown
+08:51:16.706 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.928.0>
+08:51:16.713 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.368.0>
+08:51:16.798 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1028.0>
+08:51:16.805 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.459.0>
+
+----------------------------------------------------
+2016-04-12 08:51:17.317
+ending test case: silly_upgrade
+
+
+----------------------------------------------------
+2016-04-12 08:51:17.415
+ending test group: install
+
+
+----------------------------------------------------
+2016-04-12 08:51:17.441
+starting test group: nice
+
+
+----------------------------------------------------
+2016-04-12 08:51:17.534
+starting test case: nice
+
+08:51:17.536 [warning] lager_error_logger_h dropped 51 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:17.536 [error] gen_server <0.518.0> terminated with reason: killed
+08:51:17.540 [warning] lager_error_logger_h dropped 8 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:17.536 [error] CRASH REPORT Process <0.518.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:17.540 [error] CRASH REPORT Process <0.1019.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:17.540 [info] Application mnesia2 exited with reason: killed
+08:51:17.537 [error] CRASH REPORT Process <0.450.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:17.537 [info] Application mnesia2 exited with reason: killed
+08:51:17.591 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1151.0>
+08:51:17.595 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:17.597 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.548.0>
+08:51:17.615 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:17.715 [info] Application mnesia2 exited with reason: stopped
+08:51:17.726 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1263.0>
+
+----------------------------------------------------
+2016-04-12 08:51:17.946
+ending test case: nice
+
+
+----------------------------------------------------
+2016-04-12 08:51:18.028
+ending test group: nice
+
+
+----------------------------------------------------
+2016-04-12 08:51:18.069
+starting test group: qlc
+
+
+----------------------------------------------------
+2016-04-12 08:51:18.201
+starting test case: dirty_nice_ram_copies
+
+08:51:18.203 [error] gen_server <0.661.0> terminated with reason: killed
+08:51:18.205 [error] gen_server <0.1321.0> terminated with reason: killed
+08:51:18.203 [error] CRASH REPORT Process <0.661.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:18.205 [error] CRASH REPORT Process <0.1321.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:18.203 [error] CRASH REPORT Process <0.539.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:18.205 [error] CRASH REPORT Process <0.1254.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:18.205 [info] Application mnesia2 exited with reason: killed
+08:51:18.203 [info] Application mnesia2 exited with reason: killed
+08:51:18.285 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1495.0>
+08:51:18.288 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.762.0>
+08:51:18.292 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:18.590 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+
+----------------------------------------------------
+2016-04-12 08:51:18.668
+ending test case: dirty_nice_ram_copies
+
+
+----------------------------------------------------
+2016-04-12 08:51:18.694
+starting test case: dirty_nice_disc_copies
+
+08:51:18.696 [error] gen_server <0.815.0> terminated with reason: killed
+08:51:18.696 [error] CRASH REPORT Process <0.815.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:18.705 [error] Supervisor mnesia2_kernel_sup had child mnesia2_checkpoint_sup started with mnesia2_checkpoint_sup:start() at <0.1509.0> exit with reason killed in context child_terminated
+08:51:18.697 [error] CRASH REPORT Process <0.753.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:18.697 [info] Application mnesia2 exited with reason: killed
+08:51:18.705 [error] Supervisor mnesia2_kernel_sup had child mnesia2_checkpoint_sup started with mnesia2_checkpoint_sup:start() at <0.1509.0> exit with reason reached_max_restart_intensity in context shutdown
+08:51:18.764 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1610.0>
+08:51:18.768 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.862.0>
+
+----------------------------------------------------
+2016-04-12 08:51:18.863
+ending test case: dirty_nice_disc_copies
+
+
+----------------------------------------------------
+2016-04-12 08:51:18.890
+starting test case: dirty_nice_disc_only_copies
+
+08:51:18.964 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1726.0>
+08:51:18.968 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.963.0>
+
+----------------------------------------------------
+2016-04-12 08:51:19.081
+ending test case: dirty_nice_disc_only_copies
+
+
+----------------------------------------------------
+2016-04-12 08:51:19.171
+starting test case: trans_nice_ram_copies
+
+08:51:19.173 [warning] lager_error_logger_h dropped 18 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:19.174 [warning] lager_error_logger_h dropped 14 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:19.173 [error] gen_server <0.996.0> terminated with reason: killed
+08:51:19.174 [error] gen_server <0.1782.0> terminated with reason: killed
+08:51:19.174 [error] CRASH REPORT Process <0.1782.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:19.173 [error] CRASH REPORT Process <0.996.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:19.175 [error] CRASH REPORT Process <0.1717.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:19.176 [info] Application mnesia2 exited with reason: killed
+08:51:19.173 [error] CRASH REPORT Process <0.954.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:19.173 [info] Application mnesia2 exited with reason: killed
+08:51:19.231 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1852.0>
+08:51:19.233 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:19.236 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1069.0>
+08:51:19.239 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+
+----------------------------------------------------
+2016-04-12 08:51:19.369
+ending test case: trans_nice_ram_copies
+
+
+----------------------------------------------------
+2016-04-12 08:51:19.395
+starting test case: trans_nice_disc_copies
+
+08:51:19.398 [error] gen_server <0.1113.0> terminated with reason: killed
+08:51:19.397 [error] Supervisor mnesia2_kernel_sup had child mnesia2_checkpoint_sup started with mnesia2_checkpoint_sup:start() at <0.1864.0> exit with reason killed in context child_terminated
+08:51:19.397 [error] Supervisor mnesia2_kernel_sup had child mnesia2_checkpoint_sup started with mnesia2_checkpoint_sup:start() at <0.1864.0> exit with reason reached_max_restart_intensity in context shutdown
+08:51:19.398 [error] CRASH REPORT Process <0.1113.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:19.460 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1983.0>
+08:51:19.462 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1168.0>
+
+----------------------------------------------------
+2016-04-12 08:51:19.887
+ending test case: trans_nice_disc_copies
+
+
+----------------------------------------------------
+2016-04-12 08:51:19.914
+starting test case: trans_nice_disc_only_copies
+
+08:51:19.974 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2117.0>
+08:51:19.981 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1270.0>
+
+----------------------------------------------------
+2016-04-12 08:51:20.151
+ending test case: trans_nice_disc_only_copies
+
+
+----------------------------------------------------
+2016-04-12 08:51:20.202
+starting test case: atomic_eval
+
+08:51:20.205 [warning] lager_error_logger_h dropped 1 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:20.205 [warning] lager_error_logger_h dropped 1 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:20.205 [error] gen_server <0.2173.0> terminated with reason: killed
+08:51:20.205 [error] gen_server <0.1324.0> terminated with reason: killed
+08:51:20.205 [error] CRASH REPORT Process <0.2173.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:20.205 [error] CRASH REPORT Process <0.1324.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:20.205 [error] CRASH REPORT Process <0.2108.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:20.206 [info] Application mnesia2 exited with reason: killed
+08:51:20.205 [error] CRASH REPORT Process <0.1261.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:20.205 [info] Application mnesia2 exited with reason: killed
+08:51:20.266 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2257.0>
+08:51:20.269 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:20.271 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1376.0>
+08:51:20.276 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+
+----------------------------------------------------
+2016-04-12 08:51:20.410
+ending test case: atomic_eval
+
+
+----------------------------------------------------
+2016-04-12 08:51:20.495
+starting test case: frag
+
+08:51:20.497 [error] Supervisor mnesia2_kernel_sup had child mnesia2_checkpoint_sup started with mnesia2_checkpoint_sup:start() at <0.1389.0> exit with reason killed in context child_terminated
+08:51:20.497 [error] Supervisor mnesia2_kernel_sup had child mnesia2_checkpoint_sup started with mnesia2_checkpoint_sup:start() at <0.1389.0> exit with reason reached_max_restart_intensity in context shutdown
+08:51:20.499 [error] gen_server <0.2311.0> terminated with reason: killed
+08:51:20.499 [error] CRASH REPORT Process <0.2311.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:20.568 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2388.0>
+08:51:20.572 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1463.0>
+
+----------------------------------------------------
+2016-04-12 08:51:20.693
+ending test case: frag
+
+
+----------------------------------------------------
+2016-04-12 08:51:20.719
+starting test case: info
+
+08:51:20.795 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2520.0>
+08:51:20.798 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1575.0>
+08:51:21.098 [warning] lager_error_logger_h dropped 1 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:21.101 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+
+----------------------------------------------------
+2016-04-12 08:51:21.213
+ending test case: info
+
+
+----------------------------------------------------
+2016-04-12 08:51:21.240
+starting test case: mnesia2_down
+
+08:51:21.243 [warning] lager_error_logger_h dropped 32 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:21.243 [error] gen_server <0.2547.0> terminated with reason: killed
+08:51:21.243 [error] CRASH REPORT Process <0.1566.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:21.244 [info] Application mnesia2 exited with reason: killed
+08:51:21.243 [error] CRASH REPORT Process <0.2547.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:21.244 [error] CRASH REPORT Process <0.2511.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:21.244 [info] Application mnesia2 exited with reason: killed
+08:51:21.288 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2644.0>
+08:51:21.314 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1663.0>
+08:51:21.318 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+---> Participant transactions <--- 
+---> Coordinator transactions <---
+Tid: 10 (owned by <0.2721.0>) 
+
+----------------------------------------------------
+2016-04-12 08:51:21.450
+ending test case: mnesia2_down
+
+08:51:21.428 [error] gen_server <0.1717.0> terminated with reason: killed
+08:51:21.428 [error] CRASH REPORT Process <0.1717.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:51:21.428 [error] CRASH REPORT Process <0.1654.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:21.428 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:51:21.548
+ending test group: qlc
+
+
+----------------------------------------------------
+2016-04-12 08:51:21.574
+starting test group: registry
+
+
+----------------------------------------------------
+2016-04-12 08:51:21.667
+starting test case: good_dump
+
+08:51:21.722 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2772.0>
+
+----------------------------------------------------
+2016-04-12 08:51:21.733
+ending test case: good_dump
+
+
+----------------------------------------------------
+2016-04-12 08:51:21.759
+starting test case: bad_dump
+
+08:51:21.803 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2866.0>
+
+----------------------------------------------------
+2016-04-12 08:51:21.810
+ending test case: bad_dump
+
+
+----------------------------------------------------
+2016-04-12 08:51:21.891
+ending test group: registry
+
+
+----------------------------------------------------
+2016-04-12 08:51:21.917
+starting test group: config
+
+
+----------------------------------------------------
+2016-04-12 08:51:21.997
+starting test case: access_module
+
+08:51:23.070 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2976.0>
+08:51:23.072 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:24.270 [error] CRASH REPORT Process <0.2967.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:24.270 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:51:25.306
+ending test case: access_module
+
+
+----------------------------------------------------
+2016-04-12 08:51:25.333
+starting test case: auto_repair
+
+08:51:26.364 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3082.0>
+08:51:26.366 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:26.368 [info] Application mnesia2 exited with reason: stopped
+08:51:26.370 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3130.0>
+08:51:26.374 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3178.0>
+
+----------------------------------------------------
+2016-04-12 08:51:27.401
+ending test case: auto_repair
+
+
+----------------------------------------------------
+2016-04-12 08:51:27.428
+starting test case: backup_module
+
+08:51:28.468 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3250.0>
+08:51:28.470 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:28.483 [error] CRASH REPORT Process <0.3241.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:28.483 [info] Application mnesia2 exited with reason: killed
+08:51:31.103 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3333.0>
+08:51:31.105 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:31.131 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Restore aborted. mnesia2_config_backup:open_read["NonExisting.FILE"] -> {enoent,error}
+
+08:51:31.131 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Restore aborted. mnesia2_config_backup:open_read["/home/travis/build/lrascao/mnesia2/logs/ct_run.test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4.2016-04-12_08.50.47/Mnesia2.test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4/LATEST.LOG"] -> badarg
+
+08:51:31.132 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm_5 terminated: shutdown
+
+08:51:31.133 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_1,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_1,shutdown]}}}} ({error,{already_started,<0.3409.0>}})
+
+08:51:31.133 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm_3 terminated: shutdown
+
+08:51:31.133 [error] CRASH REPORT Process <0.3324.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:31.133 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:51:32.155
+ending test case: backup_module
+
+
+----------------------------------------------------
+2016-04-12 08:51:32.182
+starting test case: debug
+
+08:51:33.210 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_monitor starting: <0.3431.0>
+
+08:51:33.211 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Mnesia2 debug level set to verbose
+08:51:33.212 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3435.0>
+08:51:33.215 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:33.218 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm_1 terminated: shutdown
+
+08:51:33.218 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm_3 terminated: shutdown
+
+08:51:33.218 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm_4 terminated: shutdown
+
+08:51:33.218 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm_2 terminated: shutdown
+
+08:51:33.218 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm_9 terminated: shutdown
+
+08:51:33.218 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm_8 terminated: shutdown
+
+08:51:33.218 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm_13 terminated: shutdown
+
+08:51:35.230 [warning] lager_error_logger_h dropped 14 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:35.230 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_monitor starting: <0.3491.0>
+
+08:51:35.230 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Version: "1.0.0"
+
+08:51:35.231 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env access_module: mnesia2
+
+08:51:35.231 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env auto_repair: true
+
+08:51:35.231 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env backup_module: mnesia2_backup
+
+08:51:35.231 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env debug: debug
+
+08:51:35.231 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dir: "/home/travis/build/lrascao/mnesia2/logs/ct_run.test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4.2016-04-12_08.50.47/Mnesia2.test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4"
+
+08:51:35.231 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dump_disc_copies_at_startup: true
+
+08:51:35.231 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dump_log_load_regulation: false
+
+08:51:35.232 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dump_log_time_threshold: 180000
+
+08:51:35.232 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dump_log_update_in_place: true
+
+08:51:35.232 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dump_log_write_threshold: 1000
+
+08:51:35.232 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env event_module: mnesia2_event
+
+08:51:35.232 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env extra_db_nodes: []
+
+08:51:35.232 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env ignore_fallback_at_startup: false
+
+08:51:35.233 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env fallback_error_function: {mnesia2,lkill}
+
+08:51:35.233 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env max_wait_for_decision: infinity
+
+08:51:35.233 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env schema_location: opt_disc
+
+08:51:35.233 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env core_dir: false
+
+08:51:35.233 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env pid_sort_order: false
+
+08:51:35.233 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env no_table_loaders: 2
+
+08:51:35.233 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dc_dump_limit: 4
+
+08:51:35.233 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env send_compressed: 0
+
+08:51:35.234 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env send_max_packets: 20
+
+08:51:35.234 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env send_max_transfer_size: 7500
+
+08:51:35.234 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env async_dirty_buffer_size: 524288
+
+08:51:35.234 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env async_dirty_max_buffer_file_size: 100000000
+
+08:51:35.234 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env async_dirty_tx_backlog_threshold: 200000
+
+08:51:35.234 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env async_dirty_buffer_min_runtime: 10000
+
+08:51:35.234 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env async_dirty_buffer_drained_cutoff: 5
+
+08:51:35.234 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Mnesia2 debug level set to debug
+08:51:35.235 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_subscr starting: <0.3492.0>
+
+08:51:35.235 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_locker starting: <0.3493.0>
+
+08:51:35.235 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_recover starting: <0.3494.0>
+
+08:51:35.235 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm starting: <0.3495.0>
+
+08:51:35.235 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Schema initiated from: default
+
+08:51:35.235 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3495.0>
+08:51:35.235 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): debug fun {mnesia2_tm,init} in ets mnesia2_debug does not exist, ignoring
+08:51:35.236 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_controller starting: <0.3498.0>
+
+08:51:35.236 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_late_loader starting: <0.3499.0>
+
+08:51:35.237 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Intend to load tables: []
+
+08:51:37.262 [warning] lager_error_logger_h dropped 38 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:37.262 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_monitor starting: <0.3568.0>
+
+08:51:37.264 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3572.0>
+08:51:37.266 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:37.268 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_3,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_3,shutdown]}}}} ({error,{already_started,<0.3611.0>}})
+
+08:51:37.268 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_5,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_5,shutdown]}}}} ({error,{already_started,<0.3611.0>}})
+
+08:51:37.268 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_4,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_4,shutdown]}}}} ({error,{already_started,<0.3611.0>}})
+
+
+----------------------------------------------------
+2016-04-12 08:51:42.407
+ending test case: debug
+
+
+----------------------------------------------------
+2016-04-12 08:51:42.563
+starting test case: dir
+
+08:51:37.268 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_2,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_2,shutdown]}}}} ({error,{already_started,<0.3611.0>}})
+
+08:51:37.268 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Cannot report event {mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_7,shutdown]}}: {badarg,{mnesia2_event,{mnesia2_system_event,{mnesia2_info,"~p terminated: ~p~n",[mnesia2_tm_7,shutdown]}}}} ({error,{already_started,<0.3611.0>}})
+
+08:51:39.289 [warning] lager_error_logger_h dropped 26 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:39.289 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_monitor starting: <0.3649.0>
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Version: "1.0.0"
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env access_module: mnesia2
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env auto_repair: true
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env backup_module: mnesia2_backup
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env debug: debug
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dir: "/home/travis/build/lrascao/mnesia2/logs/ct_run.test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4.2016-04-12_08.50.47/Mnesia2.test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4"
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dump_disc_copies_at_startup: true
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dump_log_load_regulation: false
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dump_log_time_threshold: 180000
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dump_log_update_in_place: true
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dump_log_write_threshold: 1000
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env event_module: mnesia2_event
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env extra_db_nodes: []
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env ignore_fallback_at_startup: false
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env fallback_error_function: {mnesia2,lkill}
+
+08:51:39.290 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env max_wait_for_decision: infinity
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env schema_location: opt_disc
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env core_dir: false
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env pid_sort_order: false
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env no_table_loaders: 2
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env dc_dump_limit: 4
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env send_compressed: 0
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env send_max_packets: 20
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env send_max_transfer_size: 7500
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env async_dirty_buffer_size: 524288
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env async_dirty_max_buffer_file_size: 100000000
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env async_dirty_tx_backlog_threshold: 200000
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env async_dirty_buffer_min_runtime: 10000
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Env async_dirty_buffer_drained_cutoff: 5
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Mnesia2 debug level set to debug
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_subscr starting: <0.3650.0>
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_locker starting: <0.3651.0>
+
+08:51:39.291 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_recover starting: <0.3652.0>
+
+08:51:39.292 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_tm starting: <0.3653.0>
+
+08:51:39.292 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Schema initiated from: default
+
+08:51:39.292 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3653.0>
+08:51:39.292 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): debug fun {mnesia2_tm,init} in ets mnesia2_debug does not exist, ignoring
+08:51:39.292 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_controller starting: <0.3656.0>
+
+08:51:39.293 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): mnesia2_late_loader starting: <0.3657.0>
+
+08:51:39.293 [info] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): Intend to load tables: []
+
+08:51:41.324 [warning] lager_error_logger_h dropped 34 messages in the last second that exceeded the limit of 50 messages/sec
+08:51:41.326 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3730.0>
+08:51:41.328 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:41.329 [error] CRASH REPORT Process <0.3721.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:41.329 [info] Application mnesia2 exited with reason: killed
+08:51:43.593 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3794.0>
+08:51:43.595 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+
+----------------------------------------------------
+2016-04-12 08:51:46.861
+ending test case: dir
+
+08:51:43.596 [error] CRASH REPORT Process <0.3785.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:51:43.596 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:51:46.900
+starting test case: dump_log_load_regulation
+
+08:51:46.996 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3865.0>
+08:51:46.999 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:47.021 [info] Application mnesia2 exited with reason: stopped
+08:51:47.044 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3926.0>
+08:51:47.047 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:51:47.847 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:48.235 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:48.291 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:48.671 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:49.046 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:49.446 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:49.827 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:50.212 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:50.594 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:50.781 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:51.182 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:51.562 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:51.949 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:52.143 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:52.538 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:52.924 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:53.302 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:53.686 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:53.794 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:54.189 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:54.582 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:54.983 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:55.584 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:56.255 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:56.703 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:51:59.209 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:52:01.625 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:52:02.008 [error] Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+08:52:02.145 [error] CRASH REPORT Process <0.3917.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:02.145 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:52:03.167
+ending test case: dump_log_load_regulation
+
+
+----------------------------------------------------
+2016-04-12 08:52:03.218
+starting test case: dump_log_time_threshold
+
+08:52:04.281 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4222.0>
+08:52:04.284 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+
+----------------------------------------------------
+2016-04-12 08:52:11.809
+ending test case: dump_log_time_threshold
+
+
+----------------------------------------------------
+2016-04-12 08:52:11.836
+starting test case: dump_log_write_threshold
+
+08:52:10.306 [error] CRASH REPORT Process <0.4213.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:10.306 [info] Application mnesia2 exited with reason: killed
+08:52:14.829 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4322.0>
+08:52:14.832 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:15.900 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:52:16.914
+ending test case: dump_log_write_threshold
+
+
+----------------------------------------------------
+2016-04-12 08:52:16.969
+starting test case: dump_log_update_in_place
+
+08:52:18.077 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4438.0>
+08:52:18.082 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:18.096 [error] CRASH REPORT Process <0.4429.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:18.097 [info] Application mnesia2 exited with reason: killed
+08:52:20.347 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4505.0>
+08:52:20.361 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:20.374 [error] CRASH REPORT Process <0.4496.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:20.374 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:52:21.397
+ending test case: dump_log_update_in_place
+
+
+----------------------------------------------------
+2016-04-12 08:52:21.439
+starting test case: event_module
+
+08:52:22.536 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4597.0>
+08:52:22.538 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:22.542 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1790.0>
+08:52:22.545 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+Got event: {mnesia2_system_event,
+               {mnesia2_up,
+                   'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'}}
+Got event: {mnesia2_system_event,
+               {mnesia2_up,
+                   'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'}}
+Got event: {mnesia2_system_event,
+               {mnesia2_down,
+                   'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'}}
+08:52:23.565 [error] gen_server <0.1842.0> terminated with reason: killed
+08:52:23.565 [error] CRASH REPORT Process <0.1842.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:52:23.565 [error] CRASH REPORT Process <0.1781.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:23.566 [info] Application mnesia2 exited with reason: killed
+08:52:28.785 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1858.0>
+08:52:28.806 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+Got event: {mnesia2_system_event,
+               {mnesia2_up,
+                   'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'}}
+Got event: {mnesia2_system_event,
+               {mnesia2_up,
+                   'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'}}
+Got event: {mnesia2_system_event,
+               {mnesia2_down,
+                   'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'}}
+08:52:29.808 [error] gen_server <0.4660.0> terminated with reason: killed
+08:52:29.808 [error] CRASH REPORT Process <0.4660.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:52:29.809 [error] CRASH REPORT Process <0.4588.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:29.809 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:52:30.831
+ending test case: event_module
+
+
+----------------------------------------------------
+2016-04-12 08:52:30.858
+starting test case: inconsistent_database
+
+08:52:30.871 [error] CRASH REPORT Process <0.1849.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:30.871 [info] Application mnesia2 exited with reason: killed
+08:52:31.977 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4703.0>
+08:52:31.980 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:32.021 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1940.0>
+08:52:32.027 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:32.029 [error] CRASH REPORT Process <0.4694.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:32.029 [info] Application mnesia2 exited with reason: killed
+08:52:32.030 [error] CRASH REPORT Process <0.1931.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:32.030 [info] Application mnesia2 exited with reason: killed
+08:52:32.089 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4778.0>
+08:52:32.092 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:36.394 [info] Application mnesia2 exited with reason: stopped
+08:52:36.455 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2009.0>
+08:52:36.456 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:36.464 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4902.0>
+08:52:36.479 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:48.435 [info] Application mnesia2 exited with reason: stopped
+08:52:48.441 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:52:49.478
+ending test case: inconsistent_database
+
+
+----------------------------------------------------
+2016-04-12 08:52:49.506
+starting test case: max_wait_for_decision
+
+
+----------------------------------------------------
+2016-04-12 08:52:49.507
+ending test case: max_wait_for_decision
+
+
+----------------------------------------------------
+2016-04-12 08:52:49.534
+starting test case: send_compressed
+
+08:52:49.579 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5033.0>
+08:52:49.593 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2131.0>
+08:52:49.600 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:49.883 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:49.924 [error] gen_server <0.2186.0> terminated with reason: killed
+08:52:49.924 [error] CRASH REPORT Process <0.2186.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:52:49.924 [error] CRASH REPORT Process <0.2122.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:49.924 [info] Application mnesia2 exited with reason: killed
+08:52:49.947 [error] CRASH REPORT Process <0.5024.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:49.947 [info] Application mnesia2 exited with reason: killed
+08:52:49.992 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5122.0>
+08:52:52.955 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2220.0>
+08:52:52.965 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:54.734 [warning] lager_error_logger_h dropped 15 messages in the last second that exceeded the limit of 50 messages/sec
+08:52:54.734 [error] CRASH REPORT Process <0.5113.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:54.734 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:52:55.774
+ending test case: send_compressed
+
+
+----------------------------------------------------
+2016-04-12 08:52:55.802
+starting test case: app_test
+
+
+----------------------------------------------------
+2016-04-12 08:52:55.812
+ending test case: app_test
+
+
+----------------------------------------------------
+2016-04-12 08:52:55.865
+starting test case: start_one_disc_full_then_one_disc_less
+
+08:52:55.869 [error] CRASH REPORT Process <0.2211.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:55.869 [info] Application mnesia2 exited with reason: killed
+08:52:56.931 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5245.0>
+08:52:56.933 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:56.939 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2323.0>
+08:52:56.946 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:56.963 [error] gen_server <0.2335.0> terminated with reason: killed
+08:52:56.966 [error] CRASH REPORT Process <0.5236.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:56.966 [info] Application mnesia2 exited with reason: killed
+08:52:56.963 [error] CRASH REPORT Process <0.2335.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:52:56.963 [error] CRASH REPORT Process <0.2314.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:56.963 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:52:57.991
+ending test case: start_one_disc_full_then_one_disc_less
+
+
+----------------------------------------------------
+2016-04-12 08:52:58.024
+starting test case: start_first_one_disc_less_then_one_disc_full
+
+08:52:59.578 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5356.0>
+08:52:59.581 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:59.731 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2398.0>
+08:52:59.774 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:52:59.796 [error] gen_server <0.2410.0> terminated with reason: killed
+08:52:59.799 [error] gen_server <0.5420.0> terminated with reason: killed
+08:52:59.797 [error] CRASH REPORT Process <0.2410.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:52:59.799 [error] CRASH REPORT Process <0.5420.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:52:59.799 [error] CRASH REPORT Process <0.5347.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:59.799 [info] Application mnesia2 exited with reason: killed
+08:52:59.797 [error] CRASH REPORT Process <0.2389.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:52:59.797 [info] Application mnesia2 exited with reason: killed
+08:53:01.841 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2457.0>
+08:53:01.843 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:01.856 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5437.0>
+08:53:01.869 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:01.926 [error] gen_server <0.5497.0> terminated with reason: killed
+08:53:01.926 [error] CRASH REPORT Process <0.5497.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:01.927 [error] CRASH REPORT Process <0.5427.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:01.927 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:53:02.961
+ending test case: start_first_one_disc_less_then_one_disc_full
+
+
+----------------------------------------------------
+2016-04-12 08:53:02.993
+starting test case: start_first_one_disc_less_then_two_more_disc_less
+
+08:53:03.345 [error] CRASH REPORT Process <0.2448.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:03.345 [info] Application mnesia2 exited with reason: killed
+08:53:04.437 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5561.0>
+08:53:04.440 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:04.444 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2544.0>
+08:53:04.449 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:04.736 [info] Application lager started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:04.736 [info] Application poolgirl started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:04.785 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.99.0>
+08:53:04.804 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:04.856 [error] gen_server <0.5614.0> terminated with reason: killed
+08:53:04.856 [error] gen_server <0.2557.0> terminated with reason: killed
+08:53:04.856 [error] CRASH REPORT Process <0.5614.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:04.857 [error] CRASH REPORT Process <0.2557.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:04.862 [error] CRASH REPORT Process <0.5552.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:04.862 [info] Application mnesia2 exited with reason: killed
+08:53:04.857 [error] CRASH REPORT Process <0.2535.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:04.857 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:53:05.886
+ending test case: start_first_one_disc_less_then_two_more_disc_less
+
+
+----------------------------------------------------
+2016-04-12 08:53:05.929
+starting test case: schema_location_and_extra_db_nodes_combinations
+
+08:53:06.987 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5656.0>
+08:53:06.990 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:06.998 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2625.0>
+08:53:07.005 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:07.009 [error] gen_server <0.5720.0> terminated with reason: killed
+08:53:07.009 [error] CRASH REPORT Process <0.5720.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:07.010 [error] CRASH REPORT Process <0.5647.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:07.010 [info] Application mnesia2 exited with reason: killed
+08:53:07.012 [error] gen_server <0.2637.0> terminated with reason: killed
+08:53:07.012 [error] CRASH REPORT Process <0.2637.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:07.013 [error] CRASH REPORT Process <0.2616.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:07.013 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:53:08.039
+ending test case: schema_location_and_extra_db_nodes_combinations
+
+
+----------------------------------------------------
+2016-04-12 08:53:08.081
+starting test case: table_load_to_disc_less_nodes
+
+08:53:09.117 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5750.0>
+08:53:09.119 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:09.122 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2695.0>
+08:53:09.127 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:09.145 [error] CRASH REPORT Process <0.5741.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:09.145 [error] gen_server <0.2707.0> terminated with reason: killed
+08:53:09.146 [info] Application mnesia2 exited with reason: killed
+08:53:09.145 [error] CRASH REPORT Process <0.2707.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:09.145 [error] CRASH REPORT Process <0.2686.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:09.145 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:53:10.170
+ending test case: table_load_to_disc_less_nodes
+
+
+----------------------------------------------------
+2016-04-12 08:53:10.200
+starting test case: schema_merge
+
+08:53:11.266 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5836.0>
+08:53:11.281 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2770.0>
+08:53:11.295 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:11.575 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:11.577 [error] gen_server <0.2823.0> terminated with reason: killed
+08:53:11.577 [error] CRASH REPORT Process <0.2823.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:11.579 [error] CRASH REPORT Process <0.2761.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:11.579 [info] Application mnesia2 exited with reason: killed
+08:53:12.620 [error] CRASH REPORT Process <0.5827.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:12.620 [info] Application mnesia2 exited with reason: killed
+08:53:15.219 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2841.0>
+08:53:15.220 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:22.064 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5915.0>
+08:53:22.107 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:22.178 [error] gen_server <0.5978.0> terminated with reason: killed
+08:53:22.176 [error] gen_server <0.2910.0> terminated with reason: killed
+08:53:22.178 [error] CRASH REPORT Process <0.5978.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:22.176 [error] CRASH REPORT Process <0.2910.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:22.178 [error] CRASH REPORT Process <0.5906.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:22.178 [info] Application mnesia2 exited with reason: killed
+08:53:22.177 [error] CRASH REPORT Process <0.2832.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:22.177 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:53:23.201
+ending test case: schema_merge
+
+
+----------------------------------------------------
+2016-04-12 08:53:23.258
+starting test case: dynamic_basic
+
+08:53:23.332 [warning] lager_error_logger_h dropped 3 messages in the last second that exceeded the limit of 50 messages/sec
+08:53:23.370 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.6025.0>
+08:53:23.373 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:23.394 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2940.0>
+08:53:23.414 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:23.422 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.189.0>
+08:53:23.439 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:23.553 [error] CRASH REPORT Process <0.2931.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:23.553 [info] Application mnesia2 exited with reason: killed
+08:53:23.581 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3031.0>
+08:53:23.642 [error] gen_server <0.6087.0> terminated with reason: killed
+08:53:23.642 [error] CRASH REPORT Process <0.6087.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:23.642 [error] gen_server <0.6130.0> terminated with reason: killed
+08:53:23.642 [error] CRASH REPORT Process <0.6130.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:23.642 [error] gen_server <0.6112.0> terminated with reason: killed
+08:53:23.643 [error] CRASH REPORT Process <0.6112.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:23.643 [error] CRASH REPORT Process <0.6016.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:23.644 [info] Application mnesia2 exited with reason: killed
+08:53:23.664 [error] CRASH REPORT Process <0.180.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:23.664 [info] Application mnesia2 exited with reason: killed
+08:53:23.703 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3126.0>
+08:53:23.741 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.6147.0>
+08:53:23.773 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.294.0>
+08:53:24.053 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:24.566 [warning] lager_error_logger_h dropped 7 messages in the last second that exceeded the limit of 50 messages/sec
+08:53:24.566 [error] gen_server <0.333.0> terminated with reason: killed
+08:53:24.566 [error] CRASH REPORT Process <0.333.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:24.567 [error] CRASH REPORT Process <0.284.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:24.567 [info] Application mnesia2 exited with reason: killed
+08:53:24.592 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.389.0>
+08:53:24.594 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:33.246 [warning] lager_error_logger_h dropped 36 messages in the last second that exceeded the limit of 50 messages/sec
+08:53:33.221 [error] gen_server <0.6245.0> terminated with reason: killed
+08:53:33.246 [error] gen_server <0.3222.0> terminated with reason: killed
+08:53:33.395 [info] Application mnesia2 exited with reason: stopped
+08:53:33.221 [error] CRASH REPORT Process <0.6245.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:33.246 [error] CRASH REPORT Process <0.3222.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:33.222 [error] gen_server <0.6190.0> terminated with reason: killed
+08:53:33.247 [error] CRASH REPORT Process <0.3117.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:33.247 [info] Application mnesia2 exited with reason: killed
+08:53:33.448 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.495.0>
+08:53:33.450 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:33.222 [error] CRASH REPORT Process <0.6190.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:33.223 [error] CRASH REPORT Process <0.6138.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:33.224 [info] Application mnesia2 exited with reason: killed
+08:53:33.489 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.6264.0>
+08:53:33.495 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3241.0>
+08:53:33.521 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:33.813 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:34.329 [error] gen_server <0.568.0> terminated with reason: killed
+08:53:34.329 [error] CRASH REPORT Process <0.568.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:34.330 [error] gen_server <0.563.0> terminated with reason: killed
+08:53:34.330 [error] CRASH REPORT Process <0.563.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:34.331 [error] CRASH REPORT Process <0.486.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:34.331 [info] Application mnesia2 exited with reason: killed
+08:53:34.370 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.594.0>
+08:53:34.372 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:34.446 [error] gen_server <0.6360.0> terminated with reason: killed
+08:53:34.446 [error] CRASH REPORT Process <0.6360.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:34.446 [error] gen_server <0.6331.0> terminated with reason: killed
+08:53:34.447 [error] CRASH REPORT Process <0.6331.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:34.447 [error] gen_server <0.6355.0> terminated with reason: killed
+08:53:34.447 [error] CRASH REPORT Process <0.6355.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:34.447 [error] CRASH REPORT Process <0.6255.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:34.447 [info] Application mnesia2 exited with reason: killed
+08:53:34.466 [error] gen_server <0.3327.0> terminated with reason: killed
+08:53:34.467 [error] CRASH REPORT Process <0.3327.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:34.467 [error] CRASH REPORT Process <0.3232.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:34.467 [info] Application mnesia2 exited with reason: killed
+08:53:34.491 [info] Application mnesia2 exited with reason: stopped
+08:53:34.519 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.692.0>
+08:53:34.553 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.6377.0>
+08:53:34.560 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3348.0>
+08:53:34.578 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:34.862 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:35.401 [error] CRASH REPORT Process <0.3339.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:35.401 [info] Application mnesia2 exited with reason: killed
+08:53:35.460 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3444.0>
+08:53:35.472 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:35.486 [error] gen_server <0.3500.0> terminated with reason: killed
+08:53:35.487 [error] CRASH REPORT Process <0.3500.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:35.487 [error] gen_server <0.3492.0> terminated with reason: killed
+08:53:35.487 [error] CRASH REPORT Process <0.3492.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:35.487 [error] gen_server <0.3457.0> terminated with reason: killed
+08:53:35.487 [error] CRASH REPORT Process <0.3457.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:35.488 [error] CRASH REPORT Process <0.3435.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:35.488 [info] Application mnesia2 exited with reason: killed
+08:53:36.511 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3522.0>
+08:53:36.529 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+
+----------------------------------------------------
+2016-04-12 08:53:36.556
+ending test case: dynamic_basic
+
+
+----------------------------------------------------
+2016-04-12 08:53:36.587
+starting test case: dynamic_ext
+
+08:53:36.591 [error] gen_server <0.3551.0> terminated with reason: killed
+08:53:36.594 [error] gen_server <0.6491.0> terminated with reason: killed
+08:53:36.591 [error] CRASH REPORT Process <0.3551.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:36.591 [error] gen_server <0.816.0> terminated with reason: killed
+08:53:36.595 [error] CRASH REPORT Process <0.6491.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:36.591 [error] CRASH REPORT Process <0.3513.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:36.591 [info] Application mnesia2 exited with reason: killed
+08:53:36.595 [error] CRASH REPORT Process <0.6368.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:36.595 [info] Application mnesia2 exited with reason: killed
+08:53:36.591 [error] CRASH REPORT Process <0.816.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:36.591 [error] gen_server <0.806.0> terminated with reason: killed
+08:53:36.591 [error] CRASH REPORT Process <0.806.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:36.591 [error] gen_server <0.766.0> terminated with reason: killed
+08:53:36.592 [error] CRASH REPORT Process <0.766.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:36.592 [error] CRASH REPORT Process <0.683.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:36.592 [info] Application mnesia2 exited with reason: killed
+08:53:36.668 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.6523.0>
+08:53:36.672 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:36.694 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3600.0>
+08:53:36.800 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3695.0>
+08:53:36.895 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3785.0>
+08:53:36.971 [info] Application mnesia2 exited with reason: stopped
+08:53:36.974 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3885.0>
+08:53:37.569 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.6636.0>
+08:53:37.623 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:37.770 [info] Application mnesia2 exited with reason: stopped
+08:53:37.771 [warning] lager_error_logger_h dropped 5 messages in the last second that exceeded the limit of 50 messages/sec
+08:53:37.772 [error] gen_server <0.3940.0> terminated with reason: killed
+08:53:37.772 [error] CRASH REPORT Process <0.3940.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:37.772 [error] CRASH REPORT Process <0.3876.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:37.772 [info] Application mnesia2 exited with reason: killed
+08:53:37.941 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.6719.0>
+08:53:38.448 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.3967.0>
+08:53:38.468 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+
+----------------------------------------------------
+2016-04-12 08:53:38.487
+ending test case: dynamic_ext
+
+
+----------------------------------------------------
+2016-04-12 08:53:38.521
+starting test case: dynamic_bad
+
+08:53:38.525 [error] CRASH REPORT Process <0.3958.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:38.524 [error] gen_server <0.6784.0> terminated with reason: killed
+08:53:38.526 [info] Application mnesia2 exited with reason: killed
+08:53:38.524 [error] CRASH REPORT Process <0.6784.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:38.525 [error] CRASH REPORT Process <0.6710.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:38.526 [info] Application mnesia2 exited with reason: killed
+08:53:38.642 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.6820.0>
+08:53:38.643 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.843.0>
+08:53:38.652 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:38.655 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4061.0>
+08:53:38.667 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:38.949 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:39.045 [error] CRASH REPORT Process <0.6811.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:39.045 [info] Application mnesia2 exited with reason: killed
+08:53:39.047 [error] gen_server <0.907.0> terminated with reason: killed
+08:53:39.045 [error] gen_server <0.4119.0> terminated with reason: killed
+08:53:39.047 [error] CRASH REPORT Process <0.907.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:39.045 [error] CRASH REPORT Process <0.4119.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:39.047 [error] gen_server <0.902.0> terminated with reason: killed
+08:53:39.049 [error] gen_server <0.4112.0> terminated with reason: killed
+08:53:39.047 [error] CRASH REPORT Process <0.902.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:39.048 [error] CRASH REPORT Process <0.834.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:39.048 [info] Application mnesia2 exited with reason: killed
+08:53:39.071 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.950.0>
+08:53:39.073 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:39.049 [error] CRASH REPORT Process <0.4112.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:39.049 [error] CRASH REPORT Process <0.4050.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:39.049 [info] Application mnesia2 exited with reason: killed
+08:53:39.075 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4149.0>
+08:53:39.078 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:39.112 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.6931.0>
+08:53:39.123 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:39.193 [error] gen_server <0.999.0> terminated with reason: killed
+08:53:39.196 [error] gen_server <0.4203.0> terminated with reason: killed
+08:53:39.193 [error] CRASH REPORT Process <0.999.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:39.198 [error] CRASH REPORT Process <0.6922.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:39.198 [info] Application mnesia2 exited with reason: killed
+08:53:39.196 [error] CRASH REPORT Process <0.4203.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:39.193 [error] gen_server <0.1009.0> terminated with reason: killed
+08:53:39.193 [error] CRASH REPORT Process <0.1009.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:39.196 [error] gen_server <0.4193.0> terminated with reason: killed
+08:53:39.193 [error] gen_server <0.994.0> terminated with reason: killed
+08:53:39.196 [error] CRASH REPORT Process <0.4193.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:39.193 [error] CRASH REPORT Process <0.994.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:39.196 [error] CRASH REPORT Process <0.4140.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:39.193 [error] CRASH REPORT Process <0.941.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:39.193 [info] Application mnesia2 exited with reason: killed
+08:53:39.196 [info] Application mnesia2 exited with reason: killed
+08:53:39.229 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1029.0>
+08:53:39.232 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4227.0>
+08:53:39.261 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.7023.0>
+08:53:49.286 [error] Supervisor mnesia2_sup had child mnesia2_kernel_sup started with mnesia2_kernel_sup:start() at undefined exit with reason killed in context start_error
+
+----------------------------------------------------
+2016-04-12 08:53:49.289
+ending test case: dynamic_bad
+
+08:53:49.286 [error] gen_server mnesia2_monitor terminated with reason: killed
+08:53:49.286 [error] gen_server mnesia2_subscr terminated with reason: killed
+08:53:49.286 [error] CRASH REPORT Process mnesia2_subscr with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:49.286 [error] gen_server mnesia2_recover terminated with reason: killed
+08:53:49.286 [error] CRASH REPORT Process mnesia2_recover with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:49.286 [error] gen_server mnesia2_snmp_sup terminated with reason: killed
+08:53:49.286 [error] CRASH REPORT Process mnesia2_snmp_sup with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:49.286 [error] CRASH REPORT Process <0.7014.0> with 0 neighbours exited with reason: {{shutdown,{failed_to_start_child,mnesia2_kernel_sup,killed}},{mnesia2_sup,start,[normal,[]]}} in application_master:init/4 line 133
+08:53:49.287 [info] Application mnesia2 exited with reason: {{shutdown,{failed_to_start_child,mnesia2_kernel_sup,killed}},{mnesia2_sup,start,[normal,[]]}}
+08:53:49.287 [error] CRASH REPORT Process mnesia2_monitor with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+
+----------------------------------------------------
+2016-04-12 08:53:49.371
+starting test case: unknown_config
+
+08:53:49.374 [error] gen_server <0.4271.0> terminated with reason: killed
+08:53:49.374 [error] gen_server <0.1078.0> terminated with reason: killed
+08:53:49.374 [error] CRASH REPORT Process <0.4271.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:49.374 [error] CRASH REPORT Process <0.1078.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:49.375 [error] CRASH REPORT Process <0.4218.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:49.375 [info] Application mnesia2 exited with reason: killed
+08:53:49.374 [error] gen_server <0.1073.0> terminated with reason: killed
+08:53:49.374 [error] CRASH REPORT Process <0.1073.0> with 0 neighbours exited with reason: killed in gen_server:terminate/6 line 737
+08:53:49.375 [error] CRASH REPORT Process <0.1020.0> with 0 neighbours exited with reason: killed in application_master:terminate/2 line 227
+08:53:49.375 [info] Application mnesia2 exited with reason: killed
+
+----------------------------------------------------
+2016-04-12 08:53:51.428
+ending test case: unknown_config
+
+
+----------------------------------------------------
+2016-04-12 08:53:51.513
+ending test group: config
+
+
+----------------------------------------------------
+2016-04-12 08:53:51.541
+starting test group: examples
+
+
+----------------------------------------------------
+2016-04-12 08:53:51.624
+starting test case: bup
+
+
+----------------------------------------------------
+2016-04-12 08:53:51.654
+ending test case: bup
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - -
+Error detected: error
+- - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Testing lrascao.mnesia2.mnesia2_extra_light_SUITE: *** FAILED test case 41 of 52 ***
+
+----------------------------------------------------
+2016-04-12 08:53:51.689
+starting test case: company
+
+
+----------------------------------------------------
+2016-04-12 08:53:51.690
+ending test case: company
+
+
+----------------------------------------------------
+2016-04-12 08:53:51.718
+starting test case: meter
+
+08:53:53.069 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.7132.0>
+08:53:53.073 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:58.267 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:53:58.273
+ending test case: meter
+
+
+----------------------------------------------------
+2016-04-12 08:53:58.342
+starting test case: replica_test
+
+08:53:58.471 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4317.0>
+08:53:58.475 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1126.0>
+08:53:58.477 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.7268.0>
+08:53:58.486 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:58.775 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:53:58.786 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:06.323 [info] Application mnesia2 exited with reason: stopped
+08:54:06.319 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:54:06.347
+ending test case: replica_test
+
+08:54:06.347 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:54:06.374
+starting test case: sticky_replica_test
+
+08:54:06.497 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.7396.0>
+08:54:06.502 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:06.504 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4433.0>
+08:54:06.507 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1244.0>
+08:54:06.523 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:06.808 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:22.100 [info] Application mnesia2 exited with reason: stopped
+08:54:22.098 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:54:22.128
+ending test case: sticky_replica_test
+
+08:54:22.125 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:54:22.155
+starting test case: dist_test
+
+08:54:23.592 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.7525.0>
+08:54:23.595 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:23.620 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.1359.0>
+08:54:23.637 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4549.0>
+08:54:23.643 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:23.940 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:49.144 [info] Application mnesia2 exited with reason: stopped
+08:54:49.144 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:54:49.339
+ending test case: dist_test
+
+08:54:49.339 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:54:49.368
+starting test case: conflict_test
+
+08:54:50.178 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.8663.0>
+08:54:50.180 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2485.0>
+08:54:50.198 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5673.0>
+08:54:50.209 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:50.219 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:50.484 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:57.095 [info] Application mnesia2 exited with reason: stopped
+08:54:57.120 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:54:57.124
+ending test case: conflict_test
+
+08:54:57.123 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:54:57.152
+starting test case: frag_test
+
+08:54:57.267 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.8802.0>
+08:54:57.280 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:57.289 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.5798.0>
+08:54:57.297 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:54:57.324 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.2610.0>
+08:54:57.330 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:55:03.753 [info] Application mnesia2 exited with reason: stopped
+08:55:03.765 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:55:03.779
+ending test case: frag_test
+
+08:55:03.779 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:55:03.814
+starting test case: frag2_test
+
+08:55:03.910 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.10283.0>
+08:55:03.914 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:55:03.918 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.7269.0>
+08:55:03.924 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:55:03.929 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4078.0>
+08:55:03.935 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:55:12.263 [info] Application mnesia2 exited with reason: stopped
+08:55:12.268 [info] Application mnesia2 exited with reason: stopped
+08:55:12.269 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:55:12.270
+ending test case: frag2_test
+
+
+----------------------------------------------------
+2016-04-12 08:55:12.298
+starting test case: remote_test
+
+08:55:31.493 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.12050.0>
+08:55:31.498 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:55:31.508 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.8270.0>
+08:55:31.510 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4672.0>
+08:55:31.520 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:55:33.217 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:55:40.214 [info] Application mnesia2 exited with reason: stopped
+08:55:40.221 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:55:40.248
+ending test case: remote_test
+
+08:55:40.247 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:55:40.280
+starting test case: remote_frag2_test
+
+08:55:40.362 [info] starting mnesia2_tm, 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.12179.0>
+08:55:40.365 [info] Application mnesia2 started on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:55:40.377 [info] starting mnesia2_tm, 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.9065.0>
+08:55:40.383 [info] starting mnesia2_tm, 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4', <0.4787.0>
+08:55:40.392 [info] Application mnesia2 started on node 'd1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:55:40.394 [info] Application mnesia2 started on node 'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4'
+08:56:00.559 [info] Application mnesia2 exited with reason: stopped
+08:56:00.573 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:56:00.576
+ending test case: remote_frag2_test
+
+08:56:00.575 [info] Application mnesia2 exited with reason: stopped
+
+----------------------------------------------------
+2016-04-12 08:56:00.685
+ending test group: examples
+
+
+----------------------------------------------------
+2016-04-12 08:56:00.711
+ending test group: extra_light
+
+
+----------------------------------------------------
+2016-04-12 08:56:00.737
+starting test case: clean_up_suite
+
+
+----------------------------------------------------
+2016-04-12 08:56:00.757
+ending test case: clean_up_suite
+
+Testing lrascao.mnesia2.mnesia2_extra_light_SUITE: TEST COMPLETE, 51 ok, 1 failed of 52 test cases
+
+Cover analysing... done
+
+Updating /home/travis/build/lrascao/mnesia2/logs/index.html... done
+Updating /home/travis/build/lrascao/mnesia2/logs/all_runs.html... done
+

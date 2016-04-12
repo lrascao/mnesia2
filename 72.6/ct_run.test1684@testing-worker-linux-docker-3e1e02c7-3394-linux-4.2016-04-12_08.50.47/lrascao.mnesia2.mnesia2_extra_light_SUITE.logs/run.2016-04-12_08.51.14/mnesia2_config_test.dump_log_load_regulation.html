@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_config_test:dump_log_load_regulation result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_config_test.src.html#dump_log_load_regulation-1">source code for mnesia2_config_test:dump_log_load_regulation/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_config_test:dump_log_load_regulation([{watchdog,<0.2945.0>},
+                                              {tc_logfile,
+                                               "/home/travis/build/lrascao/mnesia2/logs/ct_run.test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4.2016-04-12_08.50.47/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.51.14/mnesia2_config_test.dump_log_load_regulation.html"},
+                                              {tc_group_properties,
+                                               [{suite,mnesia2_config_test}]},
+                                              {tc_group_path,
+                                               [[{name,config}],
+                                                [{name,registry}],
+                                                [{name,registry}],
+                                                [{name,qlc}],
+                                                [{name,qlc}],
+                                                [{name,nice}],
+                                                [{name,nice}],
+                                                [{name,install}],
+                                                [{name,install}],
+                                                [{name,extra_light}]]},
+                                              {data_dir,
+                                               "/home/travis/build/lrascao/mnesia2/test/mnesia2_config_test_data/"},
+                                              {priv_dir,
+                                               "/home/travis/build/lrascao/mnesia2/logs/ct_run.test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4.2016-04-12_08.50.47/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.51.14/log_private/"},
+                                              {nodenames,
+                                               ['d1276496o1276492n1276492@testing-worker-linux-docker-3e1e02c7-3394-linux-4',
+                                                'd1276488o1276468n1276468@testing-worker-linux-docker-3e1e02c7-3394-linux-4']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4.2016-04-12_08.50.47"
+
+=== Started at 2016-04-12 08:51:46
+
+<br />
+TPC-B: Table config: [{db_nodes,['test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4']},
+                      {n_replicas,1},
+                      {replica_nodes,['test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4']},
+                      {replica_type,disc_copies},
+                      {use_running_mnesia2,true},
+                      {n_fragments,0},
+                      {n_branches,10},
+                      {n_tellers_per_branch,10},
+                      {n_accounts_per_branch,5},
+                      {branch_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890}},
+                      {account_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234}},
+                      {teller_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      1234567890123456789012345678901234567890123456789012345678}}] 
+
+TPC-B: Generating 10 branches a 102 bytes
+
+TPC-B: Generating 10 * 10 tellers a 103 bytes
+
+TPC-B: Generating 10 * 5 accounts a 103 bytes
+
+TPC-B: Generating 0 history records a 42 bytes
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+TPC-B: Run config: [{driver_nodes,['test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4']},
+                    {n_drivers_per_node,5},
+                    {use_running_mnesia2,true},
+                    {seed,undefined},
+                    {stop_after,15000},
+                    {report_interval,3000},
+                    {send_bench_report,false},
+                    {use_sticky_locks,false},
+                    {spawn_near_branch,false},
+                    {activity_type,transaction},
+                    {reuse_history_id,true}] 
+
+TPC-B: Orphan branches: []
+
+TPC-B: Driver 1 started as <0.4018.0> on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4' with 2 local branches
+
+TPC-B: Driver 2 started as <0.4019.0> on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4' with 2 local branches
+
+TPC-B: Driver 3 started as <0.4020.0> on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4' with 2 local branches
+
+TPC-B: Driver 4 started as <0.4021.0> on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4' with 2 local branches
+
+TPC-B: Driver 5 started as <0.4022.0> on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4' with 2 local branches
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+TPC-B: 1 iter 0 diff 2539 (0) tps 1969 avg micros 115118 max micros 1.0777027027027026 unfairness
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+TPC-B: 2 iter -276 diff 2263 (0) tps 2209 avg micros 414471 max micros 1.2694256756756757 unfairness
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+TPC-B: 3 iter -143 diff 2120 (0) tps 2358 avg micros 212617 max micros 1.0893155258764609 unfairness
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+TPC-B: 4 iter -152 diff 1968 (0) tps 2540 avg micros 182507 max micros 1.256221198156682 unfairness
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+Mnesia2('test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+TPC-B: Driver 3 (<0.4020.0>) on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4' stopped: {time,6675,5465,5465,14967796,193770}
+
+TPC-B: Driver 5 (<0.4022.0>) on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4' stopped: {time,6680,5435,5435,14967504,227799}
+
+TPC-B: Driver 1 (<0.4018.0>) on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4' stopped: {time,6672,5472,5472,14969407,269385}
+
+TPC-B: Driver 2 (<0.4019.0>) on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4' stopped: {time,6393,5060,5060,14974817,414471}
+
+TPC-B: Driver 4 (<0.4021.0>) on node 'test1684@testing-worker-linux-docker-3e1e02c7-3394-linux-4' stopped: {time,6790,5452,5452,14985624,204537}
+
+TPC-B: 4 iter +241 diff 2209 (0) tps 2263 avg micros 62217 max micros 1.115 unfairness
+
+TPC-B: 2218 (0) transactions per second, duration of longest transaction was 414 milliseconds
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-12 08:52:03
+=== successfully completed test case
+=== returned value = ok
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Tue Apr 12 2016 08:51:46<!/date><br />
+</div>
+</center>
+</body>
+</html>
