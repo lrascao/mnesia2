@@ -1,0 +1,406 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test8404@testing-worker-linux-docker-de687427-3348-linux-6.2016-04-12_08.45.05/mnesia2_index.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_index.erl by COVER 2016-04-12 at 08:49:00
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %% 
+        |  %% Copyright Ericsson AB 1996-2014. All Rights Reserved.
+        |  %% 
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %% 
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  %% Purpose: Handles index functionality in mnesia2
+        |  
+        |  -module(mnesia2_index).
+        |  -export([read/5,
+        |  	 add_index/5,
+        |  	 delete_index/3,
+        |  	 del_object_index/5,
+        |  	 clear_index/4,
+        |  	 dirty_match_object/3,
+        |  	 dirty_select/3,
+        |  	 dirty_read/3,
+        |  	 dirty_read2/3,
+        |  
+        |  	 db_put/2,
+        |  	 db_get/2,
+        |  	 db_match_erase/2,
+        |  	 get_index_table/2,
+        |  	 get_index_table/3,
+        |  	 
+        |  	 tab2filename/2,
+        |  	 tab2tmp_filename/2,
+        |  	 init_index/2,
+        |  	 init_indecies/3,
+        |  	 del_transient/2,
+        |  	 del_transient/3,
+        |  	 del_index_table/3]).
+        |  
+        |  -import(mnesia2_lib, [val/1, verbose/2]).
+        |  -include("mnesia2.hrl").
+        |  
+        |  -record(index, {setorbag, pos_list}).
+        |  
+        |  %% read an object list throuh its index table
+        |  %% we assume that table Tab has index on attribute number Pos
+        |  
+        |  read(Tid, Store, Tab, IxKey, Pos) -&gt;
+    25..|      ResList = mnesia2_locker:ixrlock(Tid, Store, Tab, IxKey, Pos),
+        |      %% Remove all tuples which don't include Ixkey, happens when Tab is a bag
+    25..|      case val({Tab, setorbag}) of
+        |  	bag -&gt; 
+    12..|  	    mnesia2_lib:key_search_all(IxKey, Pos, ResList);
+        |  	_ -&gt; 
+    13..|  	    ResList
+        |      end.
+        |  
+        |  add_index(Index, Tab, Key, Obj, Old) -&gt;    
+   130..|      add_index2(Index#index.pos_list, Index#index.setorbag, Tab, Key, Obj, Old).
+        |  
+        |  add_index2([{Pos, Ixt} |Tail], bag, Tab, K, Obj, OldRecs) -&gt;
+    30..|      db_put(Ixt, {element(Pos, Obj), K}),
+    30..|      add_index2(Tail, bag, Tab, K, Obj, OldRecs);
+        |  add_index2([{Pos, Ixt} |Tail], Type, Tab, K, Obj, OldRecs0) -&gt;
+        |      %% Remove old tuples in index if Tab is updated
+   100..|      OldRecs1 = case OldRecs0 of
+   100..|  		   undefined -&gt; mnesia2_lib:db_get(Tab, K);
+<font color=red>     0..|  		   _ -&gt; OldRecs0</font>
+        |  	       end,
+   100..|      IdxVal = element(Pos, Obj),
+   100..|      case [Old || Old &lt;- OldRecs1, element(Pos, Old) =/= IdxVal] of
+        |  	[] when OldRecs1 =:= [] -&gt;  %% Write
+   100..|  	    db_put(Ixt, {element(Pos, Obj), K}),
+   100..|  	    add_index2(Tail, Type, Tab, K, Obj, OldRecs0);
+        |  	[] -&gt; %% when OldRecs1 =/= [] Update without modifying index field
+<font color=red>     0..|  	    add_index2(Tail, Type, Tab, K, Obj, OldRecs0);</font>
+        |  	OldRecs -&gt; %% Update
+<font color=red>     0..|  	    db_put(Ixt, {element(Pos, Obj), K}),</font>
+<font color=red>     0..|  	    del_ixes(Ixt, OldRecs, Pos, K),</font>
+<font color=red>     0..|  	    add_index2(Tail, Type, Tab, K, Obj, OldRecs0)</font>
+        |      end;
+   130..|  add_index2([], _, _Tab, _K, _Obj, _) -&gt; ok.
+        |  
+        |  delete_index(Index, Tab, K) -&gt;
+    55..|      delete_index2(Index#index.pos_list, Tab, K).
+        |  
+        |  delete_index2([{Pos, Ixt} | Tail], Tab, K) -&gt;
+    55..|      DelObjs = mnesia2_lib:db_get(Tab, K), 
+    55..|      del_ixes(Ixt, DelObjs, Pos, K),
+    55..|      delete_index2(Tail, Tab, K);
+    55..|  delete_index2([], _Tab, _K) -&gt; ok.
+        |  
+        |  
+    61..|  del_ixes(_Ixt, [], _Pos, _L) -&gt; ok;
+        |  del_ixes(Ixt, [Obj | Tail], Pos, Key) -&gt;
+    31..|      db_match_erase(Ixt, {element(Pos, Obj), Key}),
+    31..|      del_ixes(Ixt, Tail, Pos, Key).
+        |  
+        |  del_object_index(Index, Tab, K, Obj, Old) -&gt;
+     6..|      del_object_index2(Index#index.pos_list, Index#index.setorbag, Tab, K, Obj, Old).
+        |  
+     6..|  del_object_index2([], _, _Tab, _K, _Obj, _Old) -&gt; ok;
+        |  del_object_index2([{Pos, Ixt} | Tail], SoB, Tab, K, Obj, Old) -&gt;
+     6..|      case SoB of
+        |  	bag -&gt; 
+     6..|  	    del_object_bag(Tab, K, Obj, Pos, Ixt, Old);
+        |  	_ -&gt; %% If set remove the tuple in index table
+<font color=red>     0..|  	    del_ixes(Ixt, [Obj], Pos, K)	</font>
+        |      end,
+     6..|      del_object_index2(Tail, SoB, Tab, K, Obj, Old).
+        |  
+        |  del_object_bag(Tab, Key, Obj, Pos, Ixt, undefined) -&gt; 
+     6..|      IxKey = element(Pos, Obj),
+     6..|      Old = [X || X &lt;-  mnesia2_lib:db_get(Tab, Key), element(Pos, X) =:= IxKey],
+     6..|      del_object_bag(Tab, Key, Obj, Pos, Ixt, Old);
+        |  %% If Tab type is bag we need remove index identifier if the object being
+        |  %% deleted was the last one
+        |  del_object_bag(_Tab, Key, Obj, Pos, Ixt, Old) when Old =:= [Obj] -&gt;
+     6..|      del_ixes(Ixt, [Obj], Pos, Key);
+<font color=red>     0..|  del_object_bag(_Tab, _Key, _Obj, _Pos, _Ixt, _Old) -&gt; ok.</font>
+        |  
+        |  clear_index(Index, Tab, K, Obj) -&gt;
+<font color=red>     0..|      clear_index2(Index#index.pos_list, Tab, K, Obj).</font>
+        |  
+<font color=red>     0..|  clear_index2([], _Tab, _K, _Obj) -&gt; ok;</font>
+        |  clear_index2([{_Pos, Ixt} | Tail], Tab, K, Obj) -&gt;
+<font color=red>     0..|      db_match_erase(Ixt, Obj),</font>
+<font color=red>     0..|      clear_index2(Tail, Tab, K, Obj).</font>
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  
+        |  dirty_match_object(Tab, Pat, Pos) -&gt;
+        |      %% Assume that we are on the node where the replica is
+    24..|      case element(2, Pat) of
+        |  	'_' -&gt;
+    22..|  	    IxKey = element(Pos, Pat),
+    22..|  	    RealKeys = realkeys(Tab, Pos, IxKey),
+    22..|  	    merge(RealKeys, Tab, Pat, []);
+        |  	_Else -&gt;
+     2..|  	    mnesia2_lib:db_match_object(Tab, Pat)
+        |      end.
+        |  
+        |  merge([{_IxKey, RealKey} | Tail], Tab, Pat, Ack) -&gt;
+        |      %% Assume that we are on the node where the replica is
+    12..|      Pat2 = setelement(2, Pat, RealKey),
+    12..|      Recs = mnesia2_lib:db_match_object(Tab, Pat2),
+    12..|      merge(Tail, Tab, Pat, Recs ++ Ack);
+        |  merge([], _, _, Ack) -&gt;
+    22..|      Ack.
+        |  
+        |  realkeys(Tab, Pos, IxKey) -&gt;
+    37..|      Index = get_index_table(Tab, Pos),
+    37..|      db_get(Index, IxKey). % a list on the form [{IxKey, RealKey1} , ....
+        |      
+        |  dirty_select(Tab, Spec, Pos) -&gt;
+        |      %% Assume that we are on the node where the replica is
+        |      %% Returns the records without applying the match spec
+        |      %% The actual filtering is handled by the caller
+    15..|      IxKey = element(Pos, Spec),
+    15..|      RealKeys = realkeys(Tab, Pos, IxKey),
+    15..|      StorageType = val({Tab, storage_type}),
+    15..|      lists:append([mnesia2_lib:db_get(StorageType, Tab, Key) || {_,Key} &lt;- RealKeys]).
+        |  
+        |  dirty_read(Tab, IxKey, Pos) -&gt;
+     8..|      ResList = mnesia2:dirty_rpc(Tab, ?MODULE, dirty_read2,
+        |  			       [Tab, IxKey, Pos]),
+     8..|      case val({Tab, setorbag}) of
+        |  	bag -&gt;
+        |  	    %% Remove all tuples which don't include Ixkey
+     7..|  	    mnesia2_lib:key_search_all(IxKey, Pos, ResList);
+        |  	_ -&gt; 
+     1..|  	    ResList
+        |      end.
+        |  
+        |  dirty_read2(Tab, IxKey, Pos) -&gt;
+     8..|      Ix = get_index_table(Tab, Pos),
+     8..|      Keys = db_match(Ix, {IxKey, '$1'}),
+     8..|      r_keys(Keys, Tab, []).
+        |  
+        |  r_keys([[H]|T],Tab,Ack) -&gt; 
+    13..|      V = mnesia2_lib:db_get(Tab, H),
+    13..|      r_keys(T, Tab, V ++ Ack);
+        |  r_keys([], _, Ack) -&gt;
+     8..|      Ack.
+        |  	    
+        |  
+        |  %%%%%%% Creation, Init and deletion routines for index tables
+        |  %% We can have several indexes on the same table
+        |  %% this can be a fairly costly operation if table is *very* large
+        |  
+        |  tab2filename(Tab, Pos) -&gt;
+     6..|      mnesia2_lib:dir(Tab) ++ "_" ++ integer_to_list(Pos) ++ ".DAT".
+        |  
+        |  tab2tmp_filename(Tab, Pos) -&gt;
+<font color=red>     0..|      mnesia2_lib:dir(Tab) ++ "_" ++ integer_to_list(Pos) ++ ".TMP".</font>
+        |          
+        |  init_index(Tab, Storage) -&gt;
+   102..|      PosList = val({Tab, index}),
+   102..|      init_indecies(Tab, Storage, PosList).
+        |  
+        |  init_indecies(Tab, Storage, PosList) -&gt;
+   103..|      case Storage of
+        |  	unknown -&gt;
+<font color=red>     0..|  	    ignore;</font>
+        |  	disc_only_copies -&gt;
+     9..|  	    init_disc_index(Tab, PosList);
+        |  	ram_copies -&gt;
+    56..|  	    make_ram_index(Tab, PosList);
+        |  	disc_copies -&gt;
+    38..|  	    make_ram_index(Tab, PosList)
+        |      end.
+        |  
+        |  %% works for both ram and disc indexes
+        |  
+        |  del_index_table(_, unknown, _) -&gt;
+<font color=red>     0..|      ignore;</font>
+        |  del_index_table(Tab, Storage, Pos) -&gt;
+     1..|      delete_transient_index(Tab, Pos, Storage),
+     1..|      mnesia2_lib:del({Tab, index}, Pos).
+        |  
+        |  del_transient(Tab, Storage) -&gt;
+     2..|      PosList = val({Tab, index}),
+     2..|      del_transient(Tab, PosList, Storage).
+        |  
+     8..|  del_transient(_, [], _) -&gt; ok;
+        |  del_transient(Tab, [Pos | Tail], Storage) -&gt;
+     3..|      delete_transient_index(Tab, Pos, Storage),
+     3..|      del_transient(Tab, Tail, Storage).
+        |  
+        |  delete_transient_index(Tab, Pos, disc_only_copies) -&gt;
+     3..|      Tag = {Tab, index, Pos},
+     3..|      mnesia2_monitor:unsafe_close_dets(Tag),
+     3..|      _ = file:delete(tab2filename(Tab, Pos)),
+     3..|      del_index_info(Tab, Pos), %% Uses val(..)
+     3..|      mnesia2_lib:unset({Tab, {index, Pos}});
+        |  
+        |  delete_transient_index(Tab, Pos, _Storage) -&gt;
+     1..|      Ixt = val({Tab, {index, Pos}}),
+     1..|      ?ets_delete_table(Ixt),
+     1..|      del_index_info(Tab, Pos),
+     1..|      mnesia2_lib:unset({Tab, {index, Pos}}).
+        |  
+        |  %%%%% misc functions for the index create/init/delete functions above
+        |  
+        |  %% assuming that the file exists.
+        |  init_disc_index(_Tab, []) -&gt;
+     9..|      done;
+        |  init_disc_index(Tab, [Pos | Tail]) when is_integer(Pos) -&gt;
+     3..|      Fn = tab2filename(Tab, Pos),
+     3..|      IxTag = {Tab, index, Pos},
+     3..|      _ = file:delete(Fn),
+     3..|      Args = [{file, Fn}, {keypos, 1}, {type, bag}],
+     3..|      mnesia2_monitor:open_dets(IxTag, Args),
+     3..|      Storage = disc_only_copies,
+     3..|      Key = mnesia2_lib:db_first(Storage, Tab),
+     3..|      Recs = mnesia2_lib:db_get(Storage, Tab, Key),
+     3..|      BinSize = size(term_to_binary(Recs)),
+     3..|      KeysPerChunk = (4000 div BinSize) + 1,
+     3..|      Init = {start, KeysPerChunk},
+     3..|      mnesia2_lib:db_fixtable(Storage, Tab, true),
+     3..|      ok = dets:init_table(IxTag, create_fun(Init, Tab, Pos)),
+     3..|      mnesia2_lib:db_fixtable(Storage, Tab, false),
+     3..|      mnesia2_lib:set({Tab, {index, Pos}}, IxTag),
+     3..|      add_index_info(Tab, val({Tab, setorbag}), {Pos, {dets, IxTag}}),
+     3..|      init_disc_index(Tab, Tail).
+        |  
+        |  create_fun(Cont, Tab, Pos) -&gt;
+     3..|      fun(read) -&gt;
+     3..|  	    Data = 
+        |  		case Cont of
+        |  		    {start, KeysPerChunk} -&gt;
+     3..|  			mnesia2_lib:db_init_chunk(disc_only_copies, Tab, KeysPerChunk);
+        |  		    '$end_of_table' -&gt; 
+<font color=red>     0..|  			'$end_of_table';</font>
+        |  		    _Else -&gt;
+<font color=red>     0..|  			mnesia2_lib:db_chunk(disc_only_copies, Cont)</font>
+        |  		end,
+     3..|  	    case Data of
+        |  		'$end_of_table' -&gt;
+     3..|  		    end_of_input;
+        |  		{Recs, Next} -&gt;
+<font color=red>     0..|  		    IdxElems = [{element(Pos, Obj), element(2, Obj)} || Obj &lt;- Recs],</font>
+<font color=red>     0..|  		    {IdxElems, create_fun(Next, Tab, Pos)}</font>
+        |  	    end;
+        |         (close) -&gt;
+<font color=red>     0..|  	    ok</font>
+        |      end.
+        |  
+        |  make_ram_index(_, []) -&gt; 
+    94..|      done;
+        |  make_ram_index(Tab, [Pos | Tail]) -&gt;
+    11..|      add_ram_index(Tab, Pos),
+    11..|      make_ram_index(Tab, Tail).
+        |  
+        |  add_ram_index(Tab, Pos) when is_integer(Pos) -&gt;
+    11..|      verbose("Creating index for ~w ~n", [Tab]),
+    11..|      SetOrBag = val({Tab, setorbag}),
+    11..|      IndexType = case SetOrBag of
+     9..|          set -&gt; duplicate_bag;
+<font color=red>     0..|          ordered_set -&gt; duplicate_bag;</font>
+     2..|          bag -&gt; bag
+        |      end,
+    11..|      Index = mnesia2_monitor:mktab(mnesia2_index, [IndexType, public]),
+    11..|      Insert = fun(Rec, _Acc) -&gt;
+    13..|  		     true = ?ets_insert(Index, {element(Pos, Rec), element(2, Rec)})
+        |  	     end,
+    11..|      mnesia2_lib:db_fixtable(ram_copies, Tab, true),
+    11..|      true = ets:foldl(Insert, true, Tab),
+    11..|      mnesia2_lib:db_fixtable(ram_copies, Tab, false),
+    11..|      mnesia2_lib:set({Tab, {index, Pos}}, Index),
+    11..|      add_index_info(Tab, SetOrBag, {Pos, {ram, Index}});
+        |  add_ram_index(_Tab, snmp) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  add_index_info(Tab, Type, IxElem) -&gt;
+    14..|      Commit = val({Tab, commit_work}),
+    14..|      case lists:keysearch(index, 1, Commit) of
+        |  	false -&gt;
+    14..|  	    Index = #index{setorbag = Type, 
+        |  			   pos_list = [IxElem]},
+        |  	    %% Check later if mnesia2_tm is sensative about the order 
+    14..|  	    mnesia2_lib:set({Tab, commit_work}, 
+        |  			   mnesia2_lib:sort_commit([Index | Commit]));
+        |  	{value, Old} -&gt;
+        |  	    %% We could check for consistency here
+<font color=red>     0..|  	    Index = Old#index{pos_list = [IxElem | Old#index.pos_list]},</font>
+<font color=red>     0..|  	    NewC = lists:keyreplace(index, 1, Commit, Index),</font>
+<font color=red>     0..|  	    mnesia2_lib:set({Tab, commit_work}, </font>
+        |  			   mnesia2_lib:sort_commit(NewC))
+        |      end.
+        |  
+        |  del_index_info(Tab, Pos) -&gt;
+     4..|      Commit = val({Tab, commit_work}),
+     4..|      case lists:keysearch(index, 1, Commit) of
+        |  	false -&gt;
+        |  	    %% Something is wrong ignore
+     3..|  	    skip;
+        |  	{value, Old} -&gt;
+     1..|  	    case lists:keydelete(Pos, 1, Old#index.pos_list) of
+        |  		[] -&gt; 
+     1..|  		    NewC = lists:keydelete(index, 1, Commit),
+     1..|  		    mnesia2_lib:set({Tab, commit_work}, 
+        |  				   mnesia2_lib:sort_commit(NewC));
+        |  		New -&gt;
+<font color=red>     0..|  		    Index = Old#index{pos_list = New},</font>
+<font color=red>     0..|  		    NewC = lists:keyreplace(index, 1, Commit, Index),</font>
+<font color=red>     0..|  		    mnesia2_lib:set({Tab, commit_work}, </font>
+        |  				   mnesia2_lib:sort_commit(NewC))
+        |  	    end
+        |      end.
+        |  
+        |  db_put({ram, Ixt}, V) -&gt;
+   100..|      true = ?ets_insert(Ixt, V);
+        |  db_put({dets, Ixt}, V) -&gt;
+    30..|      ok = dets:insert(Ixt, V).
+        |  
+        |  db_get({ram, Ixt}, K) -&gt;
+    42..|      ?ets_lookup(Ixt, K);
+        |  db_get({dets, Ixt}, K) -&gt;
+    20..|      dets:lookup(Ixt, K).
+        |  
+        |  db_match_erase({ram, Ixt}, Pat) -&gt;
+    21..|      true = ?ets_match_delete(Ixt, Pat);
+        |  db_match_erase({dets, Ixt}, Pat) -&gt;
+    10..|      ok = dets:match_delete(Ixt, Pat).
+        |      
+        |  db_match({ram, Ixt}, Pat) -&gt;
+     6..|      ?ets_match(Ixt, Pat);
+        |  db_match({dets, Ixt}, Pat) -&gt;
+     2..|      dets:match(Ixt, Pat).
+        |      
+        |  get_index_table(Tab, Pos) -&gt;
+    70..|      get_index_table(Tab,  val({Tab, storage_type}), Pos).
+        |  
+        |  get_index_table(Tab, ram_copies, Pos) -&gt;
+    26..|      {ram,  val({Tab, {index, Pos}})};
+        |  get_index_table(Tab, disc_copies, Pos) -&gt;
+    22..|      {ram,  val({Tab, {index, Pos}})};
+        |  get_index_table(Tab, disc_only_copies, Pos) -&gt;
+    22..|      {dets, val({Tab, {index, Pos}})};
+        |  get_index_table(_Tab, unknown, _Pos) -&gt;
+<font color=red>     0..|      unknown.</font>
+        |  
+</pre>
+</body>
+</html>
