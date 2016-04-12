@@ -1,0 +1,1199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>/home/travis/build/lrascao/mnesia2/logs/ct_run.test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12.2016-04-12_08.50.13/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.50.40/mnesia2_bup.COVER.html</title>
+</head><body style='background-color: white; color: black'>
+<pre>
+File generated from /home/travis/build/lrascao/mnesia2/ebin/mnesia2_bup.erl by COVER 2016-04-12 at 08:54:22
+
+****************************************************************************
+
+        |  %%
+        |  %% %CopyrightBegin%
+        |  %%
+        |  %% Copyright Ericsson AB 1996-2016. All Rights Reserved.
+        |  %%
+        |  %% Licensed under the Apache License, Version 2.0 (the "License");
+        |  %% you may not use this file except in compliance with the License.
+        |  %% You may obtain a copy of the License at
+        |  %%
+        |  %%     http://www.apache.org/licenses/LICENSE-2.0
+        |  %%
+        |  %% Unless required by applicable law or agreed to in writing, software
+        |  %% distributed under the License is distributed on an "AS IS" BASIS,
+        |  %% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        |  %% See the License for the specific language governing permissions and
+        |  %% limitations under the License.
+        |  %%
+        |  %% %CopyrightEnd%
+        |  %%
+        |  
+        |  %%
+        |  -module(mnesia2_bup).
+        |  -export([
+        |           %% Public interface
+        |           iterate/4,
+        |           read_schema/2,
+        |           fallback_bup/0,
+        |           fallback_exists/0,
+        |           tm_fallback_start/1,
+        |           create_schema/1,
+        |           install_fallback/1,
+        |           install_fallback/2,
+        |           uninstall_fallback/0,
+        |           uninstall_fallback/1,
+        |           traverse_backup/4,
+        |           traverse_backup/6,
+        |           make_initial_backup/3,
+        |           fallback_to_schema/0,
+        |           lookup_schema/2,
+        |           schema2bup/1,
+        |           refresh_cookie/2,
+        |  
+        |           %% Internal
+        |           fallback_receiver/2,
+        |           install_fallback_master/2,
+        |           uninstall_fallback_master/2,
+        |           local_uninstall_fallback/2,
+        |           do_traverse_backup/7,
+        |           trav_apply/4
+        |          ]).
+        |  
+        |  -include("mnesia2.hrl").
+        |  -import(mnesia2_lib, [verbose/2, dbg_out/2]).
+        |  
+        |  -record(restore, {mode, bup_module, bup_data}).
+        |  
+        |  -record(fallback_args, {opaque,
+        |                          scope = global,
+        |                          module = mnesia2_monitor:get_env(backup_module),
+        |                          use_default_dir = true,
+        |                          mnesia2_dir,
+        |                          fallback_bup,
+        |                          fallback_tmp,
+        |                          skip_tables = [],
+        |                          keep_tables = [],
+        |                          default_op = keep_tables
+        |                         }).
+        |  
+        |  -type fallback_args() :: #fallback_args{}.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Backup iterator
+        |  
+        |  %% Reads schema section and iterates over all records in a backup.
+        |  %%
+        |  %% Fun(BunchOfRecords, Header, Schema, Acc) is applied when a suitable amount
+        |  %% of records has been collected.
+        |  %%
+        |  %% BunchOfRecords will be [] when the iteration is done.
+        |  iterate(Mod, Fun, Opaque, Acc) -&gt;
+    98..|      R = #restore{bup_module = Mod, bup_data = Opaque},
+    98..|      try read_schema_section(R) of
+        |  	{R2, {Header, Schema, Rest}} -&gt;
+    96..|  	    try iter(R2, Header, Schema, Fun, Acc, Rest) of
+        |  		{ok, R3, Res} -&gt;
+    96..|  		    close_read(R3),
+    96..|  		    {ok, Res}
+        |  	    catch throw:Err -&gt;
+<font color=red>     0..|  		    close_read(R2),</font>
+<font color=red>     0..|  		    Err;</font>
+        |  		  _:Reason -&gt;
+<font color=red>     0..|  		    close_read(R2),</font>
+<font color=red>     0..|  		    {error, {Reason, erlang:get_stacktrace()}}</font>
+        |  	    end
+        |      catch throw:{error,_} = Err -&gt;
+     2..|  	    Err
+        |      end.
+        |  
+        |  iter(R, Header, Schema, Fun, Acc, []) -&gt;
+    97..|      case safe_apply(R, read, [R#restore.bup_data]) of
+        |          {R2, []} -&gt;
+    96..|              Res = Fun([], Header, Schema, Acc),
+    96..|              {ok, R2, Res};
+        |          {R2, BupItems} -&gt;
+     1..|              iter(R2, Header, Schema, Fun, Acc, BupItems)
+        |      end;
+        |  iter(R, Header, Schema, Fun, Acc, BupItems) -&gt;
+     7..|      Acc2 = Fun(BupItems, Header, Schema, Acc),
+     7..|      iter(R, Header, Schema, Fun, Acc2, []).
+        |  
+        |  -spec safe_apply(#restore{}, atom(), list()) -&gt; tuple().
+        |  safe_apply(R, write, [_, Items]) when Items =:= [] -&gt;
+<font color=red>     0..|      R;</font>
+        |  safe_apply(R, What, Args) -&gt;
+   582..|      Abort = abort_restore_fun(R, What, Args),
+   582..|      Mod = R#restore.bup_module,
+   582..|      try apply(Mod, What, Args) of
+        |  	{ok, Opaque, Items} when What =:= read -&gt;
+   287..|  	    {R#restore{bup_data = Opaque}, Items};
+        |  	{ok, Opaque}  when What =/= read-&gt;
+   293..|  	    R#restore{bup_data = Opaque};
+        |  	{error, Re} -&gt;
+<font color=red>     0..|  	    Abort(Re);</font>
+        |  	Re -&gt;
+     1..|  	    Abort(Re)
+        |      catch _:Re -&gt;
+     1..|  	    Abort(Re)
+        |      end.
+        |  
+        |  -spec abort_restore_fun(_, _, _) -&gt; fun((_) -&gt; no_return()).
+        |  abort_restore_fun(R, What, Args) -&gt;
+   582..|      fun(Re) -&gt; abort_restore(R, What, Args, Re) end.
+        |  
+        |  abort_restore(R = #restore{bup_module=Mod}, What, Args, Reason) -&gt;
+     2..|      dbg_out("Restore aborted. ~p:~p~p -&gt; ~p~n",
+        |              [Mod, What, Args, Reason]),
+     2..|      close_read(R),
+     2..|      throw({error, Reason}).
+        |  
+        |  close_read(#restore{bup_module=Mod, bup_data=Opaque}) -&gt;
+    99..|      ?SAFE(Mod:close_read(Opaque)).
+        |  
+        |  fallback_to_schema() -&gt;
+<font color=red>     0..|      Fname = fallback_bup(),</font>
+<font color=red>     0..|      fallback_to_schema(Fname).</font>
+        |  
+        |  fallback_to_schema(Fname) -&gt;
+     1..|      Mod = mnesia2_backup,
+     1..|      case read_schema(Mod, Fname) of
+        |          {error, Reason} -&gt;
+<font color=red>     0..|              {error, Reason};</font>
+        |          Schema -&gt;
+     1..|              try lookup_schema(schema, Schema) of
+     1..|  		List -&gt; {ok, fallback, List}
+        |  	    catch throw:_ -&gt;
+<font color=red>     0..|  		    {error, "No schema in fallback"}</font>
+        |              end
+        |      end.
+        |  
+        |  %% Opens Opaque reads schema and then close
+        |  read_schema(Mod, Opaque) -&gt;
+     1..|      R = #restore{bup_module = Mod, bup_data = Opaque},
+     1..|      try read_schema_section(R) of
+        |          {R2, {_Header, Schema, _}} -&gt;
+     1..|  	    close_read(R2),
+     1..|  	    Schema
+        |      catch throw:{error,_} = Error -&gt;
+<font color=red>     0..|  	    Error</font>
+        |      end.
+        |  
+        |  %% Open backup media and extract schema
+        |  %% rewind backup media and leave it open
+        |  %% Returns {R, {Header, Schema}}
+        |  read_schema_section(R) -&gt;
+    99..|      {R2, {H, Schema, Rest}} = do_read_schema_section(R),
+    97..|      Schema2 = convert_schema(H#log_header.log_version, Schema),
+    97..|      {R2, {H, Schema2, Rest}}.
+        |  
+        |  do_read_schema_section(R) -&gt;
+    99..|      R2 = safe_apply(R, open_read, [R#restore.bup_data]),
+    97..|      try
+    97..|  	{R3, RawSchema} = safe_apply(R2, read, [R2#restore.bup_data]),
+    97..|  	do_read_schema_section(R3, verify_header(RawSchema), [])
+        |      catch T:E -&gt;
+<font color=red>     0..|  	    close_read(R2),</font>
+<font color=red>     0..|  	    erlang:raise(T,E,erlang:get_stacktrace())</font>
+        |      end.
+        |  
+        |  do_read_schema_section(R, {ok, B, C, []}, Acc) -&gt;
+    93..|      case safe_apply(R, read, [R#restore.bup_data]) of
+        |          {R2, []} -&gt;
+    91..|              {R2, {B, Acc, []}};
+        |          {R2, RawSchema} -&gt;
+     2..|              do_read_schema_section(R2, {ok, B, C, RawSchema}, Acc)
+        |      end;
+        |  
+        |  do_read_schema_section(R, {ok, B, C, [Head | Tail]}, Acc)
+        |          when element(1, Head) =:= schema -&gt;
+   133..|      do_read_schema_section(R, {ok, B, C, Tail}, Acc ++ [Head]);
+        |  
+        |  do_read_schema_section(R, {ok, B, _C, Rest}, Acc) -&gt;
+     6..|      {R, {B, Acc, Rest}};
+        |  
+        |  do_read_schema_section(_R, {error, Reason}, _Acc) -&gt;
+<font color=red>     0..|      throw({error, Reason}).</font>
+        |  
+        |  verify_header([H | RawSchema]) when is_record(H, log_header) -&gt;
+    97..|      Current = mnesia2_log:backup_log_header(),
+    97..|      if
+        |          H#log_header.log_kind =:= Current#log_header.log_kind -&gt;
+    97..|              Versions = ["0.1", "1.1", Current#log_header.log_version],
+    97..|              case lists:member(H#log_header.log_version, Versions) of
+        |                  true -&gt;
+    97..|                      {ok, H, Current, RawSchema};
+        |                  false -&gt;
+<font color=red>     0..|                      {error, {"Bad header version. Cannot be used as backup.", H}}</font>
+        |              end;
+        |          true -&gt;
+<font color=red>     0..|              {error, {"Bad kind of header. Cannot be used as backup.", H}}</font>
+        |      end;
+        |  verify_header(RawSchema) -&gt;
+<font color=red>     0..|      {error, {"Missing header. Cannot be used as backup.", ?CATCH(hd(RawSchema))}}.</font>
+        |  
+        |  refresh_cookie(Schema, NewCookie) -&gt;
+     6..|      case lists:keysearch(schema, 2, Schema) of
+        |          {value, {schema, schema, List}} -&gt;
+     5..|              Cs = mnesia2_schema:list2cs(List),
+     5..|              Cs2 = Cs#cstruct{cookie = NewCookie},
+     5..|              Item = {schema, schema, mnesia2_schema:cs2list(Cs2)},
+     5..|              lists:keyreplace(schema, 2, Schema, Item);
+        |  
+        |          false -&gt;
+     1..|              Reason = "No schema found. Cannot be used as backup.",
+     1..|              throw({error, {Reason, Schema}})
+        |      end.
+        |  
+        |  %% Convert schema items from an external backup
+        |  %% If backup format is the latest, no conversion is needed
+        |  %% All supported backup formats should have their converters
+        |  %% here as separate function clauses.
+        |  convert_schema("0.1", Schema) -&gt;
+<font color=red>     0..|      convert_0_1(Schema);</font>
+        |  convert_schema("1.1", Schema) -&gt;
+        |      %% The new backup format is a pure extension of the old one
+<font color=red>     0..|      Current = mnesia2_log:backup_log_header(),</font>
+<font color=red>     0..|      convert_schema(Current#log_header.log_version, Schema);</font>
+        |  convert_schema(Latest, Schema) -&gt;
+   145..|      H = mnesia2_log:backup_log_header(),
+   145..|      if
+        |          H#log_header.log_version =:= Latest -&gt;
+   145..|              Schema;
+        |          true -&gt;
+<font color=red>     0..|              Reason = "Bad backup header version. Cannot convert schema.",</font>
+<font color=red>     0..|              throw({error, {Reason, H}})</font>
+        |      end.
+        |  
+        |  %% Backward compatibility for 0.1
+        |  convert_0_1(Schema) -&gt;
+<font color=red>     0..|      case lists:keysearch(schema, 2, Schema) of</font>
+        |          {value, {schema, schema, List}} -&gt;
+<font color=red>     0..|              Schema2 = lists:keydelete(schema, 2, Schema),</font>
+<font color=red>     0..|              Cs = mnesia2_schema:list2cs(List),</font>
+<font color=red>     0..|              convert_0_1(Schema2, [], Cs);</font>
+        |          false -&gt;
+<font color=red>     0..|              List = mnesia2_schema:get_initial_schema(disc_copies, [node()]),</font>
+<font color=red>     0..|              Cs = mnesia2_schema:list2cs(List),</font>
+<font color=red>     0..|              convert_0_1(Schema, [], Cs)</font>
+        |      end.
+        |  
+        |  convert_0_1([{schema, cookie, Cookie} | Schema], Acc, Cs) -&gt;
+<font color=red>     0..|      convert_0_1(Schema, Acc, Cs#cstruct{cookie = Cookie});</font>
+        |  convert_0_1([{schema, db_nodes, DbNodes} | Schema], Acc, Cs) -&gt;
+<font color=red>     0..|      convert_0_1(Schema, Acc, Cs#cstruct{disc_copies = DbNodes});</font>
+        |  convert_0_1([{schema, version, Version} | Schema], Acc, Cs) -&gt;
+<font color=red>     0..|      convert_0_1(Schema, Acc, Cs#cstruct{version = Version});</font>
+        |  convert_0_1([{schema, Tab, Def} | Schema], Acc, Cs) -&gt;
+<font color=red>     0..|      Head =</font>
+        |          case lists:keysearch(index, 1, Def) of
+        |              {value, {index, PosList}} -&gt;
+        |                  %% Remove the snmp "index"
+<font color=red>     0..|                  P = PosList -- [snmp],</font>
+<font color=red>     0..|                  Def2 = lists:keyreplace(index, 1, Def, {index, P}),</font>
+<font color=red>     0..|                  {schema, Tab, Def2};</font>
+        |              false -&gt;
+<font color=red>     0..|                  {schema, Tab, Def}</font>
+        |          end,
+<font color=red>     0..|      convert_0_1(Schema, [Head | Acc], Cs);</font>
+        |  convert_0_1([Head | Schema], Acc, Cs) -&gt;
+<font color=red>     0..|      convert_0_1(Schema, [Head | Acc], Cs);</font>
+        |  convert_0_1([], Acc, Cs) -&gt;
+<font color=red>     0..|      [schema2bup({schema, schema, Cs}) | Acc].</font>
+        |  
+        |  %% Returns Val or throw error
+        |  lookup_schema(Key, Schema) -&gt;
+    49..|      case lists:keysearch(Key, 2, Schema) of
+    49..|          {value, {schema, Key, Val}} -&gt; Val;
+<font color=red>     0..|          false -&gt; throw({error, {"Cannot lookup", Key}})</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Backup compatibility
+        |  
+        |  %% Convert internal schema items to backup dito
+        |  schema2bup({schema, Tab}) -&gt;
+     1..|      {schema, Tab};
+        |  schema2bup({schema, Tab, TableDef}) -&gt;
+    63..|      {schema, Tab, mnesia2_schema:cs2list(TableDef)}.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Create schema on the given nodes
+        |  %% Requires that old schemas has been deleted
+        |  %% Returns ok | {error, Reason}
+        |  create_schema([]) -&gt;
+<font color=red>     0..|      create_schema([node()]);</font>
+        |  create_schema(Ns) when is_list(Ns) -&gt;
+    43..|      case is_set(Ns) of
+        |          true -&gt;
+    43..|              create_schema(Ns, mnesia2_schema:ensure_no_schema(Ns));
+        |          false -&gt;
+<font color=red>     0..|              {error, {combine_error, Ns}}</font>
+        |      end;
+        |  create_schema(Ns) -&gt;
+<font color=red>     0..|      {error, {badarg, Ns}}.</font>
+        |  
+        |  is_set(List) when is_list(List) -&gt;
+    43..|      ordsets:is_set(lists:sort(List));
+        |  is_set(_) -&gt;
+<font color=red>     0..|      false.</font>
+        |  
+        |  create_schema(Ns, ok) -&gt;
+        |      %% Ensure that we access the intended Mnesia2
+        |      %% directory. This function may not be called
+        |      %% during startup since it will cause the
+        |      %% application_controller to get into deadlock
+    43..|      case mnesia2_lib:ensure_loaded(?APPLICATION) of
+        |          ok -&gt;
+    43..|              case mnesia2_monitor:get_env(schema_location) of
+        |                  ram -&gt;
+<font color=red>     0..|                      {error, {has_no_disc, node()}};</font>
+        |                  _ -&gt;
+    43..|                      case mnesia2_schema:opt_create_dir(true, mnesia2_lib:dir()) of
+        |                          {error, What} -&gt;
+<font color=red>     0..|                              {error, What};</font>
+        |                          ok -&gt;
+    43..|                              Mod = mnesia2_backup,
+    43..|                              Str = mk_str(),
+    43..|                              File = mnesia2_lib:dir(Str),
+    43..|                              file:delete(File),
+    43..|                              try make_initial_backup(Ns, File, Mod) of
+        |                                  {ok, _Res} -&gt;
+    43..|                                      case do_install_fallback(File, Mod) of
+        |                                          ok -&gt;
+    43..|                                              file:delete(File),
+    43..|                                              ok;
+        |                                          {error, Reason} -&gt;
+<font color=red>     0..|                                              {error, Reason}</font>
+        |                                      end
+        |  			    catch throw:{error, Reason} -&gt;
+<font color=red>     0..|                                      {error, Reason}</font>
+        |                              end
+        |                      end
+        |              end;
+        |          {error, Reason} -&gt;
+<font color=red>     0..|              {error, Reason}</font>
+        |      end;
+        |  create_schema(_Ns, {error, Reason}) -&gt;
+<font color=red>     0..|      {error, Reason};</font>
+        |  create_schema(_Ns, Reason) -&gt;
+<font color=red>     0..|      {error, Reason}.</font>
+        |  
+        |  mk_str() -&gt;
+    43..|      Now = integer_to_list(mnesia2_time:unique_integer([positive])),
+    43..|      lists:concat([node()] ++ Now ++ ".TMP").
+        |  
+        |  make_initial_backup(Ns, Opaque, Mod) -&gt;
+    43..|      Orig = mnesia2_schema:get_initial_schema(disc_copies, Ns),
+    43..|      Modded = proplists:delete(storage_properties, proplists:delete(majority, Orig)),
+    43..|      Schema = [{schema, schema, Modded}],
+    43..|      O2 = do_apply(Mod, open_write, [Opaque], Opaque),
+    43..|      O3 = do_apply(Mod, write, [O2, [mnesia2_log:backup_log_header()]], O2),
+    43..|      O4 = do_apply(Mod, write, [O3, Schema], O3),
+    43..|      O5 = do_apply(Mod, commit_write, [O4], O4),
+    43..|      {ok, O5}.
+        |  
+        |  do_apply(_, write, [_, Items], Opaque) when Items =:= [] -&gt;
+<font color=red>     0..|      Opaque;</font>
+        |  do_apply(Mod, What, Args, _Opaque) -&gt;
+   176..|      try apply(Mod, What, Args) of
+   176..|          {ok, Opaque2} -&gt;  Opaque2;
+<font color=red>     0..|          {error, Reason} -&gt; throw({error, Reason})</font>
+        |      catch _:Reason -&gt;
+<font color=red>     0..|  	    throw({error, {'EXIT', Reason}})</font>
+        |      end.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Restore
+        |  
+        |  %% Restore schema and possibly other tables from a backup
+        |  %% and replicate them to the necessary nodes
+        |  %% Requires that old schemas has been deleted
+        |  %% Returns ok | {error, Reason}
+        |  install_fallback(Opaque) -&gt;
+     6..|      install_fallback(Opaque, []).
+        |  
+        |  install_fallback(Opaque, Args) -&gt;
+        |      %% Ensure that we access the intended Mnesia2
+        |      %% directory. This function may not be called
+        |      %% during startup since it will cause the
+        |      %% application_controller to get into deadlock
+     7..|      case mnesia2_lib:ensure_loaded(?APPLICATION) of
+        |          ok -&gt;
+     7..|              do_install_fallback(Opaque, Args);
+        |          {error, Reason} -&gt;
+<font color=red>     0..|              {error, Reason}</font>
+        |      end.
+        |  
+        |  do_install_fallback(Opaque,  Mod) when is_atom(Mod) -&gt;
+    44..|      do_install_fallback(Opaque, [{module, Mod}]);
+        |  do_install_fallback(Opaque, Args) when is_list(Args) -&gt;
+    50..|      case check_fallback_args(Args, #fallback_args{opaque = Opaque}) of
+        |          {ok, FA} -&gt;
+    50..|              do_install_fallback(FA);
+        |          {error, Reason} -&gt;
+<font color=red>     0..|              {error, Reason}</font>
+        |      end;
+        |  do_install_fallback(_Opaque, Args) -&gt;
+<font color=red>     0..|      {error, {badarg, Args}}.</font>
+        |  
+        |  check_fallback_args([Arg | Tail], FA) -&gt;
+    45..|      try check_fallback_arg_type(Arg, FA) of
+        |          FA2 -&gt;
+    45..|              check_fallback_args(Tail, FA2)
+        |      catch error:_ -&gt;
+<font color=red>     0..|  	    {error, {badarg, Arg}}</font>
+        |      end;
+        |  check_fallback_args([], FA) -&gt;
+    51..|      {ok, FA}.
+        |  
+        |  check_fallback_arg_type(Arg, FA) -&gt;
+    45..|      case Arg of
+        |          {scope, global} -&gt;
+     1..|              FA#fallback_args{scope = global};
+        |          {scope, local} -&gt;
+<font color=red>     0..|              FA#fallback_args{scope = local};</font>
+        |          {module, Mod} -&gt;
+    44..|              Mod2 = mnesia2_monitor:do_check_type(backup_module, Mod),
+    44..|              FA#fallback_args{module = Mod2};
+        |          {mnesia2_dir, Dir} -&gt;
+<font color=red>     0..|              FA#fallback_args{mnesia2_dir = Dir,</font>
+        |                               use_default_dir = false};
+        |          {keep_tables, Tabs} -&gt;
+<font color=red>     0..|              atom_list(Tabs),</font>
+<font color=red>     0..|              FA#fallback_args{keep_tables = Tabs};</font>
+        |          {skip_tables, Tabs} -&gt;
+<font color=red>     0..|              atom_list(Tabs),</font>
+<font color=red>     0..|              FA#fallback_args{skip_tables = Tabs};</font>
+        |          {default_op, keep_tables} -&gt;
+<font color=red>     0..|              FA#fallback_args{default_op = keep_tables};</font>
+        |          {default_op, skip_tables} -&gt;
+<font color=red>     0..|              FA#fallback_args{default_op = skip_tables}</font>
+        |      end.
+        |  
+        |  atom_list([H | T]) when is_atom(H) -&gt;
+<font color=red>     0..|      atom_list(T);</font>
+        |  atom_list([]) -&gt;
+<font color=red>     0..|      ok.</font>
+        |  
+        |  do_install_fallback(FA) -&gt;
+    50..|      Pid = spawn_link(?MODULE, install_fallback_master, [self(), FA]),
+    50..|      Res =
+        |          receive
+        |              {'EXIT', Pid, Reason} -&gt; % if appl has trapped exit
+<font color=red>     0..|                  {error, {'EXIT', Reason}};</font>
+        |              {Pid, Res2} -&gt;
+    50..|                  case Res2 of
+        |                      {ok, _} -&gt;
+    48..|                          ok;
+        |                      {error, Reason} -&gt;
+     2..|                          {error, {"Cannot install fallback", Reason}}
+        |                  end
+        |          end,
+    50..|      Res.
+        |  
+        |  install_fallback_master(ClientPid, FA) -&gt;
+    50..|      process_flag(trap_exit, true),
+    50..|      State = {start, FA},
+    50..|      Opaque = FA#fallback_args.opaque,
+    50..|      Mod = FA#fallback_args.module,
+    50..|      Res = iterate(Mod, fun restore_recs/4, Opaque, State),
+    50..|      unlink(ClientPid),
+    50..|      ClientPid ! {self(), Res},
+    50..|      exit(shutdown).
+        |  
+        |  restore_recs(_, _, _, stop) -&gt;
+<font color=red>     0..|      throw({error, "restore_recs already stopped"});</font>
+        |  
+        |  restore_recs(Recs, Header, Schema, {start, FA}) -&gt;
+        |      %% No records in backup
+    48..|      Schema2 = convert_schema(Header#log_header.log_version, Schema),
+    48..|      CreateList = lookup_schema(schema, Schema2),
+    48..|      try mnesia2_schema:list2cs(CreateList) of
+        |          Cs -&gt;
+    48..|              Ns = get_fallback_nodes(FA, Cs#cstruct.disc_copies),
+    48..|              global:set_lock({{mnesia2_table_lock, schema}, self()}, Ns, infinity),
+    48..|              Args = [self(), FA],
+    48..|              Pids = [spawn_link(N, ?MODULE, fallback_receiver, Args) || N &lt;- Ns],
+    48..|              send_fallback(Pids, {start, Header, Schema2}),
+    48..|              Res = restore_recs(Recs, Header, Schema2, Pids),
+    48..|              global:del_lock({{mnesia2_table_lock, schema}, self()}, Ns),
+    48..|              Res
+        |      catch _:Reason -&gt;
+<font color=red>     0..|              throw({error, {"Bad schema in restore_recs", Reason}})</font>
+        |      end;
+        |  
+        |  restore_recs([], _Header, _Schema, Pids) -&gt;
+    48..|      send_fallback(Pids, swap),
+    48..|      send_fallback(Pids, stop),
+    48..|      stop;
+        |  
+        |  restore_recs(Recs, _, _, Pids) -&gt;
+     4..|      send_fallback(Pids, {records, Recs}),
+     4..|      Pids.
+        |  
+        |  get_fallback_nodes(FA, Ns) -&gt;
+    49..|      This = node(),
+    49..|      case lists:member(This, Ns) of
+        |          true -&gt;
+    49..|              case FA#fallback_args.scope of
+    49..|                  global -&gt;  Ns;
+<font color=red>     0..|                  local -&gt; [This]</font>
+        |              end;
+        |          false -&gt;
+<font color=red>     0..|              throw({error, {"No disc resident schema on local node", Ns}})</font>
+        |      end.
+        |  
+        |  send_fallback(Pids, Msg) when is_list(Pids), Pids =/= [] -&gt;
+   148..|      lists:foreach(fun(Pid) -&gt; Pid ! {self(), Msg} end, Pids),
+   148..|      rec_answers(Pids, []).
+        |  
+        |  rec_answers([], Acc) -&gt;
+   148..|      case {lists:keysearch(error, 1, Acc), mnesia2_lib:uniq(Acc)} of
+<font color=red>     0..|          {{value, {error, Val}}, _} -&gt; throw({error, Val});</font>
+   148..|          {_, [SameAnswer]} -&gt; SameAnswer;
+<font color=red>     0..|          {_, Other} -&gt; throw({error, {"Different answers", Other}})</font>
+        |      end;
+        |  rec_answers(Pids, Acc) -&gt;
+   279..|      receive
+        |          {'EXIT', Pid, stopped} -&gt;
+    91..|              Pids2 = lists:delete(Pid, Pids),
+    91..|              rec_answers(Pids2, [stopped|Acc]);
+        |          {'EXIT', Pid, Reason} -&gt;
+<font color=red>     0..|              Pids2 = lists:delete(Pid, Pids),</font>
+<font color=red>     0..|              rec_answers(Pids2, [{error, {'EXIT', Pid, Reason}}|Acc]);</font>
+        |          {Pid, Reply} -&gt;
+   188..|              Pids2 = lists:delete(Pid, Pids),
+   188..|              rec_answers(Pids2, [Reply|Acc])
+        |      end.
+        |  
+        |  fallback_exists() -&gt;
+   174..|      Fname = fallback_bup(),
+   174..|      fallback_exists(Fname).
+        |  
+        |  fallback_exists(Fname) -&gt;
+   174..|      case mnesia2_monitor:use_dir() of
+        |          true -&gt;
+   160..|              mnesia2_lib:exists(Fname);
+        |          false -&gt;
+    14..|              case ?catch_val(active_fallback) of
+    14..|                  {'EXIT', _} -&gt; false;
+<font color=red>     0..|                  Bool -&gt; Bool</font>
+        |              end
+        |      end.
+        |  
+   491..|  fallback_name() -&gt; "FALLBACK.BUP".
+   395..|  fallback_bup() -&gt; mnesia2_lib:dir(fallback_name()).
+        |  
+    50..|  fallback_tmp_name() -&gt; "FALLBACK.TMP".
+        |  %% fallback_full_tmp_name() -&gt; mnesia2_lib:dir(fallback_tmp_name()).
+        |  
+        |  -spec fallback_receiver(pid(), fallback_args()) -&gt; no_return().
+        |  fallback_receiver(Master, FA) -&gt;
+    48..|      process_flag(trap_exit, true),
+        |  
+    48..|      Res = try
+    48..|  	      register(mnesia2_fallback, self()),
+    48..|  	      FA2 = check_fallback_dir(FA),
+    48..|  	      Bup = FA2#fallback_args.fallback_bup,
+    48..|  	      false = mnesia2_lib:exists(Bup),
+    48..|  	      Mod = mnesia2_backup,
+    48..|  	      Tmp = FA2#fallback_args.fallback_tmp,
+    48..|  	      R = #restore{mode = replace,
+        |  			   bup_module = Mod,
+        |  			   bup_data = Tmp},
+    48..|  	      file:delete(Tmp),
+    48..|  	      fallback_receiver_loop(Master, R, FA2, schema)
+        |  	  catch
+        |  	      error:_ -&gt;
+<font color=red>     0..|  		  Reason = {already_exists, node()},</font>
+<font color=red>     0..|  		  local_fallback_error(Master, Reason);</font>
+        |  	      throw:{error, Reason} -&gt;
+<font color=red>     0..|  		  local_fallback_error(Master, Reason)</font>
+        |  	  end,
+    48..|      exit(Res).
+        |  
+        |  local_fallback_error(Master, Reason) -&gt;
+<font color=red>     0..|      Master ! {self(), {error, Reason}},</font>
+<font color=red>     0..|      unlink(Master),</font>
+<font color=red>     0..|      exit(Reason).</font>
+        |  
+        |  
+        |  check_fallback_dir(Master, FA) -&gt;
+     2..|      try check_fallback_dir(FA)
+        |      catch throw:{error,Reason} -&gt;
+<font color=red>     0..|  	    local_fallback_error(Master, Reason)</font>
+        |      end.
+        |  
+        |  check_fallback_dir(FA) -&gt;
+    50..|      case mnesia2:system_info(schema_location) of
+        |          ram -&gt;
+<font color=red>     0..|              Reason = {has_no_disc, node()},</font>
+<font color=red>     0..|              throw({error, Reason});</font>
+        |          _ -&gt;
+    50..|              Dir = check_fallback_dir_arg(FA),
+    50..|              Bup = filename:join([Dir, fallback_name()]),
+    50..|              Tmp = filename:join([Dir, fallback_tmp_name()]),
+    50..|              FA#fallback_args{fallback_bup = Bup,
+        |                               fallback_tmp = Tmp,
+        |                               mnesia2_dir = Dir}
+        |      end.
+        |  
+        |  check_fallback_dir_arg(FA) -&gt;
+    50..|      case FA#fallback_args.use_default_dir of
+        |          true -&gt;
+    50..|              mnesia2_lib:dir();
+        |          false when FA#fallback_args.scope =:= local -&gt;
+<font color=red>     0..|              Dir = FA#fallback_args.mnesia2_dir,</font>
+<font color=red>     0..|              try mnesia2_monitor:do_check_type(dir, Dir)</font>
+        |  	    catch _:_ -&gt;
+<font color=red>     0..|                      Reason = {badarg, {dir, Dir}, node()},</font>
+<font color=red>     0..|  		    throw({error, Reason})</font>
+        |  	    end;
+        |          false when FA#fallback_args.scope =:= global -&gt;
+<font color=red>     0..|              Reason = {combine_error, global, dir, node()},</font>
+<font color=red>     0..|              throw({error, Reason})</font>
+        |      end.
+        |  
+        |  fallback_receiver_loop(Master, R, FA, State) -&gt;
+   148..|      receive
+        |          {Master, {start, Header, Schema}} when State =:= schema -&gt;
+    48..|              Dir = FA#fallback_args.mnesia2_dir,
+    48..|              throw_bad_res(ok, mnesia2_schema:opt_create_dir(true, Dir)),
+    48..|              R2 = safe_apply(R, open_write, [R#restore.bup_data]),
+    48..|              R3 = safe_apply(R2, write, [R2#restore.bup_data, [Header]]),
+    48..|              BupSchema = [schema2bup(S) || S &lt;- Schema],
+    48..|              R4 = safe_apply(R3, write, [R3#restore.bup_data, BupSchema]),
+    48..|              Master ! {self(), ok},
+    48..|              fallback_receiver_loop(Master, R4, FA, records);
+        |  
+        |          {Master, {records, Recs}} when State =:= records -&gt;
+     4..|              R2 = safe_apply(R, write, [R#restore.bup_data, Recs]),
+     4..|              Master ! {self(), ok},
+     4..|              fallback_receiver_loop(Master, R2, FA, records);
+        |  
+        |          {Master, swap} when State =/= schema -&gt;
+    48..|              ?eval_debug_fun({?MODULE, fallback_receiver_loop, pre_swap}, []),
+    48..|              safe_apply(R, commit_write, [R#restore.bup_data]),
+    48..|              Bup = FA#fallback_args.fallback_bup,
+    48..|              Tmp = FA#fallback_args.fallback_tmp,
+    48..|              throw_bad_res(ok, file:rename(Tmp, Bup)),
+    48..|              ?SAFE(mnesia2_lib:set(active_fallback, true)),
+    48..|              ?eval_debug_fun({?MODULE, fallback_receiver_loop, post_swap}, []),
+    48..|              Master ! {self(), ok},
+    48..|              fallback_receiver_loop(Master, R, FA, stop);
+        |  
+        |          {Master, stop} when State =:= stop -&gt;
+    48..|              stopped;
+        |  
+        |          Msg -&gt;
+<font color=red>     0..|              safe_apply(R, abort_write, [R#restore.bup_data]),</font>
+<font color=red>     0..|              Tmp = FA#fallback_args.fallback_tmp,</font>
+<font color=red>     0..|              file:delete(Tmp),</font>
+<font color=red>     0..|              throw({error, "Unexpected msg fallback_receiver_loop", Msg})</font>
+        |      end.
+        |  
+    96..|  throw_bad_res(Expected, Expected) -&gt; Expected;
+<font color=red>     0..|  throw_bad_res(_Expected, {error, Actual}) -&gt; throw({error, Actual});</font>
+<font color=red>     0..|  throw_bad_res(_Expected, Actual) -&gt; throw({error, Actual}).</font>
+        |  
+        |  -record(local_tab, {name,
+        |                      storage_type,
+        |                      open,
+        |                      add,
+        |                      close,
+        |  		    swap,
+        |                      record_name,
+        |                      opened}).
+        |  
+        |  tm_fallback_start(IgnoreFallback) -&gt;
+    71..|      mnesia2_schema:lock_schema(),
+    71..|      Res = do_fallback_start(fallback_exists(), IgnoreFallback),
+    71..|      mnesia2_schema:unlock_schema(),
+    71..|      case Res of
+    71..|          ok -&gt; ok;
+<font color=red>     0..|          {error, Reason} -&gt; exit(Reason)</font>
+        |      end.
+        |  
+        |  do_fallback_start(false, _IgnoreFallback) -&gt;
+    25..|      ok;
+        |  do_fallback_start(true, true) -&gt;
+<font color=red>     0..|      verbose("Ignoring fallback at startup, but leaving it active...~n", []),</font>
+<font color=red>     0..|      mnesia2_lib:set(active_fallback, true),</font>
+<font color=red>     0..|      ok;</font>
+        |  do_fallback_start(true, false) -&gt;
+    46..|      verbose("Starting from fallback...~n", []),
+        |  
+    46..|      BupFile = fallback_bup(),
+    46..|      Mod = mnesia2_backup,
+    46..|      LocalTabs = ?ets_new_table(mnesia2_local_tables, [set, public, {keypos, 2}]),
+    46..|      case iterate(Mod, fun restore_tables/4, BupFile, {start, LocalTabs}) of
+        |          {ok, _Res} -&gt;
+    46..|              ?SAFE(dets:close(schema)),
+    46..|              TmpSchema = mnesia2_lib:tab2tmp(schema),
+    46..|              DatSchema = mnesia2_lib:tab2dat(schema),
+    46..|  	    AllLT  = ?ets_match_object(LocalTabs, '_'),
+    46..|  	    ?ets_delete_table(LocalTabs),
+    46..|              case file:rename(TmpSchema, DatSchema) of
+        |                  ok -&gt;
+    46..|  		    [(LT#local_tab.swap)(LT#local_tab.name, LT) ||
+    46..|  			LT &lt;- AllLT, LT#local_tab.name =/= schema],
+    46..|                      file:delete(BupFile),
+    46..|                      ok;
+        |                  {error, Reason} -&gt;
+<font color=red>     0..|                      file:delete(TmpSchema),</font>
+<font color=red>     0..|                      {error, {"Cannot start from fallback. Rename error.", Reason}}</font>
+        |              end;
+        |          {error, Reason} -&gt;
+<font color=red>     0..|              {error, {"Cannot start from fallback", Reason}}</font>
+        |      end.
+        |  
+        |  restore_tables(All=[Rec | Recs], Header, Schema, State={local, LocalTabs, LT}) -&gt;
+   112..|      Tab = element(1, Rec),
+   112..|      if
+        |          Tab =:= LT#local_tab.name -&gt;
+   110..|              Key = element(2, Rec),
+   110..|              (LT#local_tab.add)(Tab, Key, Rec, LT),
+   110..|              restore_tables(Recs, Header, Schema, State);
+        |          true -&gt;
+     2..|              NewState = {new, LocalTabs},
+     2..|              restore_tables(All, Header, Schema, NewState)
+        |      end;
+        |  restore_tables(All=[Rec | Recs], Header, Schema, {new, LocalTabs}) -&gt;
+     5..|      Tab = element(1, Rec),
+     5..|      case ?ets_lookup(LocalTabs, Tab) of
+        |          [] -&gt;
+<font color=red>     0..|              State = {not_local, LocalTabs, Tab},</font>
+<font color=red>     0..|              restore_tables(Recs, Header, Schema, State);</font>
+        |          [LT] when is_record(LT, local_tab) -&gt;
+     5..|  	    State = {local, LocalTabs, LT},
+     5..|  	    case LT#local_tab.opened of
+<font color=red>     0..|  		true -&gt;  ignore;</font>
+        |  		false -&gt;
+     5..|  		    (LT#local_tab.open)(Tab, LT),
+     5..|  		    ?ets_insert(LocalTabs,LT#local_tab{opened=true})
+        |  	    end,
+     5..|              restore_tables(All, Header, Schema, State)
+        |      end;
+        |  restore_tables(All=[Rec | Recs], Header, Schema, S = {not_local, LocalTabs, PrevTab}) -&gt;
+<font color=red>     0..|      Tab = element(1, Rec),</font>
+<font color=red>     0..|      if</font>
+        |          Tab =:= PrevTab -&gt;
+<font color=red>     0..|              restore_tables(Recs, Header, Schema, S);</font>
+        |          true -&gt;
+<font color=red>     0..|              State = {new, LocalTabs},</font>
+<font color=red>     0..|              restore_tables(All, Header, Schema, State)</font>
+        |      end;
+        |  restore_tables(Recs, Header, Schema, {start, LocalTabs}) -&gt;
+    46..|      Dir = mnesia2_lib:dir(),
+    46..|      OldDir = filename:join([Dir, "OLD_DIR"]),
+    46..|      mnesia2_schema:purge_dir(OldDir, []),
+    46..|      mnesia2_schema:purge_dir(Dir, [fallback_name()]),
+    46..|      init_dat_files(Schema, LocalTabs),
+    46..|      State = {new, LocalTabs},
+    46..|      restore_tables(Recs, Header, Schema, State);
+        |  restore_tables([], _Header, _Schema, State) -&gt;
+    49..|      State.
+        |  
+        |  %% Creates all neccessary dat files and inserts
+        |  %% the table definitions in the schema table
+        |  %%
+        |  %% Returns a list of local_tab tuples for all local tables
+        |  init_dat_files(Schema, LocalTabs) -&gt;
+    46..|      TmpFile = mnesia2_lib:tab2tmp(schema),
+    46..|      Args = [{file, TmpFile}, {keypos, 2}, {type, set}],
+    46..|      case dets:open_file(schema, Args) of % Assume schema lock
+        |          {ok, _} -&gt;
+    46..|              create_dat_files(Schema, LocalTabs),
+    46..|              ok = dets:close(schema),
+    46..|              LocalTab = #local_tab{name         = schema,
+        |                                    storage_type = disc_copies,
+        |                                    open         = undefined,
+        |                                    add          = undefined,
+        |                                    close        = undefined,
+        |  				  swap         = undefined,
+        |                                    record_name  = schema,
+        |                                    opened = false},
+    46..|              ?ets_insert(LocalTabs, LocalTab);
+        |          {error, Reason} -&gt;
+<font color=red>     0..|              throw({error, {"Cannot open file", schema, Args, Reason}})</font>
+        |      end.
+        |  
+        |  create_dat_files([{schema, schema, TabDef} | Tail], LocalTabs) -&gt;
+    46..|      ok = dets:insert(schema, {schema, schema, TabDef}),
+    46..|      create_dat_files(Tail, LocalTabs);
+        |  create_dat_files([{schema, Tab, TabDef} | Tail], LocalTabs) -&gt;
+     7..|      TmpFile = mnesia2_lib:tab2tmp(Tab),
+     7..|      DatFile = mnesia2_lib:tab2dat(Tab),
+     7..|      DclFile = mnesia2_lib:tab2dcl(Tab),
+     7..|      DcdFile = mnesia2_lib:tab2dcd(Tab),
+     7..|      Expunge = fun() -&gt;
+     6..|  		      file:delete(DatFile),
+     6..|  		      file:delete(DclFile),
+     6..|  		      file:delete(DcdFile)
+        |  	      end,
+        |  
+     7..|      mnesia2_lib:dets_sync_close(Tab),
+     7..|      file:delete(TmpFile),
+     7..|      Cs = mnesia2_schema:list2cs(TabDef),
+     7..|      ok = dets:insert(schema, {schema, Tab, TabDef}),
+     7..|      RecName = Cs#cstruct.record_name,
+     7..|      Storage = mnesia2_lib:cs_to_storage_type(node(), Cs),
+     7..|      if
+        |  	Storage =:= unknown -&gt;
+     1..|              ok = dets:delete(schema, {schema, Tab}),
+     1..|              create_dat_files(Tail, LocalTabs);
+        |          Storage =:= disc_only_copies -&gt;
+     2..|              Args = [{file, TmpFile}, {keypos, 2},
+        |                      {type, mnesia2_lib:disk_type(Tab, Cs#cstruct.type)}],
+     2..|              Open = fun(T, LT) when T =:= LT#local_tab.name -&gt;
+     2..|                             case mnesia2_lib:dets_sync_open(T, Args) of
+        |                                 {ok, _} -&gt;
+     2..|                                     ok;
+        |                                 {error, Reason} -&gt;
+<font color=red>     0..|                                     throw({error, {"Cannot open file", T, Args, Reason}})</font>
+        |                             end
+        |                     end,
+     2..|              Add = fun(T, Key, Rec, LT) when T =:= LT#local_tab.name -&gt;
+    64..|                            case Rec of
+        |                                {_T, Key} -&gt;
+    19..|                                    ok = dets:delete(T, Key);
+        |                                (Rec) when T =:= RecName -&gt;
+    45..|                                    ok = dets:insert(Tab, Rec);
+        |                                (Rec) -&gt;
+<font color=red>     0..|                                    Rec2 = setelement(1, Rec, RecName),</font>
+<font color=red>     0..|                                    ok = dets:insert(T, Rec2)</font>
+        |                            end
+        |                    end,
+     2..|              Close = fun(T, LT) when T =:= LT#local_tab.name -&gt;
+     2..|                              mnesia2_lib:dets_sync_close(T)
+        |                      end,
+     2..|  	    Swap = fun(T, LT) when T =:= LT#local_tab.name -&gt;
+     2..|  			   Expunge(),
+     2..|  			   case LT#local_tab.opened of
+        |  			       true -&gt;
+     2..|  				   Close(T,LT);
+        |  			       false -&gt;
+<font color=red>     0..|  				   Open(T,LT),</font>
+<font color=red>     0..|  				   Close(T,LT)</font>
+        |  			   end,
+     2..|  			   case file:rename(TmpFile, DatFile) of
+        |  			       ok -&gt;
+     2..|  				   ok;
+        |  			       {error, Reason} -&gt;
+<font color=red>     0..|  				   mnesia2_lib:fatal("Cannot rename file ~p -&gt; ~p: ~p~n",</font>
+        |  						    [TmpFile, DatFile, Reason])
+        |  			   end
+        |  		   end,
+     2..|              LocalTab = #local_tab{name         = Tab,
+        |                                    storage_type = Storage,
+        |                                    open         = Open,
+        |                                    add          = Add,
+        |                                    close        = Close,
+        |  				  swap         = Swap,
+        |                                    record_name  = RecName,
+        |                                    opened       = false},
+     2..|              ?ets_insert(LocalTabs, LocalTab),
+     2..|  	    create_dat_files(Tail, LocalTabs);
+        |          Storage =:= ram_copies; Storage =:= disc_copies -&gt;
+     4..|  	    Open = fun(T, LT) when T =:= LT#local_tab.name -&gt;
+     3..|  			   mnesia2_log:open_log({?MODULE, T},
+        |  					       mnesia2_log:dcl_log_header(),
+        |  					       TmpFile,
+        |  					       false,
+        |  					       false,
+        |  					       read_write)
+        |  		   end,
+     4..|              Add = fun(T, Key, Rec, LT) when T =:= LT#local_tab.name -&gt;
+    46..|  			  Log = {?MODULE, T},
+    46..|  			  case Rec of
+        |  			      {_T, Key} -&gt;
+     9..|  				  mnesia2_log:append(Log, {{T, Key}, {T, Key}, delete});
+        |  			      (Rec) when T =:= RecName -&gt;
+    37..|  				  mnesia2_log:append(Log, {{T, Key}, Rec, write});
+        |  			      (Rec) -&gt;
+<font color=red>     0..|  				  Rec2 = setelement(1, Rec, RecName),</font>
+<font color=red>     0..|  				  mnesia2_log:append(Log, {{T, Key}, Rec2, write})</font>
+        |  			  end
+        |  		  end,
+     4..|              Close = fun(T, LT) when T =:= LT#local_tab.name -&gt;
+     3..|  			    mnesia2_log:close_log({?MODULE, T})
+        |                      end,
+     4..|  	    Swap = fun(T, LT) when T =:= LT#local_tab.name -&gt;
+     4..|  			   Expunge(),
+     4..|  			   if
+        |  			       Storage =:= ram_copies, LT#local_tab.opened =:= false -&gt;
+     1..|  				   ok;
+        |  			       true -&gt;
+     3..|  				   Log = mnesia2_log:open_log(fallback_tab,
+        |  							     mnesia2_log:dcd_log_header(),
+        |  							     DcdFile,
+        |  							     false),
+     3..|  				   mnesia2_log:close_log(Log),
+     3..|  				   case LT#local_tab.opened of
+        |  				       true -&gt;
+     3..|  					   Close(T,LT);
+        |  				       false -&gt;
+<font color=red>     0..|  					   Open(T,LT),</font>
+<font color=red>     0..|  					   Close(T,LT)</font>
+        |  				   end,
+     3..|  				   case file:rename(TmpFile, DclFile) of
+        |  				       ok -&gt;
+     3..|  					   ok;
+        |  				       {error, Reason} -&gt;
+<font color=red>     0..|  					   mnesia2_lib:fatal("Cannot rename file ~p -&gt; ~p: ~p~n",</font>
+        |  							    [TmpFile, DclFile, Reason])
+        |  				   end
+        |  			   end
+        |  		   end,
+     4..|              LocalTab = #local_tab{name         = Tab,
+        |                                    storage_type = Storage,
+        |                                    open         = Open,
+        |                                    add          = Add,
+        |                                    close        = Close,
+        |  				  swap         = Swap,
+        |                                    record_name  = RecName,
+        |  				  opened       = false
+        |  				 },
+     4..|              ?ets_insert(LocalTabs, LocalTab),
+     4..|              create_dat_files(Tail, LocalTabs)
+        |      end;
+        |  create_dat_files([{schema, Tab} | Tail], LocalTabs) -&gt;
+     1..|      ?ets_delete(LocalTabs, Tab),
+     1..|      ok = dets:delete(schema, {schema, Tab}),
+     1..|      TmpFile = mnesia2_lib:tab2tmp(Tab),
+     1..|      mnesia2_lib:dets_sync_close(Tab),
+     1..|      file:delete(TmpFile),
+     1..|      create_dat_files(Tail, LocalTabs);
+        |  create_dat_files([], _LocalTabs) -&gt;
+    46..|      ok.
+        |  
+        |  uninstall_fallback() -&gt;
+     1..|      uninstall_fallback([{scope, global}]).
+        |  
+        |  uninstall_fallback(Args) -&gt;
+     1..|      case check_fallback_args(Args, #fallback_args{}) of
+        |          {ok, FA} -&gt;
+     1..|              do_uninstall_fallback(FA);
+        |          {error, Reason} -&gt;
+<font color=red>     0..|              {error, Reason}</font>
+        |      end.
+        |  
+        |  do_uninstall_fallback(FA) -&gt;
+        |      %% Ensure that we access the intended Mnesia2
+        |      %% directory. This function may not be called
+        |      %% during startup since it will cause the
+        |      %% application_controller to get into deadlock
+     1..|      case mnesia2_lib:ensure_loaded(?APPLICATION) of
+        |          ok -&gt;
+     1..|              Pid = spawn_link(?MODULE, uninstall_fallback_master, [self(), FA]),
+     1..|              receive
+        |                  {'EXIT', Pid, Reason} -&gt; % if appl has trapped exit
+<font color=red>     0..|                      {error, {'EXIT', Reason}};</font>
+        |                  {Pid, Res} -&gt;
+     1..|                      Res
+        |              end;
+        |          {error, Reason} -&gt;
+<font color=red>     0..|              {error, Reason}</font>
+        |      end.
+        |  
+        |  -spec uninstall_fallback_master(pid(), fallback_args()) -&gt; no_return().
+        |  uninstall_fallback_master(ClientPid, FA) -&gt;
+     1..|      process_flag(trap_exit, true),
+        |  
+     1..|      FA2 = check_fallback_dir(ClientPid, FA), % May exit
+     1..|      Bup = FA2#fallback_args.fallback_bup,
+     1..|      case fallback_to_schema(Bup) of
+        |          {ok, fallback, List} -&gt;
+     1..|              Cs = mnesia2_schema:list2cs(List),
+     1..|              try get_fallback_nodes(FA, Cs#cstruct.disc_copies) of
+        |                  Ns when is_list(Ns) -&gt;
+     1..|                      do_uninstall(ClientPid, Ns, FA)
+        |  	    catch throw:{error, Reason} -&gt;
+<font color=red>     0..|                      local_fallback_error(ClientPid, Reason)</font>
+        |              end;
+        |          {error, Reason} -&gt;
+<font color=red>     0..|              local_fallback_error(ClientPid, Reason)</font>
+        |      end.
+        |  
+        |  do_uninstall(ClientPid, Ns, FA) -&gt;
+     1..|      Args = [self(), FA],
+     1..|      global:set_lock({{mnesia2_table_lock, schema}, self()}, Ns, infinity),
+     1..|      Pids = [spawn_link(N, ?MODULE, local_uninstall_fallback, Args) || N &lt;- Ns],
+     1..|      Res = do_uninstall(ClientPid, Pids, [], [], ok),
+     1..|      global:del_lock({{mnesia2_table_lock, schema}, self()}, Ns),
+     1..|      ClientPid ! {self(), Res},
+     1..|      unlink(ClientPid),
+     1..|      exit(shutdown).
+        |  
+        |  do_uninstall(ClientPid, [Pid | Pids], GoodPids, BadNodes, Res) -&gt;
+     2..|      receive
+        |          %% {'EXIT', ClientPid, _} -&gt;
+        |          %% client_exit;
+        |          {'EXIT', Pid, Reason} -&gt;
+<font color=red>     0..|              BadNode = node(Pid),</font>
+<font color=red>     0..|              BadRes = {error, {"Uninstall fallback", BadNode, Reason}},</font>
+<font color=red>     0..|              do_uninstall(ClientPid, Pids, GoodPids, [BadNode | BadNodes], BadRes);</font>
+        |          {Pid, {error, Reason}} -&gt;
+<font color=red>     0..|              BadNode = node(Pid),</font>
+<font color=red>     0..|              BadRes = {error, {"Uninstall fallback", BadNode, Reason}},</font>
+<font color=red>     0..|              do_uninstall(ClientPid, Pids, GoodPids, [BadNode | BadNodes], BadRes);</font>
+        |          {Pid, started} -&gt;
+     2..|              do_uninstall(ClientPid, Pids, [Pid | GoodPids], BadNodes, Res)
+        |      end;
+        |  do_uninstall(ClientPid, [], GoodPids, [], ok) -&gt;
+     1..|      lists:foreach(fun(Pid) -&gt; Pid ! {self(), do_uninstall} end, GoodPids),
+     1..|      rec_uninstall(ClientPid, GoodPids, ok);
+        |  do_uninstall(_ClientPid, [], GoodPids, BadNodes, BadRes) -&gt;
+<font color=red>     0..|      lists:foreach(fun(Pid) -&gt; exit(Pid, shutdown) end, GoodPids),</font>
+<font color=red>     0..|      {error, {node_not_running, BadNodes, BadRes}}.</font>
+        |  
+        |  local_uninstall_fallback(Master, FA) -&gt;
+        |      %% Don't trap exit
+        |  
+     1..|      register(mnesia2_fallback, self()),        % May exit
+     1..|      FA2 = check_fallback_dir(Master, FA),  % May exit
+     1..|      Master ! {self(), started},
+        |  
+     1..|      receive
+        |          {Master, do_uninstall} -&gt;
+     1..|              ?eval_debug_fun({?MODULE, uninstall_fallback2, pre_delete}, []),
+     1..|              ?SAFE(mnesia2_lib:set(active_fallback, false)),
+     1..|              Tmp = FA2#fallback_args.fallback_tmp,
+     1..|              Bup = FA2#fallback_args.fallback_bup,
+     1..|              file:delete(Tmp),
+     1..|              Res = file:delete(Bup),
+     1..|              ?eval_debug_fun({?MODULE, uninstall_fallback2, post_delete}, []),
+     1..|              Master ! {self(), Res},
+     1..|              unlink(Master),
+     1..|              exit(normal)
+        |      end.
+        |  
+        |  rec_uninstall(ClientPid, [Pid | Pids], AccRes) -&gt;
+     2..|      receive
+        |          %% {'EXIT', ClientPid, _} -&gt;
+        |          %% exit(shutdown);
+        |          {'EXIT', Pid, R} -&gt;
+<font color=red>     0..|              Reason = {node_not_running, {node(Pid), R}},</font>
+<font color=red>     0..|              rec_uninstall(ClientPid, Pids, {error, Reason});</font>
+        |          {Pid, ok} -&gt;
+     2..|              rec_uninstall(ClientPid, Pids, AccRes);
+        |          {Pid, BadRes} -&gt;
+<font color=red>     0..|              rec_uninstall(ClientPid, Pids, BadRes)</font>
+        |      end;
+        |  rec_uninstall(_, [], Res) -&gt;
+     1..|      Res.
+        |  
+        |  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        |  %% Backup traversal
+        |  
+        |  %% Iterate over a backup and produce a new backup.
+        |  %% Fun(BackupItem, Acc) is applied for each BackupItem.
+        |  %%
+        |  %% Valid BackupItems are:
+        |  %%
+        |  %%   {schema, Tab}              Table to be deleted
+        |  %%   {schema, Tab, CreateList}  Table to be created, CreateList may be empty
+        |  %%   {schema, db_nodes, DbNodes}List of nodes, defaults to [node()] OLD
+        |  %%   {schema, version, Version} Schema version                      OLD
+        |  %%   {schema, cookie, Cookie}   Unique schema cookie                OLD
+        |  %%   {Tab, Key}                 Oid for record to be deleted
+        |  %%   Record                     Record to be inserted.
+        |  %%
+        |  %% The Fun must return a tuple {BackupItems, NewAcc}
+        |  %% where BackupItems is a list of valid BackupItems and
+        |  %% NewAcc is a new accumulator value. Once BackupItems
+        |  %% that not are schema  related has been returned, no more schema
+        |  %% items may be  returned. The schema related items must always be
+        |  %% first in the backup.
+        |  %%
+        |  %% If TargetMod =:= read_only, no new backup will be created.
+        |  %%
+        |  %% Opening of the source media will be performed by
+        |  %% to SourceMod:open_read(Source)
+        |  %%
+        |  %% Opening of the target media will be performed by
+        |  %% to TargetMod:open_write(Target)
+        |  traverse_backup(Source, Target, Fun, Acc) -&gt;
+     1..|      Mod = mnesia2_monitor:get_env(backup_module),
+     1..|      traverse_backup(Source, Mod, Target, Mod, Fun, Acc).
+        |  
+        |  traverse_backup(Source, SourceMod, Target, TargetMod, Fun, Acc) -&gt;
+     2..|      Args = [self(), Source, SourceMod, Target, TargetMod, Fun, Acc],
+     2..|      Pid = spawn_link(?MODULE, do_traverse_backup, Args),
+     2..|      receive
+        |          {'EXIT', Pid, Reason} -&gt;
+<font color=red>     0..|              {error, {"Backup traversal crashed", Reason}};</font>
+        |          {iter_done, Pid, Res} -&gt;
+     2..|              Res
+        |      end.
+        |  
+        |  do_traverse_backup(ClientPid, Source, SourceMod, Target, TargetMod, Fun, Acc) -&gt;
+     2..|      process_flag(trap_exit, true),
+     2..|      Iter =
+        |          if
+        |              TargetMod =/= read_only -&gt;
+     1..|                  try do_apply(TargetMod, open_write, [Target], Target)
+        |  		catch throw:{error, Error} -&gt;
+<font color=red>     0..|                          unlink(ClientPid),</font>
+<font color=red>     0..|                          ClientPid ! {iter_done, self(), {error, Error}},</font>
+<font color=red>     0..|                          exit(Error)</font>
+        |                  end;
+        |              true -&gt;
+     1..|                  ignore
+        |          end,
+     2..|      A = {start, Fun, Acc, TargetMod, Iter},
+     2..|      Res =
+        |          case iterate(SourceMod, fun trav_apply/4, Source, A) of
+        |              {ok, {iter, _, Acc2, _, Iter2}} when TargetMod =/= read_only -&gt;
+     1..|                  try
+     1..|  		    do_apply(TargetMod, commit_write, [Iter2], Iter2),
+     1..|  		    {ok, Acc2}
+        |  		catch throw:{error, Reason} -&gt;
+<font color=red>     0..|                          {error, Reason}</font>
+        |                  end;
+        |              {ok, {iter, _, Acc2, _, _}} -&gt;
+     1..|                  {ok, Acc2};
+        |              {error, Reason} when TargetMod =/= read_only-&gt;
+<font color=red>     0..|                  ?CATCH(do_apply(TargetMod, abort_write, [Iter], Iter)),</font>
+<font color=red>     0..|                  {error, {"Backup traversal failed", Reason}};</font>
+        |              {error, Reason} -&gt;
+<font color=red>     0..|                  {error, {"Backup traversal failed", Reason}}</font>
+        |          end,
+     2..|      unlink(ClientPid),
+     2..|      ClientPid ! {iter_done, self(), Res}.
+        |  
+        |  trav_apply(Recs, _Header, _Schema, {iter, Fun, Acc, Mod, Iter}) -&gt;
+     4..|      {NewRecs, Acc2} = filter_foldl(Fun, Acc, Recs),
+     4..|      if
+        |          Mod =/= read_only, NewRecs =/= [] -&gt;
+     1..|              Iter2 = do_apply(Mod, write, [Iter, NewRecs], Iter),
+     1..|              {iter, Fun, Acc2, Mod, Iter2};
+        |          true -&gt;
+     3..|              {iter, Fun, Acc2, Mod, Iter}
+        |      end;
+        |  trav_apply(Recs, Header, Schema, {start, Fun, Acc, Mod, Iter}) -&gt;
+     2..|      Iter2 =
+        |          if
+        |              Mod =/= read_only -&gt;
+     1..|                  do_apply(Mod, write, [Iter, [Header]], Iter);
+        |              true -&gt;
+     1..|                  Iter
+        |          end,
+     2..|      TravAcc = trav_apply(Schema, Header, Schema, {iter, Fun, Acc, Mod, Iter2}),
+     2..|      trav_apply(Recs, Header, Schema, TravAcc).
+        |  
+        |  filter_foldl(Fun, Acc, [Head|Tail]) -&gt;
+    10..|      case Fun(Head, Acc) of
+        |          {HeadItems, HeadAcc} when is_list(HeadItems) -&gt;
+    10..|              {TailItems, TailAcc} = filter_foldl(Fun, HeadAcc, Tail),
+    10..|              {HeadItems ++ TailItems, TailAcc};
+        |          Other -&gt;
+<font color=red>     0..|              throw({error, {"Fun must return a list", Other}})</font>
+        |      end;
+        |  filter_foldl(_Fun, Acc, []) -&gt;
+     4..|      {[], Acc}.
+        |  
+</pre>
+</body>
+</html>

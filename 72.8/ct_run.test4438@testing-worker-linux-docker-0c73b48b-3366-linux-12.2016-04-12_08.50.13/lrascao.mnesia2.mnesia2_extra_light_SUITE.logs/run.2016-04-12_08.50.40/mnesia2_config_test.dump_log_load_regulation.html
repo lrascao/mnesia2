@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Test mnesia2_config_test:dump_log_load_regulation result</title>
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="../../ct_default.css" type="text/css">
+<script type="text/javascript" src="../../jquery-latest.js"></script>
+<script type="text/javascript" src="../../jquery.tablesorter.min.js"></script>
+</head>
+<body>
+
+=== <a href="mnesia2_config_test.src.html#dump_log_load_regulation-1">source code for mnesia2_config_test:dump_log_load_regulation/1</a>
+
+<pre>
+<a name="top"></a>
+=== Test case started with:
+mnesia2_config_test:dump_log_load_regulation([{watchdog,<0.2883.0>},
+                                              {tc_logfile,
+                                               "/home/travis/build/lrascao/mnesia2/logs/ct_run.test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12.2016-04-12_08.50.13/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.50.40/mnesia2_config_test.dump_log_load_regulation.html"},
+                                              {tc_group_properties,
+                                               [{suite,mnesia2_config_test}]},
+                                              {tc_group_path,
+                                               [[{name,config}],
+                                                [{name,registry}],
+                                                [{name,registry}],
+                                                [{name,qlc}],
+                                                [{name,qlc}],
+                                                [{name,nice}],
+                                                [{name,nice}],
+                                                [{name,install}],
+                                                [{name,install}],
+                                                [{name,extra_light}]]},
+                                              {data_dir,
+                                               "/home/travis/build/lrascao/mnesia2/test/mnesia2_config_test_data/"},
+                                              {priv_dir,
+                                               "/home/travis/build/lrascao/mnesia2/logs/ct_run.test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12.2016-04-12_08.50.13/lrascao.mnesia2.mnesia2_extra_light_SUITE.logs/run.2016-04-12_08.50.40/log_private/"},
+                                              {nodenames,
+                                               ['d523303o523309n523311@testing-worker-linux-docker-0c73b48b-3366-linux-12',
+                                                'd523358o523350n523353@testing-worker-linux-docker-0c73b48b-3366-linux-12']}])
+
+=== Current directory is "/home/travis/build/lrascao/mnesia2/logs/ct_run.test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12.2016-04-12_08.50.13"
+
+=== Started at 2016-04-12 08:51:11
+
+<br />
+TPC-B: Table config: [{db_nodes,['test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12']},
+                      {n_replicas,1},
+                      {replica_nodes,['test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12']},
+                      {replica_type,disc_copies},
+                      {use_running_mnesia2,true},
+                      {n_fragments,0},
+                      {n_branches,10},
+                      {n_tellers_per_branch,10},
+                      {n_accounts_per_branch,5},
+                      {branch_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890}},
+                      {account_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234567890,
+                                       123456789012345678901234567890123456789012345678901234}},
+                      {teller_filler,{123456789012345678901234567890123456789012345678901234567890,
+                                      123456789012345678901234567890123456789012345678901234567890,
+                                      1234567890123456789012345678901234567890123456789012345678}}] 
+
+TPC-B: Generating 10 branches a 102 bytes
+
+TPC-B: Generating 10 * 10 tellers a 103 bytes
+
+TPC-B: Generating 10 * 5 accounts a 103 bytes
+
+TPC-B: Generating 0 history records a 42 bytes
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+TPC-B: Run config: [{driver_nodes,['test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12']},
+                    {n_drivers_per_node,5},
+                    {use_running_mnesia2,true},
+                    {seed,undefined},
+                    {stop_after,15000},
+                    {report_interval,3000},
+                    {send_bench_report,false},
+                    {use_sticky_locks,false},
+                    {spawn_near_branch,false},
+                    {activity_type,transaction},
+                    {reuse_history_id,true}] 
+
+TPC-B: Orphan branches: []
+
+TPC-B: Driver 1 started as <0.3952.0> on node 'test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12' with 2 local branches
+
+TPC-B: Driver 2 started as <0.3953.0> on node 'test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12' with 2 local branches
+
+TPC-B: Driver 3 started as <0.3954.0> on node 'test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12' with 2 local branches
+
+TPC-B: Driver 4 started as <0.3955.0> on node 'test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12' with 2 local branches
+
+TPC-B: Driver 5 started as <0.3956.0> on node 'test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12' with 2 local branches
+
+Mnesia2('test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+TPC-B: 1 iter 0 diff 2138 (0) tps 2338 avg micros 62062 max micros 1.1874455100261552 unfairness
+
+TPC-B: 2 iter -122 diff 2016 (0) tps 2480 avg micros 60304 max micros 1.117395029991431 unfairness
+
+TPC-B: 3 iter -6 diff 2010 (0) tps 2487 avg micros 200497 max micros 1.305607476635514 unfairness
+
+Mnesia2('test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12'): ** WARNING ** Mnesia2 is overloaded: {dump_log,write_threshold}
+
+TPC-B: 4 iter +51 diff 2061 (0) tps 2426 avg micros 56973 max micros 1.1060344827586206 unfairness
+
+TPC-B: Driver 3 (<0.3954.0>) on node 'test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12' stopped: {time,5740,4631,4631,14969709,189565}
+
+TPC-B: Driver 2 (<0.3953.0>) on node 'test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12' stopped: {time,6149,4927,4927,14968050,200497}
+
+TPC-B: Driver 1 (<0.3952.0>) on node 'test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12' stopped: {time,6480,5139,5139,14967789,115923}
+
+TPC-B: Driver 4 (<0.3955.0>) on node 'test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12' stopped: {time,6153,4905,4905,14955073,140190}
+
+TPC-B: Driver 5 (<0.3956.0>) on node 'test4438@testing-worker-linux-docker-0c73b48b-3366-linux-12' stopped: {time,6283,5063,5063,14950448,112079}
+
+TPC-B: 4 iter +9 diff 2070 (0) tps 2415 avg micros 64049 max micros 1.2091974752028856 unfairness
+
+TPC-B: 2059 (0) transactions per second, duration of longest transaction was 200 milliseconds
+
+TPC-B: Verifying tables: [branch,teller,account,history]
+
+<a name="end"></a>
+
+
+=== Ended at 2016-04-12 08:51:27
+=== successfully completed test case
+=== returned value = ok
+</pre>
+<center>
+<br /><hr /><p>
+<a href="../../../all_runs.html">Test run history
+</a>  |  <a href="../../../index.html">Top level test index
+</a>
+</p>
+<div class="copyright">Copyright &copy; 2016 <a href="http://www.erlang.org">Open Telecom Platform</a><br />
+Updated: <!date>Tue Apr 12 2016 08:51:11<!/date><br />
+</div>
+</center>
+</body>
+</html>
