@@ -68,9 +68,15 @@ block(Tab) ->
     ets:update_counter(?BLOCKED_TABS_TABLE,
                        Tab, {2, 1}).
 
+
 -spec unblock(Tab :: atom()) -> integer().
 unblock(Tab) ->
-    %% decrease the counter (which is the second element in the tuple)
-    %% by 1, make sure it doesn't fall below 0
-    ets:update_counter(?BLOCKED_TABS_TABLE,
-                       Tab, {2, -1, 0, 0}).
+    %% make sure the table exists
+    _ = case ets:lookup(?BLOCKED_TABS_TABLE, Tab) of
+            [] -> new(Tab);
+            _ ->
+                %% decrease the counter (which is the second element in the tuple)
+                %% by 1, make sure it doesn't fall below 0
+                ets:update_counter(?BLOCKED_TABS_TABLE,
+                                   Tab, {2, -1, 0, 0})
+         end.
